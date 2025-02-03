@@ -86,4 +86,4 @@ def lambda_handler(event, context):
         cursor.close()
         connection.close() 
 
-print("testing GH actions works correctly, THIS CODE TO BE REMOVED")
+print("testing GH actions works correctly, THIS CODE TO BE REMOVED !")

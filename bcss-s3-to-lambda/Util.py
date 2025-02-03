@@ -65,4 +65,4 @@ class Util:
             private_key = f.read()
             return private_key
 
-print("testing GH actions works correctly, THIS CODE TO BE REMOVED")
+print("testing GH actions works correctly, THIS CODE TO BE REMOVED !")
