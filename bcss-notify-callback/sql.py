@@ -25,5 +25,3 @@ def call_update_message_status(cursor, data, var):
     #response_code_array.append(response_code)
 
     return response_code
-
-print("testing GH actions works correctly, THIS CODE TO BE REMOVED")

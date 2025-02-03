@@ -1,14 +1,14 @@
-name: Deploy BCSS Callback Lambda
+name: Deploy BCSS S3 To Lambda Trigger
 
 on:
   push:
     paths:
-      - "bcss-notify-callback/**"
+      - "bcss-s3-to-lambda/**"
     branches: [main]
-  workflow_dispatch:
 
 jobs:
-  AssumeRoleAndCallIdentity:
+  AssumeRoleAndUpdateAWS:
+    name: "Assume AWS Role and Deploy Changes to Lambda"
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -28,11 +28,11 @@ jobs:
       - name: Install zip tool
         uses: montudor/action-zip@v1
       - name: Create zip file for Lambda function
-        run: cd bcss-notify-callback && zip -r code.zip .
+        run: cd bcss-s3-to-lambda && zip -r code.zip .
       - name: AWS CLI v2
         uses: imehedi/actions-awscli-v2@latest
         with:
           args:
             "lambda update-function-code \ 
-            --function-name arn:aws:lambda:eu-west-2:730319765130:function:bcss-notify-callback
+            --function-name arn:aws:lambda:eu-west-2:730319765130:function:bcss-s3-to-lambda-trigger
             --zip-file fileb://bcss-notify-callback/code.zip"
