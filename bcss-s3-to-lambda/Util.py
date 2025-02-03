@@ -64,5 +64,3 @@ class Util:
         with open(private_key_path, "r", encoding="utf-8") as f:
             private_key = f.read()
             return private_key
-
-print("testing GH actions works correctly, THIS CODE TO BE REMOVED !")
