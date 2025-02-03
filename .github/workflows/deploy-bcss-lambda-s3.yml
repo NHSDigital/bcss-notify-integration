@@ -35,4 +35,4 @@ jobs:
           args:
             "lambda update-function-code \ 
             --function-name arn:aws:lambda:eu-west-2:730319765130:function:bcss-lambda-s3-oracle
-            --zip-file fileb://bcss-notify-callback/code.zip"
+            --zip-file fileb://bcss-lambda-s3-oracle/code.zip"
