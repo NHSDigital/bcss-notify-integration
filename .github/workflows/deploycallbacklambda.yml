@@ -5,7 +5,7 @@ on:
     paths:
       - "bcss-notify-callback/**"
     branches: [main]
-
+  workflow_dispatch:
 
 jobs:
   AssumeRoleAndCallIdentity:
