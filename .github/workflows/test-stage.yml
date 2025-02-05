@@ -35,7 +35,7 @@ jobs:
         run: |
           pip install pipenv
           pipenv install --dev
-          pip install pytest
+          pip install pytest-cov
           pytest
 
       - name: "Run unit test suite"
