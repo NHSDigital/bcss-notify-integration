@@ -34,7 +34,7 @@ jobs:
       - name: "Install dependencies"
         run: |
           pip install pipenv
-          pipenv install --dev --system
+          pipenv install --dev
 
       - name: "Run unit test suite"
         run: |
