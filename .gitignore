@@ -1,1 +1,26 @@
-.idea/
+# Terraform files
+terraform/**/.terraform/*       # Ignore everything inside .terraform directories anywhere
+!terraform/**/.terraform/.terraform.lock.hcl # But DO NOT ignore the lock file
+!terraform/**/.terraform/providers/* # But DO NOT ignore the providers folder
+!terraform/**/.terraform/providers/*/.lock # But DO NOT ignore the provider lock files
+
+# Other Terraform files
+terraform/**/*.tfstate         # Ignore all .tfstate files
+terraform/**/*.tfstate.*       # Ignore backup state files
+terraform/**/crash.log         # Ignore crash logs
+terraform/**/override.tf       # Ignore override files
+terraform/**/override-*.tf     # Ignore more override files
+terraform/**/*.terraformrc     # Ignore CLI config files
+terraform/**/*.tfvars         # Ignore all .tfvars files
+terraform/**/secrets.tfvars   # Ignore secrets files
+terraform/**/*.vars.json      # Ignore JSON variable files
+
+# Temporary files, etc.
+*~               # Backup files
+\#*              # More backup files
+.DS_Store        # macOS Finder store (Correct location)
+.idea/           # IntelliJ IDEA project files
+.vscode/         # VS Code files
+.env             # Environment variables file
+*.zip
+*.log
