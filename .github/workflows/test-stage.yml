@@ -22,6 +22,7 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           python -m pip install --upgrade pip
+
   test-unit:
     name: "Unit tests"
     needs: set-up-dependencies
@@ -34,9 +35,7 @@ jobs:
       - name: "Install dependencies"
         run: |
           pip install pipenv
-          pipenv install --dev
-          pip install pytest-cov
-          pytest
+          pipenv install --dev --system
 
       - name: "Run unit test suite"
         run: |
