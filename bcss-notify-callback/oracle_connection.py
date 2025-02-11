@@ -6,10 +6,12 @@ PORT = os.getenv("port")
 SID = os.getenv("sid")
 SECRET_NAME = os.getenv("secret_name")
 BCSS_SECRET_NAME = os.getenv("bcss_secret_name")
+BCSS_HOST = os.getenv("bcss_host")
+
 
 def oracle_connection(client):
     get_secret_value_response = client.get_secret_value(SecretId=BCSS_SECRET_NAME)
-        
+
     # Extract database credentials from the secret
     secret = json.loads(get_secret_value_response["SecretString"])
     db_user = secret["username"]
