@@ -23,7 +23,7 @@ jobs:
           source venv/bin/activate
           python -m pip install --upgrade pip
 
-  test-unit:
+  linting:
     name: "Unit tests"
     needs: set-up-dependencies
     runs-on: ubuntu-latest
@@ -37,6 +37,6 @@ jobs:
           pip install pipenv
           pipenv install --dev --system
 
-      - name: "Run unit test suite"
+      - name: "Run linting"
         run: |
           ./test-unit.sh
