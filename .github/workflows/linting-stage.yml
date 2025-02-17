@@ -22,3 +22,21 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           python -m pip install --upgrade pip
+  
+  linting:
+    name: "linting"
+    needs: set-up-dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "Install dependencies"
+        run: |
+          pip install pipenv
+          pipenv install --dev --system
+
+      - name: "run linting:"
+        run: |
+          pylint $(git ls-files '*.py')
