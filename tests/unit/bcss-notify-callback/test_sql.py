@@ -1,5 +1,6 @@
-class TestSQL:
-    def test_initialization(
-        self,
-    ):
-        assert 1 == 0
+import pytest
+
+
+@pytest.fixture
+def setup():
+    pass

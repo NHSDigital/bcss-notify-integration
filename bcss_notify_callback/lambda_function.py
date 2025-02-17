@@ -3,9 +3,9 @@ import hmac
 import os
 import boto3
 import json
-import sql as sql
-from oracle_connection import oracle_connection
-from patients_to_update import patient_to_update
+import bcss_notify_callback.sql as sql
+from bcss_notify_callback.oracle_connection import oracle_connection
+from bcss_notify_callback.patients_to_update import patient_to_update
 from typing import Dict, Any
 
 REGION_NAME = os.getenv("region_name")
