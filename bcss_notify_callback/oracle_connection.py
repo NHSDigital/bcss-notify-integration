@@ -4,7 +4,6 @@ import os
 
 PORT = os.getenv("port")
 SID = os.getenv("sid")
-SECRET_NAME = os.getenv("secret_name")
 BCSS_SECRET_NAME = os.getenv("bcss_secret_name")
 BCSS_HOST = os.getenv("bcss_host")
 
