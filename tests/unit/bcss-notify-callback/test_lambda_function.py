@@ -8,12 +8,12 @@ from bcss_notify_callback.lambda_function import (
 
 
 @pytest.fixture
-def setup(self, monkeypatch):
+def setup(monkeypatch):
     monkeypatch.setenv("APPLICATION_ID", "application_id")
     monkeypatch.setenv("NOTIFY_API_KEY", "api_key")
 
 
-def test_generate_hmac_signature_valid(self):
+def test_generate_hmac_signature_valid(setup):
     """Test that an HMAC SHA-256 signature is generated correctly."""
     body = "body"
     signature = hmac.new(
@@ -23,7 +23,7 @@ def test_generate_hmac_signature_valid(self):
     assert generate_hmac_signature("application_id.api_key", body) == signature
 
 
-def test_validate_signature_valid(self):
+def test_validate_signature_valid(setup):
     """Test that a valid signature passes verification."""
     body = "body"
     signature = hmac.new(
@@ -33,7 +33,7 @@ def test_validate_signature_valid(self):
     assert validate_signature(signature, "application_id.api_key", body)
 
 
-def test_validate_signature_invalid(self):
+def test_validate_signature_invalid(setup):
     """Test that an invalid signature does not pass verification."""
     body = "body"
     signature = hmac.new(
@@ -46,21 +46,21 @@ def test_validate_signature_invalid(self):
 # There is a lot of code in this handler, worth breaking down into smaller chunks?
 
 
-def test_lambda_handler(self):
+def test_lambda_handler(setup):
     """Test that the Lambda handler returns the correct response."""
     pass
 
 
-def test_is_duplicate_request_valid(self):
+def test_is_duplicate_request_valid(setup):
     """Test that a duplicate request is identified correctly."""
     pass
 
 
-def test_process_callback_valid(self):
+def test_process_callback_valid(setup):
     """Test that a callback is processed correctly."""
     pass
 
 
-def test_process_callback_invalid(self):
+def test_process_callback_invalid(setup):
     """Test that missing callback_id is handled correctly"""
     pass

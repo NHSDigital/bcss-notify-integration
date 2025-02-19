@@ -14,7 +14,6 @@ def read_queue_table_to_dict(cursor):
 def call_update_message_status(cursor, data, var):
     # Will need to loop through all the message_ids (in_val2) in a batch (in_val1) and update the status to the new status (in_val3)
     response_code = 1
-    print("Run PKG_NOTIFY_WRAP.F_UPDATE_MESSAGE_STATUS")
     cursor.execute(
         """
             begin
@@ -24,7 +23,5 @@ def call_update_message_status(cursor, data, var):
         data,
     )
     response_code = var.getvalue()
-    print("Response Code: ", response_code)
-    # response_code_array.append(response_code)
 
     return response_code
