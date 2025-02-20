@@ -1,14 +1,23 @@
 def read_queue_table_to_dict(cursor):
-    cursor.execute(
-        "select NHS_NUMBER, MESSAGE_ID, BATCH_ID, MESSAGE_STATUS from V_NOTIFY_MESSAGE_QUEUE"
-    )
-    columns = [col[0] for col in cursor.description]
-    queue_data = cursor.fetchall()
+    try:
+        cursor.execute(
+            "select NHS_NUMBER, MESSAGE_ID, BATCH_ID, MESSAGE_STATUS from V_NOTIFY_MESSAGE_QUEUE"
+        )
+        columns = [col[0] for col in cursor.description]
+        queue_data = cursor.fetchall()
 
-    # Dict for NHS_NUMBER, MESSAGE_ID, BATCH_ID, MESSAGE_STATUS for everything fetched from queue table
-    queue_dict = [dict(zip(columns, row)) for row in queue_data]
+        if not queue_data:
+            # log warning? error? raise exception, would cause errors later on
+            raise (TypeError("No data found in queue table"))
 
-    return queue_dict
+        # Dict for NHS_NUMBER, MESSAGE_ID, BATCH_ID, MESSAGE_STATUS for everything fetched from queue table
+        queue_dict = [dict(zip(columns, row)) for row in queue_data]
+
+        return queue_dict
+    except Exception as e:
+        # logger instead
+        print(f"Error reading queue table to dict {e}")
+        raise
 
 
 def call_update_message_status(cursor, data, var):

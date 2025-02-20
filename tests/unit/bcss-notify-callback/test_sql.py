@@ -50,13 +50,11 @@ def test_read_queue_table_to_dict_valid(setup):
 
 
 def test_read_queue_table_to_dict_invalid_empty_table(setup):
-    mock_cursor = setup
+    with pytest.raises(TypeError):
+        mock_cursor = setup
+        mock_cursor.fetchall.return_value = None
 
-    mock_cursor.return_value = []
-
-    result = read_queue_table_to_dict(mock_cursor)
-    # Maybe add error handling if this functions never meant to be called if this tables empty?
-    assert result == []
+        read_queue_table_to_dict(mock_cursor)
 
 
 def test_call_update_message_status_valid(setup):
@@ -83,12 +81,11 @@ def test_call_update_message_status_valid(setup):
 def test_call_update_message_status_invalid_message_id(setup):
     mock_cursor = setup
     mock_var = MagicMock()
-
     mock_var.getvalue.return_value = 1
 
     data = {"in_val1": "456", "in_val2": "INVALIDMESSAGEID", "in_val3": "read"}
 
-    response_code = call_update_message_status(mock_cursor, data, mock_var)
+    response = call_update_message_status(mock_cursor, data, mock_var)
 
     mock_cursor.execute.assert_called_once_with(
         """
@@ -99,13 +96,12 @@ def test_call_update_message_status_invalid_message_id(setup):
         data,
     )
 
-    assert response_code != 0
+    assert response != 0
 
 
 def test_call_update_message_status_invalid_data(setup):
     mock_cursor = setup
     mock_var = MagicMock()
-
     mock_var.getvalue.return_value = 1
 
     data = {"in_val1": "456", "in_val2": "123"}

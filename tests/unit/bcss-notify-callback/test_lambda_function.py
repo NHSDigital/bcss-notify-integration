@@ -4,6 +4,7 @@ import pytest
 from bcss_notify_callback.lambda_function import (
     generate_hmac_signature,
     validate_signature,
+    process_callback,
 )
 
 
@@ -51,16 +52,22 @@ def test_lambda_handler(setup):
     pass
 
 
-def test_is_duplicate_request_valid(setup):
-    """Test that a duplicate request is identified correctly."""
-    pass
-
-
-def test_process_callback_valid(setup):
+def test_process_callback_valid(example_callback_response, example_message_reference):
     """Test that a callback is processed correctly."""
-    pass
+    response = process_callback(example_callback_response)
+
+    assert response == example_message_reference
 
 
-def test_process_callback_invalid(setup):
+def test_process_callback_invalid_missing_message_reference_value(example_body_data):
     """Test that missing callback_id is handled correctly"""
-    pass
+    with pytest.raises(ValueError):
+        example_body_data[0]["attributes"]["messageReference"] = ""
+        process_callback(example_body_data)
+
+
+def test_process_callback_invalid_missing_attribute_index(example_body_data):
+    """Test that missing messageReference attribute is handled correctly"""
+    with pytest.raises(KeyError):
+        del example_body_data[0]["attributes"]["messageReference"]
+        process_callback(example_body_data)

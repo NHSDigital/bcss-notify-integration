@@ -26,3 +26,33 @@ def mock_oracledb_makedsn():
     with patch("oracledb.makedsn") as mock_makedsn:
         mock_makedsn.return_value = "mock_dsn"
         yield mock_makedsn
+
+
+@pytest.fixture
+def example_body_data(example_message_reference):
+    """Fixture to return an example callback response."""
+    data = [
+        {
+            "type": "ChannelStatus",
+            "attributes": {
+                "messageId": "example_message_id",
+                "messageReference": f"{example_message_reference}",
+                "cascadeType": "primary",
+                "cascadeOrder": 1,
+                "channel": "nhsapp",
+                "channelStatus": "failed",
+                "channelStatusDescription": "Unnotified",
+                "supplierStatus": "read",
+                "retryCount": 0,
+                "timestamp": "2000-01-01T00:00:00.000Z",
+            },
+            "links": {"message": "www.example-api-link.com"},
+            "meta": {"idempotencyKey": "test_idempotency_key"},
+        }
+    ]
+    return data
+
+
+@pytest.fixture
+def example_message_reference():
+    return "example_message_reference"

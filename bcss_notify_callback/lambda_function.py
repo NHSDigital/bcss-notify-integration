@@ -152,9 +152,16 @@ def is_duplicate_request(idempotency_key: str) -> bool:
 
 def process_callback(data: Dict[str, Any]) -> None:
     """Process the callback data."""
-    # Placeholder for processing the callback payload.
-    # Implement the required business logic here.
-    callback_id = data[0]["attributes"]["messageReference"]
-    # Find a way to extract the message references from the body of the message (data.)
-    print(callback_id)
-    return callback_id
+    try:
+
+        callback_id = data[0]["attributes"]["messageReference"]
+
+        if not callback_id:
+            raise ValueError("Missing messageReference in callback data")
+
+        return callback_id
+
+    except (KeyError, ValueError) as e:
+        # logger instead
+        print(f"Error processing callback: {e}")
+        raise
