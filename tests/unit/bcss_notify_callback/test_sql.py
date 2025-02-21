@@ -8,7 +8,6 @@ from bcss_notify_callback.sql import (
 
 @pytest.fixture
 def setup():
-    # Setup mock cursor
     mock_cursor = MagicMock()
 
     mock_cursor.description = [
@@ -23,7 +22,6 @@ def setup():
 def test_read_queue_table_to_dict_valid(setup):
     mock_cursor = setup
 
-    # Mock the fetch data from queue table
     mock_cursor.fetchall.return_value = [
         ("1234567890", "123", "456", "sent"),
         ("0987654321", "789", "ABC", "sending"),

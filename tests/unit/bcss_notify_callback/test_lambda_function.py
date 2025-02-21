@@ -45,6 +45,8 @@ def test_validate_signature_invalid(setup):
 
 
 # There is a lot of code in this handler, worth breaking down into smaller chunks?
+# Came up in discussion to refactor the lambda_handler when connecting to comms management endpoint
+# Will become a lot shorter
 
 
 def test_lambda_handler(setup):
