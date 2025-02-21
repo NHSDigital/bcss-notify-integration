@@ -1,4 +1,4 @@
-def read_queue_table_to_dict(cursor):
+def read_queue_table_to_dict(cursor, logger):
     try:
         cursor.execute(
             "select NHS_NUMBER, MESSAGE_ID, BATCH_ID, MESSAGE_STATUS from V_NOTIFY_MESSAGE_QUEUE"
@@ -16,7 +16,7 @@ def read_queue_table_to_dict(cursor):
         return queue_dict
     except Exception as e:
         # logger instead
-        print(f"Error reading queue table to dict {e}")
+        logger.error(f"Error reading queue table to dict {e}")
         raise
 
 

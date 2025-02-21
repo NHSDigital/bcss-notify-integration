@@ -5,7 +5,6 @@ def patient_to_update(message_id, queue_dict, var) -> dict:
     }
     data = False
     if message_id in queue_dict_by_message_id:
-        print("Message ID found: ", message_id)
         queue_patient = queue_dict_by_message_id[message_id]
 
         # Store in data dict here and add to an array? in_val1,2,3

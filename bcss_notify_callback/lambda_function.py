@@ -1,14 +1,19 @@
-import hashlib
-import hmac
-import os
 import boto3
 import json
+import hashlib
+import hmac
+import logging
+import os
 import bcss_notify_callback.sql as sql
 from bcss_notify_callback.oracle_connection import oracle_connection
 from bcss_notify_callback.patients_to_update import patient_to_update
 from typing import Dict, Any
 
 REGION_NAME = os.getenv("region_name")
+logger = logging.getLogger()
+logger.basicConfig(
+    format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
+)
 
 
 def generate_hmac_signature(secret: str, body: str) -> str:
@@ -24,8 +29,7 @@ def validate_signature(received_signature: str, secret: str, body: str) -> bool:
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """AWS Lambda function to handle NHS Notify callbacks."""
-
-    print("Event: ", event)
+    logger.info("Lambda function has started with event: %s", event)
 
     try:
         # Extract headers and body
@@ -49,7 +53,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 "body": json.dumps({"message": "Unauthorized: Invalid API Key"}),
             }
 
-        print("API key present and is matching")
+        logger.info("API key present and is matching")
 
         # Validate HMAC signature
         secret = f"{application_id}.{expected_api_key}"
@@ -61,12 +65,12 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 "body": json.dumps({"message": "Forbidden: Invalid HMAC Signature"}),
             }
 
-        print("Secret is valid")
+        logger.info("Secret is valid")
 
         # Parse body
         try:
             body_data = json.loads(body)
-            print("body data: ", body_data)
+            logger.debug("Body data: %s", body_data)
         except json.JSONDecodeError:
             return {
                 "statusCode": 400,
@@ -75,14 +79,14 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         # Handle idempotency
         idempotency_key = body_data["data"][0]["meta"]["idempotencyKey"]
-        print("idempotency_key: ", idempotency_key)
+        logger.debug("Idempotency key: %s", idempotency_key)
         if not idempotency_key:
             return {
                 "statusCode": 400,
                 "body": json.dumps({"message": "Bad Request: Missing idempotencyKey"}),
             }
 
-        print("Idempotency key present")
+        logger.info("Idempotency key present")
 
         # Use an external system (e.g., DynamoDB or Redis) to ensure idempotency
         if is_duplicate_request(idempotency_key):
@@ -90,26 +94,25 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 "statusCode": 200,
                 "body": json.dumps({"message": "Duplicate request: Already processed"}),
             }
-
-        print("Idempotency key not duplicate")
+        logger.info("Idempotency key not duplicate")
 
         # Connect to BCSS Database
         client = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
         connection = oracle_connection(client)
         cursor = connection.cursor()
-        print("Connected to BCSS Database")
+        logger.info("Connected to BCSS Database")
 
         # SQL Table read queue table to dict
-        queue_dict = sql.read_queue_table_to_dict(cursor)
+        queue_dict = sql.read_queue_table_to_dict(cursor, logger)
 
         # Process the callback data, extract all the message_reference IDs
         message_id = process_callback(body_data)
-        print("Message_id: ", message_id)
+        logger.debug("Message_id: %s", message_id)
 
         # Work out which messages need updating, cross reference the message references from the callback with the queue table dict
         var = cursor.var(int)
         record_to_update = patient_to_update(message_id, queue_dict, var)
-        print("Record to update:", record_to_update)
+        logger.debug("Record to update: %s", record_to_update)
 
         # Update the record with the matching message_id
         response_code = sql.call_update_message_status(cursor, record_to_update, var)
@@ -163,5 +166,5 @@ def process_callback(data: Dict[str, Any]) -> None:
 
     except (KeyError, ValueError) as e:
         # logger instead
-        print(f"Error processing callback: {e}")
+        logger.error(f"Error processing callback: {e}")
         raise
