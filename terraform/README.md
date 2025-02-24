@@ -39,7 +39,27 @@ The `environments/` directory contains configuration files specific to each envi
 - **`prod/`**: Production configuration
 Each environment applies the required modules with environment-specific values.
 
-### **State Management** (TBC)
-Terraform state is stored remotely to allow for collaboration:
-- **S3 Backend (`backend/s3_backend.tf`)** - Stores Terraform state in S3.
-- **DynamoDB (`backend/dynamodb_locks.tf`)** - Enables state locking to prevent simultaneous updates.
+### Terraform Remote State & State Locking
+
+#### Overview
+Terraform uses **Amazon S3** for remote state storage and **DynamoDB** for state locking.  
+Each environment (e.g., `dev`, `staging`, `prod`) has its own state file to prevent conflicts and maintain isolation.
+
+---
+
+### Remote State Configuration
+
+#### S3 Backend Setup (Per Environment)
+Each environment has its own Terraform state file stored in an S3 bucket.
+
+Example backend configuration (`backend.tf`):
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "bcss-terraform-nonprod-iac"                            # Shared S3 bucket
+    key            = "bcss/infrastructure/comms-manager/terraform.tfstate"   # Change 'dev' to match the environment
+    region         = "eu-west-2"
+    encrypt        = true
+    dynamodb_table = "bcss-comms-manager-terraform-lock-dev"                 # State locking
+  }
+}
