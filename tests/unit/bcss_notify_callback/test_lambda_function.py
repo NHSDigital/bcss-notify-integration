@@ -54,9 +54,9 @@ def test_lambda_handler(setup):
     pass
 
 
-def test_process_callback_valid(example_callback_response, example_message_reference):
+def test_process_callback_valid(example_body_data, example_message_reference):
     """Test that a callback is processed correctly."""
-    response = process_callback(example_callback_response)
+    response = process_callback(example_body_data)
 
     assert response == example_message_reference
 

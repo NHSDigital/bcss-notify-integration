@@ -21,4 +21,4 @@ def oracle_connection(client):
 
         return connection
     except Exception as e:
-        return {"statusCode": 500, "body": f"Error: {str(e)}"}
+        return {"statusCode": 500, "body": f"Error Connecting to Database: {str(e)}"}

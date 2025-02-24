@@ -36,5 +36,7 @@ def test_oracle_connection_missing_secret(setup, mock_boto3_client):
         "SecretString": json.dumps(missing_secret)
     }
 
-    with pytest.raises(KeyError):
-        oc.oracle_connection(mock_boto3_client)
+    assert oc.oracle_connection(mock_boto3_client) == {
+        "statusCode": 500,
+        "body": "Error Connecting to Database: 'username'",
+    }

@@ -14,8 +14,7 @@ def read_queue_table_to_dict(cursor, logger):
 
         return queue_dict
     except Exception as e:
-
-        logger.error(f"Error reading queue table to dict {e}")
+        logger.error(f"Error reading queue table to dict: {e}")
         raise
 
 

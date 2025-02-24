@@ -1,3 +1,4 @@
+import logging
 import pytest
 from unittest.mock import MagicMock
 from sql import (
@@ -21,6 +22,7 @@ def setup():
 
 def test_read_queue_table_to_dict_valid(setup):
     mock_cursor = setup
+    logger = logging.getLogger()
 
     mock_cursor.fetchall.return_value = [
         ("1234567890", "123", "456", "sent"),
@@ -42,7 +44,7 @@ def test_read_queue_table_to_dict_valid(setup):
         },
     ]
 
-    response = read_queue_table_to_dict(mock_cursor)
+    response = read_queue_table_to_dict(mock_cursor, logger)
 
     assert response == expected
 
