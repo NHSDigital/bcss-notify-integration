@@ -1,7 +1,7 @@
 import hashlib
 import hmac
 import pytest
-from bcss_notify_callback.lambda_function import (
+from lambda_function import (
     generate_hmac_signature,
     validate_signature,
     process_callback,

@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from bcss_notify_callback.sql import (
+from sql import (
     read_queue_table_to_dict,
     call_update_message_status,
 )

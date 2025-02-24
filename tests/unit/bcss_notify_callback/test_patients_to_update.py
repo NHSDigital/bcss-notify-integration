@@ -1,5 +1,5 @@
 import pytest
-from bcss_notify_callback.patients_to_update import patient_to_update
+from patients_to_update import patient_to_update
 from unittest.mock import MagicMock
 
 
