@@ -1,4 +1,4 @@
-import bcss_notify_callback.oracle_connection as oc
+import oracle_connection as oc
 import json
 import pytest
 from unittest.mock import MagicMock
