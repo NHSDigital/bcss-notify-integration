@@ -10,10 +10,10 @@ from bcss_notify_callback.patients_to_update import patient_to_update
 from typing import Dict, Any
 
 REGION_NAME = os.getenv("region_name")
-logger = logging.getLogger()
-logger.basicConfig(
+logging.basicConfig(
     format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
 )
+logger = logging.getLogger()
 
 
 def generate_hmac_signature(secret: str, body: str) -> str:
