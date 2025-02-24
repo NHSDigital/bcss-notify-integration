@@ -1,3 +1,7 @@
+import logging
+
+
+# TODO: This module should import the oracle module and be responsible for the connection and cursor
 def read_queue_table_to_dict(cursor):
     cursor.execute(f"select NHS_NUMBER, MESSAGE_ID, BATCH_ID, MESSAGE_STATUS from V_NOTIFY_MESSAGE_QUEUE")
     columns = [col[0] for col in cursor.description]
@@ -8,10 +12,19 @@ def read_queue_table_to_dict(cursor):
 
     return queue_dict
 
-def call_update_message_status(cursor, data, var):
+
+def call_update_message_status(cursor, recipient):
+    var = cursor.var(int)
+    data = {
+        "in_val1": recipient["BATCH_ID"],
+        "in_val2": recipient["MESSAGE_ID"],
+        "in_val3": "read",
+        "out_val": var,
+    }
+
     # Will need to loop through all the message_ids (in_val2) in a batch (in_val1) and update the status to the new status (in_val3)
     response_code = 1
-    print("Run PKG_NOTIFY_WRAP.F_UPDATE_MESSAGE_STATUS")
+    logging.info("Run PKG_NOTIFY_WRAP.F_UPDATE_MESSAGE_STATUS")
     cursor.execute(
         """
             begin
@@ -21,7 +34,6 @@ def call_update_message_status(cursor, data, var):
         data,
     )
     response_code = var.getvalue()
-    print('Response Code: ', response_code)
-    #response_code_array.append(response_code)
+    logging.info('Response Code: ', response_code)
 
     return response_code

@@ -1,114 +1,36 @@
-import hashlib
-import hmac
-import os
 import boto3
 import json
+import logging
+import os
+import requests
 import sql as sql
 from oracle_connection import oracle_connection
-from patients_to_update import patient_to_update
 from typing import Dict, Any
 
 REGION_NAME = os.getenv("region_name")
 
-def generate_hmac_signature(secret: str, body: str) -> str:
-    """Generate HMAC-SHA256 signature for request body."""
-    return hmac.new(secret.encode(), body.encode(), hashlib.sha256).hexdigest()
-
-def validate_signature(received_signature: str, secret: str, body: str) -> bool:
-    """Validate received HMAC-SHA256 signature."""
-    expected_signature = generate_hmac_signature(secret, body)
-    return hmac.compare_digest(received_signature, expected_signature)
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """AWS Lambda function to handle NHS Notify callbacks."""
+    """AWS Lambda function to update BCSS message statuses."""
 
-    print("Event: ", event)
+    logging.info("Event: ", event)
 
     try:
-        # Extract headers and body
-        headers = event.get("headers", {})
-        body = event.get("body", "")
+        # Event payload looks like: { "batch_id": "1234" }
+        payload = json.loads(event)
+        batch_id = payload["batch_id"]
+        connection = get_connection()
 
-        # # Extract headers
-        api_key = headers.get("x-api-key")
-        received_signature = headers.get("x-hmac-sha256-signature")
+        # TODO: Make connection the responsibility of the oracle/sql module
+        if connection is None:
+            raise Exception("Failed to connect to BCSS Database")
 
-        # Validate API key
-        expected_api_key = os.getenv("NHS_NOTIFY_API_KEY")  # Set this in your Lambda environment variables
-        application_id = os.getenv("NHS_NOTIFY_APPLICATION_ID")  # Set this in your Lambda environment variables
-        if not api_key or api_key != expected_api_key:
-            return {
-                "statusCode": 401,
-                "body": json.dumps({"message": "Unauthorized: Invalid API Key"})
-            }
+        message_references = get_statuses_from_communication_management_api(batch_id)
 
-        print("API key present and is matching")
+        recipients_to_update = get_recipients_to_update(connection, message_references)
 
-        # Validate HMAC signature
-        secret = f"{application_id}.{expected_api_key}"
-        if not received_signature or not validate_signature(received_signature, secret, body):
-            return {
-                "statusCode": 403,
-                "body": json.dumps({"message": "Forbidden: Invalid HMAC Signature"})
-            }
+        response_codes = update_message_statuses(connection, recipients_to_update, message_references)
 
-        print("Secret is valid")
-
-        # Parse body
-        try:
-            body_data = json.loads(body)
-            print("body data: ", body_data)
-        except json.JSONDecodeError:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"message": "Bad Request: Invalid JSON"})
-            }
-
-        # Handle idempotency
-        idempotency_key = body_data["data"][0]["meta"]["idempotencyKey"]
-        print("idempotency_key: ", idempotency_key)
-        if not idempotency_key:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"message": "Bad Request: Missing idempotencyKey"})
-            }
-        
-        print("Idempotency key present")
-
-        # Use an external system (e.g., DynamoDB or Redis) to ensure idempotency
-        if is_duplicate_request(idempotency_key):
-            return {
-                "statusCode": 200,
-                "body": json.dumps({"message": "Duplicate request: Already processed"})
-            }
-
-        print("Idempotency key not duplicate")
-
-        # Connect to BCSS Database
-        client = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
-        connection = oracle_connection(client)
-        cursor = connection.cursor()
-        print("Connected to BCSS Database")
-
-        #SQL Table read queue table to dict
-        queue_dict = sql.read_queue_table_to_dict(cursor)
-
-        # Process the callback data, extract all the message_reference IDs 
-        message_id = process_callback(body_data)
-        print('Message_id: ', message_id)
-
-        # Work out which messages need updating, cross reference the message references from the callback with the queue table dict
-        var = cursor.var(int)
-        record_to_update = patient_to_update(message_id, queue_dict, var)
-        print('Record to update:', record_to_update)
-
-        # Update the record with the matching message_id
-        response_code = sql.call_update_message_status(cursor, record_to_update, var)
-
-        # Commit the changes
-        # connection.commit()
-
-        cursor.close()
         connection.close()
 
         return {
@@ -116,9 +38,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             "body": json.dumps(
                 {
                     "message": "Callback processed successfully",
-                    "data" : body_data,
-                    "message_reference": callback_id,
-                    "bcss_response": response_code if response_code else "No updates made",
+                    "data": payload,
+                    "message_references": message_references,
+                    "bcss_responses": response_codes,
                 }
             )
         }
@@ -129,19 +51,68 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             "body": json.dumps({"message": f"Internal Server Error: {str(e)}"})
         }
 
-def is_duplicate_request(idempotency_key: str) -> bool:
-    """Check if the request has already been processed based on the idempotency key."""
-    # Placeholder logic: Implement a proper check using DynamoDB, Redis, or another data store.
-    # For example:
-    #   - Query DynamoDB with idempotency_key
-    #   - If exists, return True; otherwise, store and return False
-    return False
 
-def process_callback(data: Dict[str, Any]) -> None:
-    """Process the callback data."""
-    # Placeholder for processing the callback payload.
-    # Implement the required business logic here.
-    callback_id = data[0]["attributes"]["messageReference"]
-    # Find a way to extract the message references from the body of the message (data.)
-    print(callback_id)
-    return callback_id
+# TODO: The oracle/sql module should be responsible for making a db connection
+def get_connection():
+    client = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
+    connection = oracle_connection(client)
+    logging.info("Connected to BCSS Database")
+
+    return connection
+
+
+def get_statuses_from_communication_management_api(batch_id):
+    message_references = []
+    try:
+        response = requests.get(f"{os.getenv('communication_management_api_url')}/api/statuses/{batch_id}")
+        if response.status_code == 200:
+            # TODO: Implement get_message_references
+            message_references = get_message_references(response.json())
+    except Exception as e:
+        logging.error(f"Failed to get statuses from Communication Management API: {str(e)}")
+
+    return message_references
+
+
+# TODO: The oracle/sql module should be responsible for getting a connection
+# assigning a cursor from the connection and closing the cursor and connection
+def get_recipients_to_update(connection, message_references):
+    cursor = connection.cursor()
+
+    existing_recipients = sql.read_queue_table_to_dict(cursor)
+
+    cursor.close()
+
+    recipients_to_update = []
+
+    for message_reference in message_references:
+        for recipient in existing_recipients:
+            if message_reference == recipient["MESSAGE_ID"]:
+                recipients_to_update.append(recipient)
+
+    return recipients_to_update
+
+
+# TODO: The oracle/sql module should be responsible for making a db connection
+# assigning a cursor from the connection and closing the cursor and connection
+def update_message_statuses(connection, recipients_to_update):
+    cursor = connection.cursor()
+
+    response_codes = []
+    for recipient_to_update in recipients_to_update:
+        logging.info('Record to update:', recipient_to_update)
+        response_code = sql.call_update_message_status(cursor, recipient_to_update)
+        message_id = recipient_to_update["MESSAGE_ID"]
+
+        if response_code == 0:
+            response_codes.append({"message_id": message_id, "status": "updated"})
+        else:
+            logging.error(f"Failed to update message status for message_id: {message_id}")
+
+    # Commit the changes
+    # connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return response_codes
