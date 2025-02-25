@@ -4,8 +4,9 @@ import hashlib
 import hmac
 import logging
 import os
+import requests
 import bcss_notify_callback.sql as sql
-from bcss_notify_callback.oracle_connection import oracle_connection
+import oracle_connection as db
 from bcss_notify_callback.patients_to_update import patient_to_update
 from typing import Dict, Any
 
@@ -86,27 +87,43 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         logger.info("Idempotency key not duplicate")
 
-        client = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
-        connection = oracle_connection(client)
-        cursor = connection.cursor()
+        # Refactor for Comm Management API Endpoint
+        # payload = json.loads(event)
+        # batch_id = payload["batch_id"]
+        # connection = db.get_connection()
+
+        # message_references = get_statuses_from_communication_management_api(batch_id)
+        # recipients_to_update = get_recipients_to_update(connection, message_references)
+        # response_codes = update_message_statuses(connection, recipients_to_update)
+        # Refactor ^
+
+        # Refactor for Notify API Endpoint
+        connection = db.get_connection()
         logger.info("Connected to BCSS Database")
+        message_id = get_statuses_from_notify_api(body_data)
+        logger.info("Message ID: %s", message_id)
+        queue_dict = sql.read_queue_table_to_dict(connection, logger)
+        recipient_to_update = patient_to_update(connection, message_id, queue_dict)
+        logger.debug("Recipient to update: %s", recipient_to_update)
+        response_code = update_message_status(connection, recipient_to_update)
 
-        queue_dict = sql.read_queue_table_to_dict(cursor, logger)
+        # db.commit_changes(connection)
 
-        message_id = process_callback(body_data)
-        logger.debug("Message_id: %s", message_id)
+        db.close_cursor(connection.cursor())
+        db.close_connection(connection.close())
 
-        var = cursor.var(int)
-        record_to_update = patient_to_update(message_id, queue_dict, var)
-        logger.debug("Record to update: %s", record_to_update)
-
-        response_code = sql.call_update_message_status(cursor, record_to_update, var)
-
-        # Commit the changes
-        # connection.commit()
-
-        cursor.close()
-        connection.close()
+        ## Comms Management API return
+        # return {
+        #     "statusCode": 200,
+        #     "body": json.dumps(
+        #         {
+        #             "message": "Callback processed successfully",
+        #             "data": payload,
+        #             "message_reference": message_references,
+        #             "bcss_response": response_codes,
+        #         }
+        #     ),
+        # }
 
         return {
             "statusCode": 200,
@@ -148,3 +165,111 @@ def process_callback(data: Dict[str, Any]) -> None:
     except (KeyError, ValueError) as e:
         logger.error(f"Error processing callback: {e}")
         raise
+
+
+def get_message_references(response, message_references):
+    try:
+        # Depends on what the response from comms management API looks like
+        for item in response:
+            message_reference = item[0]["attributes"]["messageReference"]
+            if not message_reference:
+                raise ValueError("Missing messageReference in API data")
+            message_references.append(message_reference)
+
+        return message_references
+
+    except (KeyError, ValueError) as e:
+        logger.error(f"Error processing API response JSON: {e}")
+        raise
+
+
+def get_statuses_from_communication_management_api(batch_id):
+    try:
+        message_references = []
+        response = requests.get(
+            f"{os.getenv('communication_management_api_url')}/api/statuses/{batch_id}"
+        )
+        if response.status_code == 200:
+            message_references = get_message_references(
+                response.json(), message_references
+            )
+            return message_references
+    except Exception as e:
+        logger.error(
+            f"Failed to get statuses from Communication Management API: {str(e)}"
+        )
+
+
+def get_statuses_from_notify_api(data):
+    """Process the callback data."""
+    try:
+
+        callback_id = data[0]["attributes"]["messageReference"]
+
+        if not callback_id:
+            raise ValueError("Missing messageReference in callback data")
+
+        return callback_id
+
+    except (KeyError, ValueError) as e:
+        logger.error(f"Error processing callback: {e}")
+        raise
+
+
+def get_recipients_to_update(connection, message_references):
+    cursor = db.get_cursor(connection)
+
+    existing_recipients = sql.read_queue_table_to_dict(cursor)
+
+    db.close_cursor(cursor)
+
+    recipients_to_update = []
+
+    for message_reference in message_references:
+        for recipient in existing_recipients:
+            if message_reference == recipient["MESSAGE_ID"]:
+                recipients_to_update.append(recipient)
+
+    return recipients_to_update
+
+
+def update_message_statuses(connection, recipients_to_update):
+    cursor = db.get_cursor(connection)
+
+    response_codes = []
+    for recipient_to_update in recipients_to_update:
+        logger.info("Record to update: %s", recipient_to_update)
+        response_code = sql.call_update_message_status(cursor, recipient_to_update)
+        message_id = recipient_to_update["MESSAGE_ID"]
+
+        if response_code == 0:
+            response_codes.append({"message_id": message_id, "status": "updated"})
+        else:
+            logger.error(
+                f"Failed to update message status for message_id: {message_id}"
+            )
+
+    db.commit_changes(connection)
+    db.close_cursor(cursor)
+    db.close_connection(connection)
+
+    return response_codes
+
+
+def update_message_status(connection, recipient_to_update):
+    cursor = db.get_cursor(connection)
+
+    logger.info("Record to update: %s", recipient_to_update)
+    response_code = sql.call_update_message_status(cursor, recipient_to_update)
+    message_id = recipient_to_update["MESSAGE_ID"]
+
+    if response_code == 0:
+        logger.info("Message status updated successfully")
+    else:
+        logger.error(f"Failed to update message status for message_id: {message_id}")
+
+    # db.commit_changes(connection)
+    db.close_cursor(cursor)
+    db.close_connection(connection)
+
+    return response_code
