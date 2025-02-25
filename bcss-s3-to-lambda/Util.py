@@ -2,7 +2,7 @@ import uuid
 import jwt
 from datetime import datetime, timezone, timedelta
 
-from NotifyMeesageQueue import NotifyMeesageQueue
+from NotifyMessageQueue import NotifyMeesageQueue
 
 
 class Util:

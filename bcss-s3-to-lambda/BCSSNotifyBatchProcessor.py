@@ -2,7 +2,7 @@ import oracledb
 import uuid
 
 from OracleDatabase import OracleDatabase
-from NotifyMeesageQueue import NotifyMeesageQueue
+from NotifyMessageQueue import NotifyMeesageQueue
 
 
 class BCSSNotifyBatchProcessor:
