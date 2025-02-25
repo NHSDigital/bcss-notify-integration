@@ -3,7 +3,7 @@ import json
 from OracleDatabase import OracleDatabase
 from AuthManager import AuthManager
 from NHSNotify import NHSNotify
-from NotifyMeesageQueue import NotifyMeesageQueue
+from NotifyMessageQueue import NotifyMeesageQueue
 
 
 class BCSSNotifyRequestHandler:
