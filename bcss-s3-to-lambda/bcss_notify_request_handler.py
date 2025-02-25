@@ -1,6 +1,7 @@
 from auth_manager import AuthManager
 from nhs_notify import NHSNotify
 
+
 class BCSSNotifyRequestHandler:
     """
     Class responsible for handling individual notification requests.
