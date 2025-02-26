@@ -10,7 +10,8 @@ def setup():
     oc.SID = "mock_sid"
     oc.BCSS_SECRET_NAME = "mock_secret_name"
     oc.BCSS_HOST = "mock_host"
-    return oc.PORT, oc.SID, oc.BCSS_SECRET_NAME, oc.BCSS_HOST
+    oc.REGION_NAME = "mock_region_name"
+    return oc.PORT, oc.SID, oc.BCSS_SECRET_NAME, oc.BCSS_HOST, oc.REGION_NAME
 
 
 def test_oracle_connection_valid(

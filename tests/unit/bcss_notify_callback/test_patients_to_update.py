@@ -1,6 +1,5 @@
 import pytest
 from patients_to_update import patient_to_update
-from unittest.mock import MagicMock
 
 
 @pytest.fixture
@@ -10,28 +9,29 @@ def setup():
         {"MESSAGE_ID": "123", "BATCH_ID": "456"},
         {"MESSAGE_ID": "789", "BATCH_ID": "ABC"},
     ]
-    mock_connection = MagicMock()
-    cursor = mock_connection.return_value
-    var = cursor.var(int)
-    return message_id, queue_dict, var
+
+    return message_id, queue_dict
 
 
-def test_patient_to_update_valid_match(setup):
+def test_patient_to_update_valid_match(setup, mock_connection, mock_cursor):
     """Test that a valid patient is returned."""
-    message_id, queue_dict, var = setup
-    data = patient_to_update(message_id, queue_dict, var)
+    message_id, queue_dict = setup
+    data = patient_to_update(mock_connection, message_id, queue_dict)
+
+    mock_var = mock_cursor.var(int)
+    mock_var.getvalue.return_value = 0
 
     assert data["in_val1"] == "456"
     assert data["in_val2"] == "123"
     assert data["in_val3"] == "read"
-    assert data["out_val"] == var
+    assert data["out_val"] == mock_var
 
 
-def test_patient_to_update_valid_no_match(setup):
+def test_patient_to_update_valid_no_match(setup, mock_connection):
     """Test that False is returned if no match is found."""
-    message_id, queue_dict, var = setup
+    message_id, queue_dict = setup
     message_id = "XYZ"
-    data = patient_to_update(message_id, queue_dict, var)
+    data = patient_to_update(mock_connection, message_id, queue_dict)
 
     assert not data
 

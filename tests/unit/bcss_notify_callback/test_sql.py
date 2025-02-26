@@ -1,15 +1,13 @@
 import logging
 import pytest
-from unittest.mock import MagicMock
 from sql import (
     read_queue_table_to_dict,
     call_update_message_status,
 )
 
 
-@pytest.fixture
-def setup():
-    mock_cursor = MagicMock()
+def test_read_queue_table_to_dict_valid(mock_connection, mock_cursor):
+    logger = logging.getLogger()
 
     mock_cursor.description = [
         ("NHS_NUMBER",),
@@ -17,13 +15,6 @@ def setup():
         ("BATCH_ID",),
         ("MESSAGE_STATUS",),
     ]
-    return mock_cursor
-
-
-def test_read_queue_table_to_dict_valid(setup):
-    mock_cursor = setup
-    logger = logging.getLogger()
-
     mock_cursor.fetchall.return_value = [
         ("1234567890", "123", "456", "sent"),
         ("0987654321", "789", "ABC", "sending"),
@@ -44,27 +35,26 @@ def test_read_queue_table_to_dict_valid(setup):
         },
     ]
 
-    response = read_queue_table_to_dict(mock_cursor, logger)
+    response = read_queue_table_to_dict(mock_connection, logger)
 
     assert response == expected
 
 
-def test_read_queue_table_to_dict_invalid_empty_table(setup):
+def test_read_queue_table_to_dict_invalid_empty_table(mock_connection, mock_cursor):
     with pytest.raises(TypeError):
-        mock_cursor = setup
         mock_cursor.fetchall.return_value = None
+        logger = logging.getLogger()
 
-        read_queue_table_to_dict(mock_cursor)
+        read_queue_table_to_dict(mock_connection, logger)
 
 
-def test_call_update_message_status_valid(setup):
-    mock_cursor = setup
-    mock_var = MagicMock()
+def test_call_update_message_status_valid(mock_cursor):
+    mock_var = mock_cursor.var(int)
     mock_var.getvalue.return_value = 0
 
     data = {"in_val1": "456", "in_val2": "123", "in_val3": "read"}
 
-    response = call_update_message_status(mock_cursor, data, mock_var)
+    response = call_update_message_status(mock_cursor, data)
 
     mock_cursor.execute.assert_called_once_with(
         """
@@ -78,14 +68,13 @@ def test_call_update_message_status_valid(setup):
     assert response == 0
 
 
-def test_call_update_message_status_invalid_message_id(setup):
-    mock_cursor = setup
-    mock_var = MagicMock()
+def test_call_update_message_status_invalid_message_id(mock_cursor):
+    mock_var = mock_cursor.var(int)
     mock_var.getvalue.return_value = 1
 
     data = {"in_val1": "456", "in_val2": "INVALIDMESSAGEID", "in_val3": "read"}
 
-    response = call_update_message_status(mock_cursor, data, mock_var)
+    response = call_update_message_status(mock_cursor, data)
 
     mock_cursor.execute.assert_called_once_with(
         """
@@ -99,14 +88,13 @@ def test_call_update_message_status_invalid_message_id(setup):
     assert response != 0
 
 
-def test_call_update_message_status_invalid_data(setup):
-    mock_cursor = setup
-    mock_var = MagicMock()
+def test_call_update_message_status_invalid_data(mock_cursor):
+    mock_var = mock_cursor.var(int)
     mock_var.getvalue.return_value = 1
 
     data = {"in_val1": "456", "in_val2": "123"}
 
-    response = call_update_message_status(mock_cursor, data, mock_var)
+    response = call_update_message_status(mock_cursor, data)
 
     mock_cursor.execute.assert_called_once_with(
         """

@@ -21,7 +21,8 @@ def read_queue_table_to_dict(connection, logger):
         raise
 
 
-def call_update_message_status(cursor, data):
+def call_update_message_status(connection, data):
+    cursor = db.get_cursor(connection)
     response_code = 1
     var = cursor.var(int)
     cursor.execute(
@@ -33,5 +34,6 @@ def call_update_message_status(cursor, data):
         data,
     )
     response_code = var.getvalue()
+    db.close_cursor(cursor)
 
     return response_code
