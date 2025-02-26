@@ -37,6 +37,7 @@ The `modules/` directory contains reusable Terraform modules:
 The `environments/` directory contains configuration files specific to each environment:
 - **`dev/`**: Development configuration
 - **`prod/`**: Production configuration
+
 Each environment applies the required modules with environment-specific values.
 
 ### Terraform Remote State & State Locking
