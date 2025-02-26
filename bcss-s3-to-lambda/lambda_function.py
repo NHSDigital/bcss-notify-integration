@@ -4,6 +4,8 @@ import os
 import boto3
 import uuid
 
+from OracleDatabase import OracleDatabase
+
 import logging
 
 # Set up logger
@@ -44,6 +46,8 @@ def get_secret(secret_name):
     secret = json.loads(response["SecretString"])
     return secret
 
+def connect_to_db(database):
+    database.connect()
 
 def lambda_handler(event, context):
     logger.info("Lambda function has started.")
@@ -62,12 +66,15 @@ def lambda_handler(event, context):
         "dsn": f"{HOST}:{PORT}/{SID}",
     }
 
-    bcss_notify_batch_processor = BCSSNotifyBatchProcessor(db_config)
+    database = OracleDatabase(**db_config)
+
+    bcss_notify_batch_processor = BCSSNotifyBatchProcessor(database)
     bcss_notify_request_handler = BCSSNotifyRequestHandler(
-        TOKEN_URL, PRIVATE_KEY, NHS_NOTIFY_BASE_URL, db_config
+        TOKEN_URL, PRIVATE_KEY, NHS_NOTIFY_BASE_URL, database
     )
 
     BATCH_ID = str(uuid.uuid4())
+    BATCH_ID = None
     logger.debug(f"DEBUG: BATCH_ID - {BATCH_ID}")
 
     logger.info(f"Getting participants...")

@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+oracledb = "*"
+requests = "*"
+oracledb = "*"
+urllib3 = "*"
+idna = "*"
+cffi = "*"
+certifi = "*"
+charset-normalizer = "*"
+cryptography = "*"
+pyjwt = "*"
+pycparser = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.13"
