@@ -48,13 +48,13 @@ def test_read_queue_table_to_dict_invalid_empty_table(mock_connection, mock_curs
         read_queue_table_to_dict(mock_connection, logger)
 
 
-def test_call_update_message_status_valid(mock_cursor):
+def test_call_update_message_status_valid(mock_connection, mock_cursor):
     mock_var = mock_cursor.var(int)
     mock_var.getvalue.return_value = 0
 
     data = {"in_val1": "456", "in_val2": "123", "in_val3": "read"}
 
-    response = call_update_message_status(mock_cursor, data)
+    response = call_update_message_status(mock_connection, data)
 
     mock_cursor.execute.assert_called_once_with(
         """
@@ -68,13 +68,13 @@ def test_call_update_message_status_valid(mock_cursor):
     assert response == 0
 
 
-def test_call_update_message_status_invalid_message_id(mock_cursor):
+def test_call_update_message_status_invalid_message_id(mock_connection, mock_cursor):
     mock_var = mock_cursor.var(int)
     mock_var.getvalue.return_value = 1
 
     data = {"in_val1": "456", "in_val2": "INVALIDMESSAGEID", "in_val3": "read"}
 
-    response = call_update_message_status(mock_cursor, data)
+    response = call_update_message_status(mock_connection, data)
 
     mock_cursor.execute.assert_called_once_with(
         """
@@ -88,13 +88,13 @@ def test_call_update_message_status_invalid_message_id(mock_cursor):
     assert response != 0
 
 
-def test_call_update_message_status_invalid_data(mock_cursor):
+def test_call_update_message_status_invalid_data(mock_connection, mock_cursor):
     mock_var = mock_cursor.var(int)
     mock_var.getvalue.return_value = 1
 
     data = {"in_val1": "456", "in_val2": "123"}
 
-    response = call_update_message_status(mock_cursor, data)
+    response = call_update_message_status(mock_connection, data)
 
     mock_cursor.execute.assert_called_once_with(
         """
