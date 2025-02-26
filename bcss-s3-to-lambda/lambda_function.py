@@ -11,7 +11,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)  # You can change this to DEBUG, ERROR, etc.
 
 # Set up log format
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 # Create a stream handler to output logs to CloudWatch
 console_handler = logging.StreamHandler()
@@ -31,7 +31,6 @@ SNS_ARN = os.getenv("sns_arn")
 SECRET_NAME = os.getenv("secret_arn")
 REGION_NAME = os.getenv("region_name")
 NHS_NOTIFY_BASE_URL = os.getenv("nhs_notify_base_url")
-ROUTING_CONFIG_ID = os.getenv("routing_config_id")
 TOKEN_URL = os.getenv("token_url")
 
 # Initialize AWS clients
@@ -68,7 +67,7 @@ def lambda_handler(event, context):
     )
 
     BATCH_ID = str(uuid.uuid4())
-    logger.debug(f"DEBUG: BATCH_ID - {BATCH_ID}")
+    logger.debug("DEBUG: BATCH_ID - %s", BATCH_ID)
 
     logger.info(f"Getting participants...")
     participants, ROUTING_CONFIG_ID = bcss_notify_batch_processor.get_participants(
@@ -76,7 +75,9 @@ def lambda_handler(event, context):
     )
     logger.info(f"Got participants.")
 
-    logger.debug(f"DEBUG: PARTICIPANTS - \n {participants}\n ROUTING_CONFIG_ID - {ROUTING_CONFIG_ID}")
+    logger.debug(
+        f"DEBUG: PARTICIPANTS - \n {participants}\n ROUTING_CONFIG_ID - {ROUTING_CONFIG_ID}"
+    )
 
     logger.info(f"Sending batch message...")
     bcss_notify_message_response = bcss_notify_request_handler.send_message(
@@ -84,7 +85,9 @@ def lambda_handler(event, context):
     )
     logger.info(f"Bacth message sent.")
 
-    logger.debug(f"DEBUG: BCSS_NOTIFY_MESSAGE_RESPONSE - \n {bcss_notify_message_response}")
+    logger.debug(
+        f"DEBUG: BCSS_NOTIFY_MESSAGE_RESPONSE - \n {bcss_notify_message_response}"
+    )
     logger.info("Lambda function has completed.")
 
 

@@ -86,7 +86,7 @@ class NHSNotify:
 
         response: dict = self.api_client.make_request(
             method="GET",
-            endpoint=f"/channels/nhsapp/accounts",
+            endpoint="/channels/nhsapp/accounts",
             headers=headers,
             params=params,
         )

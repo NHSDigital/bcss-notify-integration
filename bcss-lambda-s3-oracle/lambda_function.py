@@ -78,8 +78,8 @@ def lambda_handler(event, context):
                 Message=f"Tablespace:{TABLESPACE_NAME} utilization is above threshold. Please check immediately.",
             )
             return {"statusCode": 200, "body": json.dumps(response)}
-        else:
-            print(f"Tablespace:{TABLESPACE_NAME} utilization is below threshold")
+
+        print(f"Tablespace:{TABLESPACE_NAME} utilization is below threshold")
 
     except Exception as e:
         print(f"Error: {str(e)}")
