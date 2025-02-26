@@ -14,8 +14,8 @@ class BCSSNotifyBatchProcessor:
     Class responsible for processing batches of participants to notify.
     """
 
-    def __init__(self, db_config):
-        self.db = OracleDatabase(**db_config)
+    def __init__(self, database):
+        self.db = database
 
     def get_participants(self, batch_id: str):
         """
@@ -25,6 +25,7 @@ class BCSSNotifyBatchProcessor:
             batch_id (str): The batch id for the batch of message to be sent.
         """
         routing_plan_id = None
+        participants = []
 
         try:
             self.db.connect()
@@ -33,6 +34,20 @@ class BCSSNotifyBatchProcessor:
                 oracledb.NUMBER,
                 [batch_id],
             )
+
+            if routing_plan_id is None or routing_plan_id == "":
+                return [], routing_plan_id
+
+
+            if not batch_id:
+                participants = self.db.execute_query(
+                    "SELECT * FROM v_notify_message_queue WHERE batch_id IS NULL"
+                )
+            else:
+                participants = self.db.execute_query(
+                    "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
+                    {"batch_id": batch_id},
+                )
         except oracledb.Error as e:
             logging.error({"error": str(e)})
         finally:

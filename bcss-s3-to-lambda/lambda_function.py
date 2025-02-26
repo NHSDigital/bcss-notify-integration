@@ -53,6 +53,8 @@ def get_secret(secret_name: str) -> dict:
     response = SECRETS_CLIENT.get_secret_value(SecretId=secret_name)
     return json.loads(response["SecretString"])
 
+def connect_to_db(database):
+    database.connect()
 
 def lambda_handler(_event: dict, _context: object) -> None:
     """
@@ -85,7 +87,6 @@ def lambda_handler(_event: dict, _context: object) -> None:
     batch_id = str(uuid.uuid4())
     LOGGER.debug("Generated batch ID: %s", batch_id)
 
-    # Process participants
     LOGGER.info("Getting participants...")
     participants, routing_config_id = batch_processor.get_participants(batch_id)
     LOGGER.info("Retrieved participants successfully.")

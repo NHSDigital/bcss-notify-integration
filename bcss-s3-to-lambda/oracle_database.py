@@ -34,6 +34,11 @@ class OracleDatabase:
             return
 
         try:
+
+            print(self.user)
+            print(self.password)
+            print(self.dsn)
+
             self.connection = oracledb.connect(
                 user=self.user, password=self.password, dsn=self.dsn
             )
