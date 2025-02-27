@@ -56,25 +56,19 @@ def mock_requests_get():
 
 @pytest.fixture
 def mock_get_message_references():
-    with patch(
-        "bcss-notify-callback.lambda_function.get_message_references"
-    ) as mock_get_message_references:
+    with patch("lambda_function.get_message_references") as mock_get_message_references:
         yield mock_get_message_references
 
 
 @pytest.fixture
 def mock_read_queue_to_dict():
-    with patch(
-        "bcss-notify-callback.sql.read_queue_table_to_dict"
-    ) as mock_read_queue_to_dict:
+    with patch("sql.read_queue_table_to_dict") as mock_read_queue_to_dict:
         yield mock_read_queue_to_dict
 
 
 @pytest.fixture
 def mock_call_update_message_status():
-    with patch(
-        "bcss-notify-callback.sql.call_update_message_status"
-    ) as mock_call_update_message_status:
+    with patch("sql.call_update_message_status") as mock_call_update_message_status:
         yield mock_call_update_message_status
 
 

@@ -6,8 +6,6 @@ import requests
 import lambda_function as lf
 from unittest.mock import MagicMock
 
-logger = logging.getLogger(__name__)
-
 
 @pytest.fixture
 def setup(monkeypatch):
