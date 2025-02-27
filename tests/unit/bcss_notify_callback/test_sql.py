@@ -105,6 +105,4 @@ def test_call_update_message_status_invalid_data(mock_connection, mock_cursor):
         data,
     )
 
-    # The message_status column is not nullable so when a NULL value is passed into the procedure,
-    # it should return an Oracle exception, ORA-01400 Cannot insert NULL value
     assert response != 0

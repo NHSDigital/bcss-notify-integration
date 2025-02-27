@@ -27,7 +27,6 @@ def mock_cursor():
 @pytest.fixture
 def mock_boto3_client():
     mock_client = MagicMock()
-    # Mock the get_secret_value response
     mock_client.get_secret_value.return_value = {
         "SecretString": '{\n  "username":"test_username",\n  "password":"test_password"\n}\n',
     }
@@ -58,7 +57,7 @@ def mock_requests_get():
 @pytest.fixture
 def mock_get_message_references():
     with patch(
-        "bcss_notify_callback.lambda_function.get_message_references"
+        "bcss-notify-callback.lambda_function.get_message_references"
     ) as mock_get_message_references:
         yield mock_get_message_references
 
@@ -66,7 +65,7 @@ def mock_get_message_references():
 @pytest.fixture
 def mock_read_queue_to_dict():
     with patch(
-        "bcss_notify_callback.sql.read_queue_table_to_dict"
+        "bcss-notify-callback.sql.read_queue_table_to_dict"
     ) as mock_read_queue_to_dict:
         yield mock_read_queue_to_dict
 
@@ -74,7 +73,7 @@ def mock_read_queue_to_dict():
 @pytest.fixture
 def mock_call_update_message_status():
     with patch(
-        "bcss_notify_callback.sql.call_update_message_status"
+        "bcss-notify-callback.sql.call_update_message_status"
     ) as mock_call_update_message_status:
         yield mock_call_update_message_status
 

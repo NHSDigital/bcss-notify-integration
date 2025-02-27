@@ -45,11 +45,6 @@ def test_validate_signature_invalid(setup):
     assert not lf.validate_signature(signature, "test", body)
 
 
-# There is a lot of code in this handler, worth breaking down into smaller chunks?
-# Came up in discussion to refactor the lambda_handler when connecting to comms management endpoint
-# Will become a lot shorter
-
-
 def test_lambda_handler(setup):
     """Test that the Lambda handler returns the correct response."""
     pass

@@ -34,10 +34,3 @@ def test_patient_to_update_valid_no_match(setup, mock_connection):
     data = patient_to_update(mock_connection, message_id, queue_dict)
 
     assert not data
-
-
-# Test for missing queue_patient["BATCH_ID"]?
-# What would we want the outcome to be if either of these are missing?
-# def test_patient_to_update_invalid_missing_batch_id(setup):
-#     message_id, queue_dict, var = setup
-#     pass
