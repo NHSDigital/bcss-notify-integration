@@ -1,8 +1,10 @@
+import logging
+
 import oracledb
 import uuid
 
 from OracleDatabase import OracleDatabase
-from NotifyMeesageQueue import NotifyMeesageQueue
+from NotifyMessageQueue import NotifyMessageQueue
 
 
 class BCSSNotifyBatchProcessor:
@@ -25,32 +27,15 @@ class BCSSNotifyBatchProcessor:
 
         try:
             self.db.connect()
-            routing_plan_id = self.db.call_function(
-                "PKG_NOTIFY_WRAP.f_get_next_batch",
-                oracledb.NUMBER,
-                [batch_id],
-            )
+            routing_plan_id = self.db.get_next_batch()
 
-            if routing_plan_id is None or routing_plan_id == "":
+            if not routing_plan_id:
                 return [], routing_plan_id
 
+            participants = self.db.get_set_of_participants(batch_id)
 
-            if not batch_id:
-                participants = self.db.execute_query(
-                    "SELECT * FROM v_notify_message_queue WHERE batch_id IS NULL"
-                )
-            else:
-                participants = self.db.execute_query(
-                    "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
-                    {"batch_id": batch_id},
-                )
         except oracledb.Error as e:
             print({"error": str(e)})
-
-        print("PARTICIPANTS :: ")
-        print(participants)
-
-        participants = self.generate_participants_message_reference(participants)
 
         return participants, routing_plan_id
 
@@ -66,14 +51,14 @@ class BCSSNotifyBatchProcessor:
         for participant in participants:
             participant_list = list(participant)
 
-            nhs_number = participant_list[NotifyMeesageQueue.NHS_NUMBER.value]
+            nhs_number = participant_list[NotifyMessageQueue.NHS_NUMBER.value]
             message_reference = str(uuid.uuid4())
             while self.check_message_reference_exists(message_reference):
-                print(
+                logging.info(
                     f"Clash detected for UUID {message_reference}. Generating a new one..."
                 )
                 message_reference = str(uuid.uuid4())
-            participant_list[NotifyMeesageQueue.MESSAGE_ID.value] = message_reference
+            participant_list[NotifyMessageQueue.MESSAGE_ID.value] = message_reference
             self.update_participant_message_reference(nhs_number, message_reference)
             participants_list.append(participant_list)
 

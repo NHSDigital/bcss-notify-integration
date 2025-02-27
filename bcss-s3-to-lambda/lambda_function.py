@@ -46,9 +46,6 @@ def get_secret(secret_name):
     secret = json.loads(response["SecretString"])
     return secret
 
-def connect_to_db(database):
-    database.connect()
-
 def lambda_handler(event, context):
     logger.info("Lambda function has started.")
 
@@ -83,13 +80,15 @@ def lambda_handler(event, context):
     )
     logger.info(f"Got participants.")
 
+    participants = bcss_notify_batch_processor.generate_participants_message_reference(participants)
+
     logger.debug(f"DEBUG: PARTICIPANTS - \n {participants}\n ROUTING_CONFIG_ID - {ROUTING_CONFIG_ID}")
 
     logger.info(f"Sending batch message...")
     bcss_notify_message_response = bcss_notify_request_handler.send_message(
         BATCH_ID, ROUTING_CONFIG_ID, participants
     )
-    logger.info(f"Bacth message sent.")
+    logger.info(f"Batch message sent.")
 
     logger.debug(f"DEBUG: BCSS_NOTIFY_MESSAGE_RESPONSE - \n {bcss_notify_message_response}")
     logger.info("Lambda function has completed.")

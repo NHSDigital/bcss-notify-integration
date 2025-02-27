@@ -1,7 +1,7 @@
 import oracledb
 from contextlib import contextmanager
 from typing import Optional
-
+import logging
 
 class OracleDatabase:
     """
@@ -126,3 +126,28 @@ class OracleDatabase:
             except oracledb.Error as e:
                 print(f"Error invoking function '{function_name}': {e}")
                 raise
+
+    def get_next_batch(self, batch_id: str):
+        """
+        Calls a stored procedure to get the next batch ID.
+
+        :return: The next batch ID
+        """
+        return self.call_function("PKG_NOTIFY_WRAP.f_get_next_batch", oracledb.NUMBER, [batch_id])
+
+    def get_set_of_participants(self, batch_id: str):
+        """
+        Calls a stored procedure to get the set of participants for a given batch ID.
+
+        :return: A set of participants
+        """
+        if not batch_id:
+            logging.log("INFO - No batch ID provided.")
+            return self.execute_query(
+                "SELECT * FROM v_notify_message_queue WHERE batch_id IS NULL"
+            )
+        else:
+            return self.execute_query(
+                "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
+                {"batch_id": batch_id},
+            )
