@@ -1,20 +1,23 @@
-"""Lambda function to monitor Oracle tablespace utilisation and send SNS alerts."""
+"""Lambda function to monitor Oracle tablespace utilisation and send alerts."""
 import json
 import os
 import boto3
 import oracledb
 
 # Constants for environment variables
-HOST = os.getenv("host")
-PORT = os.getenv("port")
-SID = os.getenv("sid")
-TABLESPACE_NAME = os.getenv("tablespace")
-SECRET_NAME = os.getenv("secret_name")
-REGION_NAME = os.getenv("region_name")
-TS_THRESHOLD = int(os.getenv("ts_threshold", "85"))  # Default threshold of 85%
+HOST = os.getenv("host")  # Database host
+PORT = os.getenv("port")  # Database port
+SID = os.getenv("sid")  # Database SID
+TABLESPACE_NAME = os.getenv("tablespace")  # Target tablespace
+SECRET_NAME = os.getenv("secret_name")  # AWS secret name
+REGION_NAME = os.getenv("region_name")  # AWS region
+TS_THRESHOLD = int(os.getenv("ts_threshold", "85"))  # Tablespace threshold percentage
+
+# Initialize AWS client
+SECRETS_CLIENT = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
 
 
-def lambda_handler(event, context):
+def lambda_handler(event: dict, context: object) -> dict:
     """
     AWS Lambda handler to check Oracle tablespace utilisation.
     
@@ -51,7 +54,8 @@ def lambda_handler(event, context):
         # Query tablespace utilisation
         cursor.execute(
             """
-            SELECT ROUND(((t.totalspace - NVL(fs.freespace, 0)) / t.totalspace) * 100, 2) AS used_pct
+            SELECT ROUND(((t.totalspace - NVL(fs.freespace, 0)) / t.totalspace) * 100, 2) 
+            AS used_pct
             FROM (
                 SELECT ROUND(SUM(d.bytes) / (1024 * 1024)) AS totalspace, 
                        d.tablespace_name tablespace
