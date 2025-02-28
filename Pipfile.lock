@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "156788e22556c030ed4d2de2c5fdda5216582648325604fc138012a42c723147"
+            "sha256": "b7240a3318822b9eedab849b55a29320554f1b95a14b01659f4b6080ff16b006"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,14 @@
         ]
     },
     "default": {
+        "astroid": {
+            "hashes": [
+                "sha256:187ccc0c248bfbba564826c26f070494f7bc964fd286b6d9fff4420e55de828c",
+                "sha256:a88c7994f914a4ea8572fac479459f4955eeccc877be3f2d959a33273b0cf40b"
+            ],
+            "markers": "python_full_version >= '3.9.0'",
+            "version": "==3.3.8"
+        },
         "certifi": {
             "hashes": [
                 "sha256:3d5da6925056f6f18f119200434a4780a94263f10d1c21d032a6f6b2baa20651",
@@ -236,6 +244,14 @@
             "markers": "python_version >= '3.7' and python_full_version not in '3.9.0, 3.9.1'",
             "version": "==44.0.1"
         },
+        "dill": {
+            "hashes": [
+                "sha256:468dff3b89520b474c0397703366b7b95eebe6303f108adf9b19da1f702be87a",
+                "sha256:81aa267dddf68cbfe8029c42ca9ec6a4ab3b22371d1c450abc54422577b4512c"
+            ],
+            "markers": "python_version >= '3.8'",
+            "version": "==0.3.9"
+        },
         "idna": {
             "hashes": [
                 "sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9",
@@ -244,6 +260,22 @@
             "index": "pypi",
             "markers": "python_version >= '3.6'",
             "version": "==3.10"
+        },
+        "isort": {
+            "hashes": [
+                "sha256:1cb5df28dfbc742e490c5e41bad6da41b805b0a8be7bc93cd0fb2a8a890ac450",
+                "sha256:2dc5d7f65c9678d94c88dfc29161a320eec67328bc97aad576874cb4be1e9615"
+            ],
+            "markers": "python_full_version >= '3.9.0'",
+            "version": "==6.0.1"
+        },
+        "mccabe": {
+            "hashes": [
+                "sha256:348e0240c33b60bbdf4e523192ef919f28cb2c3d7d5c7794f74009290f236325",
+                "sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e"
+            ],
+            "markers": "python_version >= '3.6'",
+            "version": "==0.7.0"
         },
         "oracledb": {
             "hashes": [
@@ -283,6 +315,14 @@
             "markers": "python_version >= '3.8'",
             "version": "==2.5.1"
         },
+        "platformdirs": {
+            "hashes": [
+                "sha256:357fb2acbc885b0419afd3ce3ed34564c13c9b95c89360cd9563f73aa5e2b907",
+                "sha256:73e575e1408ab8103900836b97580d5307456908a03e92031bab39e4554cc3fb"
+            ],
+            "markers": "python_version >= '3.8'",
+            "version": "==4.3.6"
+        },
         "pycparser": {
             "hashes": [
                 "sha256:491c8be9c040f5390f5bf44a5b07752bd07f56edf992381b05c701439eec10f6",
@@ -301,6 +341,15 @@
             "markers": "python_version >= '3.9'",
             "version": "==2.10.1"
         },
+        "pylint": {
+            "hashes": [
+                "sha256:289e6a1eb27b453b08436478391a48cd53bb0efb824873f949e709350f3de018",
+                "sha256:74ae7a38b177e69a9b525d0794bd8183820bfa7eb68cc1bee6e8ed22a42be4ce"
+            ],
+            "index": "pypi",
+            "markers": "python_full_version >= '3.9.0'",
+            "version": "==3.3.4"
+        },
         "requests": {
             "hashes": [
                 "sha256:55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760",
@@ -309,6 +358,14 @@
             "index": "pypi",
             "markers": "python_version >= '3.8'",
             "version": "==2.32.3"
+        },
+        "tomlkit": {
+            "hashes": [
+                "sha256:7a974427f6e119197f670fbbbeae7bef749a6c14e793db934baefc1b5f03efde",
+                "sha256:fff5fe59a87295b278abd31bec92c15d9bc4a06885ab12bcea52c71119392e79"
+            ],
+            "markers": "python_version >= '3.8'",
+            "version": "==0.13.2"
         },
         "urllib3": {
             "hashes": [
