@@ -1,4 +1,5 @@
 """Lambda function to monitor Oracle tablespace utilisation and send alerts."""
+
 import json
 import os
 import boto3
@@ -17,25 +18,25 @@ TS_THRESHOLD = int(os.getenv("ts_threshold", "85"))  # Tablespace threshold perc
 SECRETS_CLIENT = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
 
 
-def lambda_handler(event: dict, context: object) -> dict:
+def lambda_handler(_event: dict, _context: object) -> dict:
     """
     AWS Lambda handler to check Oracle tablespace utilisation.
-    
+
     Args:
         event: AWS Lambda event
         context: AWS Lambda context
-    
+
     Returns:
         dict: Response containing status code and execution results
     """
     cursor = None
     connection = None
-    
+
     try:
         print("Starting lambda execution")
         session = boto3.Session()
         client = session.client(service_name="secretsmanager")
-        
+
         # Fetch database credentials from Secrets Manager
         secret_response = client.get_secret_value(SecretId=SECRET_NAME)
         secret = json.loads(secret_response["SecretString"])
@@ -86,25 +87,23 @@ def lambda_handler(event: dict, context: object) -> dict:
             )
             return {
                 "statusCode": 200,
-                "body": json.dumps({
-                    "message": "Threshold exceeded",
-                    "utilisation": utilisation
-                })
+                "body": json.dumps(
+                    {"message": "Threshold exceeded", "utilisation": utilisation}
+                ),
             }
 
         print(f"Tablespace:{TABLESPACE_NAME} utilisation is below threshold")
         return {
             "statusCode": 200,
-            "body": json.dumps({
-                "message": "Utilisation normal",
-                "utilisation": utilisation
-            })
+            "body": json.dumps(
+                {"message": "Utilisation normal", "utilisation": utilisation}
+            ),
         }
 
     except Exception as err:
         print(f"Error: {str(err)}")
         return {"statusCode": 500, "body": json.dumps({"error": str(err)})}
-    
+
     finally:
         if cursor:
             cursor.close()
