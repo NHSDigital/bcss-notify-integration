@@ -1,7 +1,6 @@
 import uuid
 import logging
 import oracledb
-from oracle_database import OracleDatabase
 from notify_message_queue import NotifyMessageQueue
 
 logging.basicConfig(
@@ -88,9 +87,8 @@ class BCSSNotifyBatchProcessor:
             nhs_number = participant_list[NotifyMessageQueue.NHS_NUMBER.value]
             message_reference = str(uuid.uuid4())
             while self.check_message_reference_exists(message_reference):
-                logging.warning(
-                    "Clash detected for UUID %s. Generating a new one...",
-                    message_reference,
+                logging.info(
+                    "Clash detected for UUID %s . Generating a new one...", {message_reference}
                 )
                 message_reference = str(uuid.uuid4())
             participant_list[NotifyMessageQueue.MESSAGE_ID.value] = message_reference
@@ -119,19 +117,20 @@ class BCSSNotifyBatchProcessor:
             raise
 
     def update_participant_message_reference(
-        self, nhs_number: str, message_referce: str
+        self, nhs_number: str, message_reference: str
     ):
         """
         Update the MESSAGE_ID for the given participant.
 
         :param nhs_number: The NHS_NUMBER of the given participant
-        :param message_referce: The MESSAGE_ID to update
+        :param message_reference: The MESSAGE_ID to update
         """
         try:
             self.db.connect()
             self.db.execute_non_query(
-                "UPDATE v_notify_message_queue SET MESSAGE_ID = :message_referce WHERE NHS_NUMBER = :nhs_number",
-                {"message_referce": message_referce, "nhs_number": nhs_number},
+                "UPDATE v_notify_message_queue SET MESSAGE_ID = :message_reference \
+                WHERE NHS_NUMBER = :nhs_number",
+                {"message_reference": message_reference, "nhs_number": nhs_number},
             )
         except oracledb.Error as e:
             logging.error({"error": str(e)})

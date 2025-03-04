@@ -71,7 +71,6 @@ def lambda_handler(_event: dict, _context: object) -> None:
     db_secret = get_secret(SECRET_NAME)
     notify_secrets = get_secret("bcss-notify-nonprod-pem-key")
 
-    # Configure database connection
     db_config = {
         "user": db_secret["username"],
         "password": db_secret["password"],

@@ -1,8 +1,8 @@
 from time import time
 import uuid
+import requests
 
 from util import Util
-import requests
 
 
 class AuthManager:

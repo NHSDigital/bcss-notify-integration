@@ -1,7 +1,8 @@
-from util import Util
-
 import uuid
 import requests
+
+from util import Util
+
 
 
 class NHSNotify:
@@ -33,7 +34,7 @@ class NHSNotify:
             headers=headers,
             json=request_body,
             timeout=10
-        )
+        ).json()
 
     def send_batch_message(
         self,
