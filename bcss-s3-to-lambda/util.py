@@ -1,6 +1,5 @@
-import uuid
-import jwt
 from datetime import datetime, timezone, timedelta
+import jwt
 
 from notify_message_queue import NotifyMessageQueue
 

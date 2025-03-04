@@ -1,12 +1,15 @@
-from oracle_database import OracleDatabase
+import logging
 import json
 import os
-
-import boto3
 import uuid
+import boto3
+
+from oracle_database import OracleDatabase
+from bcss_notify_batch_processor import BCSSNotifyBatchProcessor
+from bcss_notify_request_handler import BCSSNotifyRequestHandler
 
 
-import logging
+
 
 # Set up logger
 logger = logging.getLogger()
@@ -21,9 +24,6 @@ console_handler.setFormatter(formatter)
 
 # Add the handler to the logger
 logger.addHandler(console_handler)
-
-from bcss_notify_batch_processor import BCSSNotifyBatchProcessor
-from bcss_notify_request_handler import BCSSNotifyRequestHandler
 
 HOST = os.getenv("host")
 PORT = os.getenv("port")
@@ -55,7 +55,7 @@ def lambda_handler(event, context):
     db_user = db_secret["username"]
     db_password = db_secret["password"]
 
-    PRIVATE_KEY = notify_secrets["private-key"]
+    private_key = notify_secrets["private-key"]
 
     db_config = {
         "user": db_user,
@@ -67,55 +67,29 @@ def lambda_handler(event, context):
 
     bcss_notify_batch_processor = BCSSNotifyBatchProcessor(database)
     bcss_notify_request_handler = BCSSNotifyRequestHandler(
-        TOKEN_URL, PRIVATE_KEY, NHS_NOTIFY_BASE_URL, database
+        TOKEN_URL, private_key, NHS_NOTIFY_BASE_URL, database
     )
 
-    BATCH_ID = str(uuid.uuid4())
-    BATCH_ID = None
-    logger.debug(f"DEBUG: BATCH_ID - {BATCH_ID}")
+    batch_id = str(uuid.uuid4())
+    batch_id = None
+    logger.debug("DEBUG: BATCH_ID - %s", {batch_id})
 
-    logger.info(f"Getting participants...")
+    logger.info("Getting participants...")
     participants, ROUTING_CONFIG_ID = bcss_notify_batch_processor.get_participants(
-        BATCH_ID
+        batch_id
     )
-    logger.info(f"Got participants.")
+    logger.info("Got participants.")
 
     participants = bcss_notify_batch_processor.generate_participants_message_reference(participants)
 
-    logger.debug(f"DEBUG: PARTICIPANTS - \n {participants}\n ROUTING_CONFIG_ID - {ROUTING_CONFIG_ID}")
+    logger.debug("DEBUG: PARTICIPANTS - \n %s  \
+                 \n ROUTING_CONFIG_ID - %s", participants, ROUTING_CONFIG_ID)
 
-    logger.info(f"Sending batch message...")
+    logger.info("Sending batch message...")
     bcss_notify_message_response = bcss_notify_request_handler.send_message(
-        BATCH_ID, ROUTING_CONFIG_ID, participants
+        batch_id, ROUTING_CONFIG_ID, participants
     )
-    logger.info(f"Batch message sent.")
+    logger.info("Batch message sent.")
 
-    logger.debug(f"DEBUG: BCSS_NOTIFY_MESSAGE_RESPONSE - \n {bcss_notify_message_response}")
+    logger.debug("DEBUG: BCSS_NOTIFY_MESSAGE_RESPONSE - \n %s ", {bcss_notify_message_response})
     logger.info("Lambda function has completed.")
-
-
-"""
-    # BCSSNotifyBatchProcessor
-
-    # Generate Batch ID
-
-    # Call PKG_NOTIFY_WRAP.f_get_next_batch with Batch ID, should Return Routing Config
-
-    # Check presence of Routing Config
-
-    # If not present, no records to process
-
-    # If present, Call SELECT * FROM v_notify_message_queue WHERE batch_id = your batch UUID
-
-    # Return list of participants
-
-    # BCSSNotifyRequestHandler
-
-    # Using participants list param, check length of participants list
-
-    # If 0 stop,
-
-    # If > 0, send message
-
-    # 
-"""

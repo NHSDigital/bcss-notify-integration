@@ -1,7 +1,8 @@
-import oracledb
 from contextlib import contextmanager
+
 from typing import Optional
 import logging
+import oracledb
 
 class OracleDatabase:
     """
@@ -120,7 +121,7 @@ class OracleDatabase:
         """
         with self.cursor() as cursor:
             try:
-                result = cursor.callfunc(function_name, oracledb.STRING, params)
+                result = cursor.callfunc(function_name, return_type, params)
                 self.connection.commit()
                 return result
             except oracledb.Error as e:
@@ -142,12 +143,11 @@ class OracleDatabase:
         :return: A set of participants
         """
         if not batch_id:
-            logging.log("INFO - No batch ID provided.")
+            logging.info("INFO - No batch ID provided.")
             return self.execute_query(
                 "SELECT * FROM v_notify_message_queue WHERE batch_id IS NULL"
             )
-        else:
-            return self.execute_query(
-                "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
-                {"batch_id": batch_id},
-            )
+        return self.execute_query(
+            "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
+            {"batch_id": batch_id},
+        )

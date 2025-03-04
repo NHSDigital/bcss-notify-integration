@@ -1,7 +1,8 @@
-from util import Util
-
 import uuid
 import requests
+
+from util import Util
+
 
 
 class NHSNotify:
@@ -14,7 +15,6 @@ class NHSNotify:
         access_token: str,
         routing_config_id: str,
         recipient: str,
-        message_reference: str,
     ) -> dict:
         headers = {
             "content-type": "application/vnd.api+json",
@@ -23,8 +23,8 @@ class NHSNotify:
             "authorization": "Bearer " + access_token,
         }
 
-        requestBody: dict = Util.generate_single_message_request_body(
-            recipient, routing_config_id, message_reference
+        request_body: dict = Util.generate_single_message_request_body(
+            recipient, routing_config_id
         )
 
         url = f"{self.base_url}/v1/messages"
@@ -32,9 +32,9 @@ class NHSNotify:
         return requests.request(
             'POST', url,
             headers=headers,
-            json=requestBody,
+            json=request_body,
             timeout=10
-        )
+        ).json()
 
     def send_batch_message(
         self,
@@ -50,7 +50,7 @@ class NHSNotify:
             "authorization": "Bearer " + access_token,
         }
 
-        requestBody: dict = Util.generate_batch_message_request_body(
+        request_body: dict = Util.generate_batch_message_request_body(
             routing_config_id, batch_id, recipients
         )
 
@@ -59,7 +59,7 @@ class NHSNotify:
         response: dict = requests.request(
             'POST', url,
             headers=headers,
-            json=requestBody,
+            json=request_body,
             timeout=10
         ).json()
 
