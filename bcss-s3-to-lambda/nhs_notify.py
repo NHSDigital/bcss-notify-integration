@@ -1,5 +1,5 @@
-from BaseAPIClient import BaseAPIClient
-from Util import Util
+from base_api_client import BaseAPIClient
+from util import Util
 
 import uuid
 

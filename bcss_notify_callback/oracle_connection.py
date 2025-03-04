@@ -1,7 +1,7 @@
-import boto3
 import json
-import oracledb
 import os
+import boto3
+import oracledb
 
 PORT = os.getenv("port")
 SID = os.getenv("sid")

@@ -1,9 +1,6 @@
-import oracledb
-import json
-from OracleDatabase import OracleDatabase
-from AuthManager import AuthManager
-from NHSNotify import NHSNotify
-from NotifyMessageQueue import NotifyMeesageQueue
+from oracle_database import OracleDatabase
+from auth_manager import AuthManager
+from nhs_notify import NHSNotify
 
 
 class BCSSNotifyRequestHandler:

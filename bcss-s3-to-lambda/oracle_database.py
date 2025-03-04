@@ -1,6 +1,6 @@
-import oracledb
 from contextlib import contextmanager
 from typing import Optional
+import oracledb
 
 
 class OracleDatabase:

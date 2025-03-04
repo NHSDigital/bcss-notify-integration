@@ -1,13 +1,17 @@
 """Lambda function to process and send batch notifications via NHS Notify service."""
+
 import json
 import logging
 import os
 import uuid
-
 import boto3
 
-from bcss_notify_batch_processor import BCSSNotifyBatchProcessor  # pylint: disable=import-error
-from bcss_notify_request_handler import BCSSNotifyRequestHandler  # pylint: disable=import-error
+from bcss_notify_batch_processor import (
+    BCSSNotifyBatchProcessor,
+)  # pylint: disable=import-error
+from bcss_notify_request_handler import (
+    BCSSNotifyRequestHandler,
+)  # pylint: disable=import-error
 
 # Set up logger
 LOGGER = logging.getLogger()
@@ -39,10 +43,10 @@ SECRETS_CLIENT = boto3.client(service_name="secretsmanager", region_name=REGION_
 def get_secret(secret_name: str) -> dict:
     """
     Retrieve a secret value from AWS Secrets Manager.
-    
+
     Args:
         secret_name: Name of the secret to retrieve
-        
+
     Returns:
         dict: Parsed secret value
     """
@@ -50,10 +54,10 @@ def get_secret(secret_name: str) -> dict:
     return json.loads(response["SecretString"])
 
 
-def lambda_handler(event: dict, context: object) -> None:
+def lambda_handler(_event: dict, _context: object) -> None:
     """
     AWS Lambda handler to process and send batch notifications.
-    
+
     Args:
         event: AWS Lambda event
         context: AWS Lambda context
@@ -74,10 +78,7 @@ def lambda_handler(event: dict, context: object) -> None:
     # Initialize processors
     batch_processor = BCSSNotifyBatchProcessor(db_config)
     request_handler = BCSSNotifyRequestHandler(
-        TOKEN_URL,
-        notify_secrets["private-key"],
-        NHS_NOTIFY_BASE_URL,
-        db_config
+        TOKEN_URL, notify_secrets["private-key"], NHS_NOTIFY_BASE_URL, db_config
     )
 
     # Generate unique batch ID
@@ -88,22 +89,20 @@ def lambda_handler(event: dict, context: object) -> None:
     LOGGER.info("Getting participants...")
     participants, routing_config_id = batch_processor.get_participants(batch_id)
     LOGGER.info("Retrieved participants successfully.")
-    
+
     LOGGER.debug(
         "Participants data: \n%s\nRouting config ID: %s",
         participants,
-        routing_config_id
+        routing_config_id,
     )
 
     # Send batch message
     LOGGER.info("Sending batch message...")
     message_response = request_handler.send_message(
-        batch_id,
-        routing_config_id,
-        participants
+        batch_id, routing_config_id, participants
     )
     LOGGER.info("Batch message sent successfully.")
-    
+
     LOGGER.debug("Message response: \n%s", message_response)
     LOGGER.info("Lambda function has completed.")
 
