@@ -1,10 +1,10 @@
+from oracle_database import OracleDatabase
 import json
 import os
 
 import boto3
 import uuid
 
-from OracleDatabase import OracleDatabase
 
 import logging
 
@@ -22,8 +22,8 @@ console_handler.setFormatter(formatter)
 # Add the handler to the logger
 logger.addHandler(console_handler)
 
-from BCSSNotifyBatchProcessor import BCSSNotifyBatchProcessor
-from BCSSNotifyRequestHandler import BCSSNotifyRequestHandler
+from bcss_notify_batch_processor import BCSSNotifyBatchProcessor
+from bcss_notify_request_handler import BCSSNotifyRequestHandler
 
 HOST = os.getenv("host")
 PORT = os.getenv("port")
