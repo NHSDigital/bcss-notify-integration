@@ -1,7 +1,5 @@
-from oracle_database import OracleDatabase
 from auth_manager import AuthManager
 from nhs_notify import NHSNotify
-
 
 class BCSSNotifyRequestHandler:
     """
@@ -9,7 +7,7 @@ class BCSSNotifyRequestHandler:
     """
 
     def __init__(self, token_url, private_key, nhs_notify_base_url, database):
-        self.auth_manager = AuthManager(token_url, private_key)
+        self.auth_manager = AuthManager(token_url, private_key, nhs_notify_base_url)
         self.nhs_notify = NHSNotify(nhs_notify_base_url)
         self.db = database
 
@@ -23,7 +21,7 @@ class BCSSNotifyRequestHandler:
             participants (list[str]): The list of the participant string NHS numbers.
         """
         if len(participants) == 0:
-            return
+            return None
 
         access_token = self.auth_manager.get_access_token()
 

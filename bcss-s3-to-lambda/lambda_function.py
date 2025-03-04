@@ -36,6 +36,7 @@ REGION_NAME = os.getenv("region_name")  # AWS region
 NHS_NOTIFY_BASE_URL = os.getenv("nhs_notify_base_url")  # NHS Notify API base URL
 TOKEN_URL = os.getenv("token_url")  # OAuth token URL
 
+
 # Initialize AWS clients
 SECRETS_CLIENT = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
 

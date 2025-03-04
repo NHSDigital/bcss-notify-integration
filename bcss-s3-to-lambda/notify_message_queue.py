@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class NotifyMeesageQueue(Enum):
+class NotifyMessageQueue(Enum):
     NHS_NUMBER = 0
     MESSAGE_ID = 1
     BATCH_ID = 2

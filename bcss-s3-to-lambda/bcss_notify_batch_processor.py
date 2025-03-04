@@ -2,7 +2,7 @@ import uuid
 import logging
 import oracledb
 from oracle_database import OracleDatabase
-from notify_message_queue import NotifyMeesageQueue
+from notify_message_queue import NotifyMessageQueue
 
 logging.basicConfig(
     format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
@@ -85,7 +85,7 @@ class BCSSNotifyBatchProcessor:
         for participant in participants:
             participant_list = list(participant)
 
-            nhs_number = participant_list[NotifyMeesageQueue.NHS_NUMBER.value]
+            nhs_number = participant_list[NotifyMessageQueue.NHS_NUMBER.value]
             message_reference = str(uuid.uuid4())
             while self.check_message_reference_exists(message_reference):
                 logging.warning(
@@ -93,7 +93,7 @@ class BCSSNotifyBatchProcessor:
                     message_reference,
                 )
                 message_reference = str(uuid.uuid4())
-            participant_list[NotifyMeesageQueue.MESSAGE_ID.value] = message_reference
+            participant_list[NotifyMessageQueue.MESSAGE_ID.value] = message_reference
             self.update_participant_message_reference(nhs_number, message_reference)
             participants_list.append(participant_list)
 
