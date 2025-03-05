@@ -17,7 +17,13 @@ class BaseAPIClient:
         url = f"{self.base_url}{endpoint}"
 
         response = requests.request(
-            method, url, headers=headers, data=data, json=json, params=params
+            method,
+            url,
+            headers=headers,
+            data=data,
+            json=json,
+            params=params,
+            timeout=160,
         )
 
         return response.json()
