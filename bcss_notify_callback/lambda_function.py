@@ -4,7 +4,7 @@ import hmac
 import logging
 import os
 import requests
-import sql as sql
+import sql
 import oracle_connection as db
 from patients_to_update import patient_to_update
 from typing import Dict, Any
@@ -25,7 +25,7 @@ def validate_signature(received_signature: str, secret: str, body: str) -> bool:
     return hmac.compare_digest(received_signature, expected_signature)
 
 
-def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+def lambda_handler(event: Dict[str, Any], _context: Any) -> Dict[str, Any]:
     """AWS Lambda function to handle NHS Notify callbacks."""
     logging.info("Lambda function has started with event: %s", event)
 
@@ -117,7 +117,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
 
 
-def is_duplicate_request(idempotency_key: str) -> bool:
+def is_duplicate_request(_idempotency_key: str) -> bool:
     """Check if the request has already been processed based on the idempotency key."""
     return False
 
