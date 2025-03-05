@@ -407,8 +407,6 @@ disable = [
     "missing-function-docstring",
     "missing-module-docstring",
     "broad-exception-caught",
-    "too-many-locals",
-    "too-many-return-statements",
 ]
 
 # Enable the message, report, category or checker with the given id(s). You can
