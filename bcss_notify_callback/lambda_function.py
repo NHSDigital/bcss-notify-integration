@@ -184,8 +184,7 @@ def get_statuses_from_communication_management_api(batch_id):
     try:
         message_references = []
         response = requests.get(
-            f"{os.getenv('communication_management_api_url')}/api/statuses/{batch_id}",
-            timeout=160,
+            f"{os.getenv('communication_management_api_url')}/api/statuses/{batch_id}"
         )
         response.raise_for_status()
         if response.status_code == 200:
@@ -195,10 +194,14 @@ def get_statuses_from_communication_management_api(batch_id):
             return message_references
 
     except requests.exceptions.HTTPError as e:
-        logging.error("Failed to get statuses from Communication Management API: %s", e)
+        logging.error(
+            "Failed to get statuses from Communication Management API: %s", str(e)
+        )
         raise
     except Exception as e:
-        logging.error("Error processing Communication Management API response: %s", e)
+        logging.error(
+            "Error processing Communication Management API response: %s", str(e)
+        )
         raise
 
 
