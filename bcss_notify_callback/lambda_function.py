@@ -3,11 +3,12 @@ import hashlib
 import hmac
 import logging
 import os
+from typing import Dict, Any
 import requests
 import sql
 import oracle_connection as db
 from patients_to_update import patient_to_update
-from typing import Dict, Any
+
 
 logging.basicConfig(
     format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
@@ -134,7 +135,7 @@ def get_status_from_notify_api(data: Dict[str, Any]):
         return message_id
 
     except (KeyError, ValueError) as e:
-        logging.error(f"Error processing callback: {e}")
+        logging.error("Error processing callback: %s", e)
         raise
 
 
@@ -148,7 +149,7 @@ def update_message_status(connection, recipient_to_update):
     if response_code == 0:
         logging.info("Message status updated successfully")
     else:
-        logging.error(f"Failed to update message status for message_id: {message_id}")
+        logging.error("Failed to update message status for message_id: %s", message_id)
 
     # db.commit_changes(connection)
     db.close_cursor(cursor)
@@ -171,11 +172,11 @@ def get_message_references(response, message_references):
 
     except KeyError as e:
         logging.error(
-            f"Error processing API response JSON: Missing Key: {e} in API data"
+            "Error processing API response JSON: Missing Key: %s in API data", e
         )
         raise
     except ValueError as e:
-        logging.error(f"Error processing API response JSON: {e}")
+        logging.error("Error processing API response JSON: %s", e)
         raise
 
 
@@ -183,7 +184,8 @@ def get_statuses_from_communication_management_api(batch_id):
     try:
         message_references = []
         response = requests.get(
-            f"{os.getenv('communication_management_api_url')}/api/statuses/{batch_id}"
+            f"{os.getenv('communication_management_api_url')}/api/statuses/{batch_id}",
+            timeout=160,
         )
         response.raise_for_status()
         if response.status_code == 200:
@@ -193,14 +195,10 @@ def get_statuses_from_communication_management_api(batch_id):
             return message_references
 
     except requests.exceptions.HTTPError as e:
-        logging.error(
-            f"Failed to get statuses from Communication Management API: {str(e)}"
-        )
+        logging.error("Failed to get statuses from Communication Management API: %s", e)
         raise
     except Exception as e:
-        logging.error(
-            f"Error processing Communication Management API response: {str(e)}"
-        )
+        logging.error("Error processing Communication Management API response: %s", e)
         raise
 
 
@@ -230,7 +228,7 @@ def update_message_statuses(connection, recipients_to_update):
             response_codes.append({"message_id": message_id, "status": "updated"})
         else:
             logging.error(
-                f"Failed to update message status for message_id: {message_id}"
+                "Failed to update message status for message_id: %s", message_id
             )
 
     db.commit_changes(connection)

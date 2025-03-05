@@ -11,7 +11,7 @@ def read_queue_table_to_dict(connection, logger):
         queue_data = cursor.fetchall()
 
         if not queue_data:
-            raise (TypeError("No data found in queue table"))
+            raise TypeError("No data found in queue table")
 
         queue_dict = [dict(zip(columns, row)) for row in queue_data]
         db.close_cursor(cursor)
