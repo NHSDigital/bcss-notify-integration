@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 oracledb = "*"
+parameterized = "*"
 
 [dev-packages]
 pytest-cov = "*"
