@@ -19,7 +19,6 @@ isort = "==6.0.1"
 mccabe = "==0.7.0"
 oracledb = "==2.5.1"
 packaging = "==24.2"
-parameterized = "==0.9.0"
 pipenv = "==2024.4.1"
 platformdirs = "==4.3.6"
 pluggy = "==1.5.0"
@@ -31,6 +30,7 @@ requests = "==2.32.3"
 tomlkit = "==0.13.2"
 urllib3 = "==2.3.0"
 virtualenv = "==20.29.2"
+parameterized = "*"
 
 [dev-packages]
 

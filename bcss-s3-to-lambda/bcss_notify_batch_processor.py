@@ -4,8 +4,6 @@ import uuid
 import oracledb
 from pipenv.patched.safety.errors import DatabaseFetchError
 
-from notify_message_queue import NotifyMessageQueue
-
 
 class BCSSNotifyBatchProcessor:
     """
