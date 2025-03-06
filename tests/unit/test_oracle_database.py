@@ -75,11 +75,11 @@ class MyTestCase(unittest.TestCase):
         }
         database = OracleDatabase(**db_config)
 
-        database.execute_query = Mock(return_value='Successful Query')
+        database.execute_query = Mock(return_value=['participant_1', 'participant_2'])
 
         batch_id = '1234'
 
-        assert(database.get_set_of_participants(batch_id) == 'Successful Query')
+        assert(database.get_set_of_participants(batch_id) == ['participant_1', 'participant_2'])
         database.execute_query.assert_called_with("SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id", {'batch_id': batch_id})
 
     def test_get_set_of_participants_null_batch_id(self):
@@ -90,9 +90,9 @@ class MyTestCase(unittest.TestCase):
         }
         database = OracleDatabase(**db_config)
 
-        database.execute_query = Mock(return_value='Successful Query')
+        database.execute_query = Mock(return_value=['participant_1', 'participant_2'])
 
-        assert(database.get_set_of_participants(None) == 'Successful Query')
+        assert(database.get_set_of_participants(None) == ['participant_1', 'participant_2'])
         database.execute_query.assert_called_with("SELECT * FROM v_notify_message_queue WHERE batch_id IS NULL")
 
     def test_get_participants_no_db_connection(self):
