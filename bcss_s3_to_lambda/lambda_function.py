@@ -80,17 +80,3 @@ def lambda_handler(event, context):
     logger.info("Got participants.")
 
     logger.debug("DEBUG: PARTICIPANTS - \n %s", participants)
-
-    # participants = bcss_notify_batch_processor.generate_participants_message_reference(participants)
-    #
-    # logger.debug("DEBUG: PARTICIPANTS - \n %s  \
-    #              \n ROUTING_CONFIG_ID - %s", participants, ROUTING_CONFIG_ID)
-    #
-    # logger.info("Sending batch message...")
-    # bcss_notify_message_response = bcss_notify_request_handler.send_message(
-    #     batch_id, ROUTING_CONFIG_ID, participants
-    # )
-    # logger.info("Batch message sent.")
-    #
-    # logger.debug("DEBUG: BCSS_NOTIFY_MESSAGE_RESPONSE - \n %s ", {bcss_notify_message_response})
-    # logger.info("Lambda function has completed.")
