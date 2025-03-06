@@ -21,6 +21,7 @@ charset-normalizer = "*"
 cryptography = "*"
 pyjwt = "*"
 pycparser = "*"
+parameterized = "*"
 
 [dev-packages]
 pytest-cov = "*"
