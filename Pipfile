@@ -15,6 +15,7 @@ cryptography = "*"
 pyjwt = "*"
 pycparser = "*"
 pylint = "*"
+parameterized = "*"
 
 [dev-packages]
 pytest-cov = "*"
