@@ -9,6 +9,8 @@ logging.basicConfig(
 
 import logging
 import oracledb
+from requests.exceptions import ConnectionError
+
 
 class OracleDatabase:
     """
@@ -35,19 +37,19 @@ class OracleDatabase:
             logging.info("Already connected to the database.")
             return
 
+        if (not self.user) or (not self.password) or (not self.dsn):
+            logging.error("ERROR - Missing connection parameters.")
+            raise ConnectionError("Missing connection parameters.")
+
         try:
-
-            print(self.user)
-            print(self.password)
-            print(self.dsn)
-
             self.connection = oracledb.connect(
                 user=self.user, password=self.password, dsn=self.dsn
             )
-            logging.info("Connected to Oracle database: %s", self.dsn)
+            logging.info("INFO - Connection to Oracle database established successfully.")
+            return True
         except oracledb.Error as e:
             logging.error("Error connecting to Oracle database: %s", e)
-            raise
+            raise ConnectionError("Failed to connect to the database.")
 
     def disconnect(self):
         """Closes the connection to the database."""

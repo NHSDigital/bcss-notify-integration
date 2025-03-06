@@ -15,6 +15,23 @@ class BCSSNotifyBatchProcessor:
 
     def __init__(self, database):
         self.db = database
+        try:
+            self.db.connect()
+        except ConnectionError as e:
+            logging.error(f"Error connecting to the database: {e}")
+            raise ConnectionError("Failed to connect to the database.")
+
+    def get_routing_plan_id(self):
+        """
+        Retrieves the next batch ID from the database.
+        """
+        routing_plan_id = self.db.get_next_batch()
+
+        if not routing_plan_id:
+            logging.error("Failed to fetch routing plan ID.")
+            raise DatabaseFetchError("Failed to fetch routing plan ID.")
+
+        return routing_plan_id
 
     def get_participants(self, batch_id: str):
         """
@@ -23,30 +40,13 @@ class BCSSNotifyBatchProcessor:
         Args:
             batch_id (str): The batch id for the batch of message to be sent.
         """
-        routing_plan_id = None
         participants = []
 
         try:
-            self.db.connect()
-            routing_plan_id = self.db.call_function(
-                "PKG_NOTIFY_WRAP.f_get_next_batch",
-                oracledb.NUMBER,
-                [batch_id],
-            )
-
-            if routing_plan_id is None or routing_plan_id == "":
-                return [], routing_plan_id
-
-
-            if not batch_id:
-                participants = self.db.execute_query(
-                    "SELECT * FROM v_notify_message_queue WHERE batch_id IS NULL"
-                )
-            else:
-                participants = self.db.execute_query(
-                    "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
-                    {"batch_id": batch_id},
-                )
+            participants = self.db.get_set_of_participants(batch_id)
+            if not participants:
+                logging.error("Failed to fetch participants.")
+                raise DatabaseFetchError("Failed to fetch participants.")
         except oracledb.Error as e:
             logging.error({"error": str(e)})
         finally:
@@ -68,9 +68,8 @@ class BCSSNotifyBatchProcessor:
         finally:
             self.db.disconnect()
 
-        participants = self.generate_participants_message_reference(participants)
+        return participants
 
-        return participants, routing_plan_id
 
     def generate_participants_message_reference(self, participants):
         """
@@ -108,7 +107,6 @@ class BCSSNotifyBatchProcessor:
         params = {"message_reference": message_reference}
 
         try:
-            self.db.connect()
             result = self.db.execute_query(query, params)
             count = result[0][0] if result else 0
             return count > 0
@@ -126,7 +124,6 @@ class BCSSNotifyBatchProcessor:
         :param message_reference: The MESSAGE_ID to update
         """
         try:
-            self.db.connect()
             self.db.execute_non_query(
                 "UPDATE v_notify_message_queue SET MESSAGE_ID = :message_reference \
                 WHERE NHS_NUMBER = :nhs_number",

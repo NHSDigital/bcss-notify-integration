@@ -87,49 +87,11 @@ def lambda_handler(_event: dict, _context: object) -> None:
     batch_id = str(uuid.uuid4())
     LOGGER.debug("Generated batch ID: %s", batch_id)
 
+    LOGGER.info("Getting routing ID...")
+    routing_config_id = bcss_notify_batch_processor.get_routing_plan_id()
+
     LOGGER.info("Getting participants...")
-    participants, routing_config_id = batch_processor.get_participants(batch_id)
-    LOGGER.info("Retrieved participants successfully.")
+    participants = bcss_notify_batch_processor.get_participants(batch_id)
+    LOGGER.info("Got participants.")
 
-    LOGGER.debug(
-        "Participants data: \n%s\nRouting config ID: %s",
-        participants,
-        routing_config_id,
-    )
-
-    # Send batch message
-    LOGGER.info("Sending batch message...")
-    message_response = request_handler.send_message(
-        batch_id, routing_config_id, participants
-    )
-    LOGGER.info("Batch message sent successfully.")
-
-    LOGGER.debug("Message response: \n%s", message_response)
-    LOGGER.info("Lambda function has completed.")
-
-
-"""
-    # BCSSNotifyBatchProcessor
-
-    # Generate Batch ID
-
-    # Call PKG_NOTIFY_WRAP.f_get_next_batch with Batch ID, should Return Routing Config
-
-    # Check presence of Routing Config
-
-    # If not present, no records to process
-
-    # If present, Call SELECT * FROM v_notify_message_queue WHERE batch_id = your batch UUID
-
-    # Return list of participants
-
-    # BCSSNotifyRequestHandler
-
-    # Using participants list param, check length of participants list
-
-    # If 0 stop,
-
-    # If > 0, send message
-
-    # 
-"""
+    LOGGER.debug("DEBUG: PARTICIPANTS - \n %s", participants)
