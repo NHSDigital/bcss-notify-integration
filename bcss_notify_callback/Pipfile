@@ -22,6 +22,7 @@ cryptography = "*"
 pyjwt = "*"
 pycparser = "*"
 parameterized = "*"
+boto3 = "*"
 
 [dev-packages]
 pytest-cov = "*"
