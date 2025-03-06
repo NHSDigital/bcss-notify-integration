@@ -3,6 +3,8 @@ from contextlib import contextmanager
 from typing import Optional
 import logging
 import oracledb
+from requests.exceptions import ConnectionError
+
 
 class OracleDatabase:
     """
@@ -26,22 +28,22 @@ class OracleDatabase:
     def connect(self):
         """Establishes a connection to the database."""
         if self.connection:
-            print("Already connected to the database.")
+            logging.info("INFO - Already connected to the database.")
             return
 
+        if (not self.user) or (not self.password) or (not self.dsn):
+            logging.error("ERROR - Missing connection parameters.")
+            raise ConnectionError("Missing connection parameters.")
+
         try:
-
-            print(self.user)
-            print(self.password)
-            print(self.dsn)
-
             self.connection = oracledb.connect(
                 user=self.user, password=self.password, dsn=self.dsn
             )
-            print("Connection to Oracle database established successfully.")
+            logging.info("INFO - Connection to Oracle database established successfully.")
+            return True
         except oracledb.Error as e:
-            print(f"Error connecting to Oracle database: {e}")
-            raise
+            logging.error(f"Error connecting to Oracle database: {e}")
+            raise ConnectionError("Failed to connect to the database.")
 
     def disconnect(self):
         """Closes the connection to the database."""

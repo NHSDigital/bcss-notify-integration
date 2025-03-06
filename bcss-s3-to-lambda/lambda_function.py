@@ -9,8 +9,6 @@ from bcss_notify_batch_processor import BCSSNotifyBatchProcessor
 from bcss_notify_request_handler import BCSSNotifyRequestHandler
 
 
-
-
 # Set up logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)  # You can change this to DEBUG, ERROR, etc.
@@ -74,22 +72,25 @@ def lambda_handler(event, context):
     batch_id = None
     logger.debug("DEBUG: BATCH_ID - %s", {batch_id})
 
+    logger.info("Getting routing ID...")
+    ROUTING_CONFIG_ID = bcss_notify_batch_processor.get_routing_plan_id()
+
     logger.info("Getting participants...")
-    participants, ROUTING_CONFIG_ID = bcss_notify_batch_processor.get_participants(
-        batch_id
-    )
+    participants = bcss_notify_batch_processor.get_participants(batch_id)
     logger.info("Got participants.")
 
-    participants = bcss_notify_batch_processor.generate_participants_message_reference(participants)
+    logger.debug("DEBUG: PARTICIPANTS - \n %s", participants)
 
-    logger.debug("DEBUG: PARTICIPANTS - \n %s  \
-                 \n ROUTING_CONFIG_ID - %s", participants, ROUTING_CONFIG_ID)
-
-    logger.info("Sending batch message...")
-    bcss_notify_message_response = bcss_notify_request_handler.send_message(
-        batch_id, ROUTING_CONFIG_ID, participants
-    )
-    logger.info("Batch message sent.")
-
-    logger.debug("DEBUG: BCSS_NOTIFY_MESSAGE_RESPONSE - \n %s ", {bcss_notify_message_response})
-    logger.info("Lambda function has completed.")
+    # participants = bcss_notify_batch_processor.generate_participants_message_reference(participants)
+    #
+    # logger.debug("DEBUG: PARTICIPANTS - \n %s  \
+    #              \n ROUTING_CONFIG_ID - %s", participants, ROUTING_CONFIG_ID)
+    #
+    # logger.info("Sending batch message...")
+    # bcss_notify_message_response = bcss_notify_request_handler.send_message(
+    #     batch_id, ROUTING_CONFIG_ID, participants
+    # )
+    # logger.info("Batch message sent.")
+    #
+    # logger.debug("DEBUG: BCSS_NOTIFY_MESSAGE_RESPONSE - \n %s ", {bcss_notify_message_response})
+    # logger.info("Lambda function has completed.")
