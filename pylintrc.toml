@@ -413,6 +413,9 @@ disable = [
     "too-many-arguments",
     "too-many-positional-arguments",
     "too-few-public-methods",
+    "inconsistent-return-statements",
+    "missing-timeout",
+    "pointless-string-statement"
 ]
 
 # Enable the message, report, category or checker with the given id(s). You can
