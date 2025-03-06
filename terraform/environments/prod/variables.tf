@@ -1,3 +1,13 @@
+variable "team" {
+  type    = string
+  default = "bcss"
+}
+
+variable "project" {
+  type    = string
+  default = "comms"
+}
+
 variable "environment" {
   type    = string
   default = "prod"
