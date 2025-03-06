@@ -88,10 +88,10 @@ def lambda_handler(_event: dict, _context: object) -> None:
     LOGGER.debug("Generated batch ID: %s", batch_id)
 
     LOGGER.info("Getting routing ID...")
-    routing_config_id = bcss_notify_batch_processor.get_routing_plan_id()
+    routing_config_id = batch_processor.get_routing_plan_id()
 
     LOGGER.info("Getting participants...")
-    participants = bcss_notify_batch_processor.get_participants(batch_id)
+    participants = batch_processor.get_participants(batch_id)
     LOGGER.info("Got participants.")
 
-    LOGGER.debug("DEBUG: PARTICIPANTS - \n %s", participants)
+    LOGGER.debug("PARTICIPANTS - \n %s", participants)
