@@ -31,6 +31,7 @@ tomlkit = "==0.13.2"
 urllib3 = "==2.3.0"
 virtualenv = "==20.29.2"
 parameterized = "*"
+boto3 = "*"
 
 [dev-packages]
 
