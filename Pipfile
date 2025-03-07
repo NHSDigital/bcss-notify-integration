@@ -32,6 +32,7 @@ parameterized = "*"
 boto3 = "*"
 pytest = "*"
 virtualenv = "*"
+pytest-cov = "*"
 
 [dev-packages]
 
