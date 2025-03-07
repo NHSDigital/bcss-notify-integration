@@ -1,8 +1,7 @@
-import uuid
-import jwt
 from datetime import datetime, timezone, timedelta
+import jwt
 
-from NotifyMessageQueue import NotifyMeesageQueue
+from notify_message_queue import NotifyMessageQueue
 
 
 class Util:
@@ -40,8 +39,8 @@ class Util:
     @staticmethod
     def generate_message(recipient) -> dict:
         return {
-            "messageReference": recipient[NotifyMeesageQueue.MESSAGE_ID.value],
-            "recipient": {"nhsNumber": recipient[NotifyMeesageQueue.NHS_NUMBER.value]},
+            "messageReference": recipient[NotifyMessageQueue.MESSAGE_ID.value],
+            "recipient": {"nhsNumber": recipient[NotifyMessageQueue.NHS_NUMBER.value]},
             "personalisation": {},
         }
 

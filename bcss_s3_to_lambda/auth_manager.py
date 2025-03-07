@@ -1,17 +1,15 @@
-import json
 from time import time
 import uuid
-import os
+import requests
 
-from BaseAPIClient import BaseAPIClient
-from Util import Util
+from util import Util
 
 
 class AuthManager:
 
     def __init__(self, token_url: str, private_key: str) -> None:
-        self.api_client: BaseAPIClient = BaseAPIClient(token_url)
-        self.PRIVATE_KEY = private_key
+        self.private_key = private_key
+        self.base_url = token_url
 
     def get_access_token(self) -> str:
 
@@ -25,10 +23,14 @@ class AuthManager:
             "client_assertion": jwt,
         }
 
-        reponse = self.api_client.make_request(
-            "POST", "", data=body, headers=headers, params=None
-        )
-        access_token = reponse["access_token"]
+        response = requests.request(
+            'POST', self.base_url,
+            headers=headers,
+            data=body,
+            timeout=10
+        ).json()
+
+        access_token = response["access_token"]
 
         return access_token
 
@@ -48,5 +50,5 @@ class AuthManager:
         }
 
         return Util.generate_jwt(
-            algorithm, self.PRIVATE_KEY, headers, payload, expiry_minutes=5
+            algorithm, self.private_key, headers, payload, expiry_minutes=expiry_minutes
         )
