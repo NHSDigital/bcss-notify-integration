@@ -39,4 +39,4 @@ jobs:
 
       - name: "run linting:"
         run: |
-          pylint $(git ls-files '*.py')
+          pylint src
