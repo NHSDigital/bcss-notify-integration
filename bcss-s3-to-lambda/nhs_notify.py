@@ -13,7 +13,6 @@ class NHSNotify:
         access_token: str,
         routing_config_id: str,
         recipient: str,
-        message_reference: str,
     ) -> dict:
         headers = {
             "content-type": "application/vnd.api+json",
@@ -23,7 +22,7 @@ class NHSNotify:
         }
 
         request_body: dict = Util.generate_single_message_request_body(
-            recipient, routing_config_id, message_reference
+            recipient, routing_config_id
         )
 
         response: dict = self.api_client.make_request(
