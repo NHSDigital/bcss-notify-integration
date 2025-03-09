@@ -1,91 +1,110 @@
+"""Lambda function to process and send batch notifications via NHS Notify service."""
+
 import json
-import os
-
-import boto3
-import uuid
-
 import logging
+import os
+import uuid
+import boto3
+
+from bcss_notify_batch_processor import (
+    BCSSNotifyBatchProcessor,
+)  # pylint: disable=import-error
+from bcss_notify_request_handler import (
+    BCSSNotifyRequestHandler,
+)  # pylint: disable=import-error
 
 # Set up logger
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)  # You can change this to DEBUG, ERROR, etc.
+LOGGER = logging.getLogger()
+LOGGER.setLevel(logging.INFO)
 
 # Set up log format
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+FORMATTER = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 # Create a stream handler to output logs to CloudWatch
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
+CONSOLE_HANDLER = logging.StreamHandler()
+CONSOLE_HANDLER.setFormatter(FORMATTER)
+LOGGER.addHandler(CONSOLE_HANDLER)
 
-# Add the handler to the logger
-logger.addHandler(console_handler)
-
-from BCSSNotifyBatchProcessor import BCSSNotifyBatchProcessor
-from BCSSNotifyRequestHandler import BCSSNotifyRequestHandler
-
-HOST = os.getenv("host")
-PORT = os.getenv("port")
-SID = os.getenv("sid")
-TABLESPACE_NAME = os.getenv("tablespace")
-SNS_ARN = os.getenv("sns_arn")
-SECRET_NAME = os.getenv("secret_arn")
-REGION_NAME = os.getenv("region_name")
-NHS_NOTIFY_BASE_URL = os.getenv("nhs_notify_base_url")
-ROUTING_CONFIG_ID = os.getenv("routing_config_id")
-TOKEN_URL = os.getenv("token_url")
+# Environment variables
+HOST = os.getenv("host")  # Oracle database host
+PORT = os.getenv("port")  # Oracle database port
+SID = os.getenv("sid")  # Oracle database SID
+TABLESPACE_NAME = os.getenv("tablespace")  # Oracle tablespace name
+SNS_ARN = os.getenv("sns_arn")  # AWS SNS topic ARN
+SECRET_NAME = os.getenv("secret_arn")  # AWS Secrets Manager secret name
+REGION_NAME = os.getenv("region_name")  # AWS region
+NHS_NOTIFY_BASE_URL = os.getenv("nhs_notify_base_url")  # NHS Notify API base URL
+TOKEN_URL = os.getenv("token_url")  # OAuth token URL
 
 # Initialize AWS clients
-secrets_client = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
+SECRETS_CLIENT = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
 
 
-def get_secret(secret_name):
-    """Retrieve a secret value from AWS Secrets Manager."""
-    response = secrets_client.get_secret_value(SecretId=secret_name)
-    secret = json.loads(response["SecretString"])
-    return secret
+def get_secret(secret_name: str) -> dict:
+    """
+    Retrieve a secret value from AWS Secrets Manager.
+
+    Args:
+        secret_name: Name of the secret to retrieve
+
+    Returns:
+        dict: Parsed secret value
+    """
+    response = SECRETS_CLIENT.get_secret_value(SecretId=secret_name)
+    return json.loads(response["SecretString"])
 
 
-def lambda_handler(event, context):
-    logger.info("Lambda function has started.")
+def lambda_handler(_event: dict, _context: object) -> None:
+    """
+    AWS Lambda handler to process and send batch notifications.
 
+    Args:
+        event: AWS Lambda event
+        context: AWS Lambda context
+    """
+    LOGGER.info("Lambda function has started.")
+
+    # Fetch required secrets
     db_secret = get_secret(SECRET_NAME)
     notify_secrets = get_secret("bcss-notify-nonprod-pem-key")
 
-    db_user = db_secret["username"]
-    db_password = db_secret["password"]
-
-    PRIVATE_KEY = notify_secrets["private-key"]
-
+    # Configure database connection
     db_config = {
-        "user": db_user,
-        "password": db_password,
+        "user": db_secret["username"],
+        "password": db_secret["password"],
         "dsn": f"{HOST}:{PORT}/{SID}",
     }
 
-    bcss_notify_batch_processor = BCSSNotifyBatchProcessor(db_config)
-    bcss_notify_request_handler = BCSSNotifyRequestHandler(
-        TOKEN_URL, PRIVATE_KEY, NHS_NOTIFY_BASE_URL, db_config
+    # Initialize processors
+    batch_processor = BCSSNotifyBatchProcessor(db_config)
+    request_handler = BCSSNotifyRequestHandler(
+        TOKEN_URL, notify_secrets["private-key"], NHS_NOTIFY_BASE_URL, db_config
     )
 
-    BATCH_ID = str(uuid.uuid4())
-    logger.debug(f"DEBUG: BATCH_ID - {BATCH_ID}")
+    # Generate unique batch ID
+    batch_id = str(uuid.uuid4())
+    LOGGER.debug("Generated batch ID: %s", batch_id)
 
-    logger.info(f"Getting participants...")
-    participants, ROUTING_CONFIG_ID = bcss_notify_batch_processor.get_participants(
-        BATCH_ID
+    # Process participants
+    LOGGER.info("Getting participants...")
+    participants, routing_config_id = batch_processor.get_participants(batch_id)
+    LOGGER.info("Retrieved participants successfully.")
+
+    LOGGER.debug(
+        "Participants data: \n%s\nRouting config ID: %s",
+        participants,
+        routing_config_id,
     )
-    logger.info(f"Got participants.")
 
-    logger.debug(f"DEBUG: PARTICIPANTS - \n {participants}\n ROUTING_CONFIG_ID - {ROUTING_CONFIG_ID}")
-
-    logger.info(f"Sending batch message...")
-    bcss_notify_message_response = bcss_notify_request_handler.send_message(
-        BATCH_ID, ROUTING_CONFIG_ID, participants
+    # Send batch message
+    LOGGER.info("Sending batch message...")
+    message_response = request_handler.send_message(
+        batch_id, routing_config_id, participants
     )
-    logger.info(f"Bacth message sent.")
+    LOGGER.info("Batch message sent successfully.")
 
-    logger.debug(f"DEBUG: BCSS_NOTIFY_MESSAGE_RESPONSE - \n {bcss_notify_message_response}")
-    logger.info("Lambda function has completed.")
+    LOGGER.debug("Message response: \n%s", message_response)
+    LOGGER.info("Lambda function has completed.")
 
 
 """

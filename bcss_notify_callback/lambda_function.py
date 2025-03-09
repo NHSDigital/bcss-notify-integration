@@ -3,11 +3,12 @@ import hashlib
 import hmac
 import logging
 import os
+from typing import Dict, Any
 import requests
-import sql as sql
+import sql
 import oracle_connection as db
 from patients_to_update import patient_to_update
-from typing import Dict, Any
+
 
 logging.basicConfig(
     format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
@@ -25,7 +26,7 @@ def validate_signature(received_signature: str, secret: str, body: str) -> bool:
     return hmac.compare_digest(received_signature, expected_signature)
 
 
-def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+def lambda_handler(event: Dict[str, Any], _context: Any) -> Dict[str, Any]:
     """AWS Lambda function to handle NHS Notify callbacks."""
     logging.info("Lambda function has started with event: %s", event)
 
@@ -117,7 +118,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
 
 
-def is_duplicate_request(idempotency_key: str) -> bool:
+def is_duplicate_request(_idempotency_key: str) -> bool:
     """Check if the request has already been processed based on the idempotency key."""
     return False
 
@@ -134,7 +135,7 @@ def get_status_from_notify_api(data: Dict[str, Any]):
         return message_id
 
     except (KeyError, ValueError) as e:
-        logging.error(f"Error processing callback: {e}")
+        logging.error("Error processing callback: %s", e)
         raise
 
 
@@ -148,7 +149,7 @@ def update_message_status(connection, recipient_to_update):
     if response_code == 0:
         logging.info("Message status updated successfully")
     else:
-        logging.error(f"Failed to update message status for message_id: {message_id}")
+        logging.error("Failed to update message status for message_id: %s", message_id)
 
     # db.commit_changes(connection)
     db.close_cursor(cursor)
@@ -171,11 +172,11 @@ def get_message_references(response, message_references):
 
     except KeyError as e:
         logging.error(
-            f"Error processing API response JSON: Missing Key: {e} in API data"
+            "Error processing API response JSON: Missing Key: %s in API data", e
         )
         raise
     except ValueError as e:
-        logging.error(f"Error processing API response JSON: {e}")
+        logging.error("Error processing API response JSON: %s", e)
         raise
 
 
@@ -194,12 +195,12 @@ def get_statuses_from_communication_management_api(batch_id):
 
     except requests.exceptions.HTTPError as e:
         logging.error(
-            f"Failed to get statuses from Communication Management API: {str(e)}"
+            "Failed to get statuses from Communication Management API: %s", str(e)
         )
         raise
     except Exception as e:
         logging.error(
-            f"Error processing Communication Management API response: {str(e)}"
+            "Error processing Communication Management API response: %s", str(e)
         )
         raise
 
@@ -230,7 +231,7 @@ def update_message_statuses(connection, recipients_to_update):
             response_codes.append({"message_id": message_id, "status": "updated"})
         else:
             logging.error(
-                f"Failed to update message status for message_id: {message_id}"
+                "Failed to update message status for message_id: %s", message_id
             )
 
     db.commit_changes(connection)

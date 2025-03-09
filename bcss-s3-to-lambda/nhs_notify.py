@@ -1,7 +1,6 @@
-from BaseAPIClient import BaseAPIClient
-from Util import Util
-
 import uuid
+from util import Util
+from base_api_client import BaseAPIClient
 
 
 class NHSNotify:
@@ -14,7 +13,6 @@ class NHSNotify:
         access_token: str,
         routing_config_id: str,
         recipient: str,
-        message_reference: str,
     ) -> dict:
         headers = {
             "content-type": "application/vnd.api+json",
@@ -23,12 +21,12 @@ class NHSNotify:
             "authorization": "Bearer " + access_token,
         }
 
-        requestBody: dict = Util.generate_single_message_request_body(
-            recipient, routing_config_id, message_reference
+        request_body: dict = Util.generate_single_message_request_body(
+            recipient, routing_config_id
         )
 
         response: dict = self.api_client.make_request(
-            method="POST", endpoint="/v1/messages", json=requestBody, headers=headers
+            method="POST", endpoint="/v1/messages", json=request_body, headers=headers
         )
         return response
 
@@ -46,14 +44,14 @@ class NHSNotify:
             "authorization": "Bearer " + access_token,
         }
 
-        requestBody: dict = Util.generate_batch_message_request_body(
+        request_body: dict = Util.generate_batch_message_request_body(
             routing_config_id, batch_id, recipients
         )
 
         response: dict = self.api_client.make_request(
             method="POST",
             endpoint="/v1/message-batches",
-            json=requestBody,
+            json=request_body,
             headers=headers,
         )
         return response
@@ -72,7 +70,7 @@ class NHSNotify:
 
         return response
 
-    def get_NHS_acccount_details(
+    def get_nhs_acccount_details(
         self, access_token: str, ods_code: str, page_number: str
     ):
         headers = {
@@ -86,7 +84,7 @@ class NHSNotify:
 
         response: dict = self.api_client.make_request(
             method="GET",
-            endpoint=f"/channels/nhsapp/accounts",
+            endpoint="/channels/nhsapp/accounts",
             headers=headers,
             params=params,
         )

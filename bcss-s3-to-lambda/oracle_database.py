@@ -1,6 +1,6 @@
-import oracledb
 from contextlib import contextmanager
 from typing import Optional
+import oracledb
 
 
 class OracleDatabase:
@@ -115,7 +115,7 @@ class OracleDatabase:
         """
         with self.cursor() as cursor:
             try:
-                result = cursor.callfunc(function_name, oracledb.STRING, params)
+                result = cursor.callfunc(function_name, return_type, params)
                 self.connection.commit()
                 return result
             except oracledb.Error as e:

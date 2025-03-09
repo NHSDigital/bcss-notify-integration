@@ -1,8 +1,7 @@
-import oracledb
 import uuid
-
-from OracleDatabase import OracleDatabase
-from NotifyMessageQueue import NotifyMeesageQueue
+import oracledb
+from oracle_database import OracleDatabase
+from notify_message_queue import NotifyMeesageQueue
 
 
 class BCSSNotifyBatchProcessor:

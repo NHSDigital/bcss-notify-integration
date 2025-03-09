@@ -1,4 +1,4 @@
-name: "Test stage"
+name: "Linting stage"
 
 on:
   push:
@@ -23,8 +23,8 @@ jobs:
           source venv/bin/activate
           python -m pip install --upgrade pip
 
-  unit-testing:
-    name: "Unit tests"
+  linting:
+    name: "linting"
     needs: set-up-dependencies
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -37,6 +37,6 @@ jobs:
           pip install pipenv
           pipenv install --dev --system
 
-      - name: "run unit testing:"
+      - name: "Lint Python files:"
         run: |
-          ./test-unit.sh
+          pylint $(git ls-files '*.py' | grep -v '^tests/')
