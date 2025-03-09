@@ -37,6 +37,6 @@ jobs:
           pip install pipenv
           pipenv install --dev --system
 
-      - name: "run linting:"
+      - name: "Lint Python files:"
         run: |
-          pylint src
+          pylint $(git ls-files '*.py' | grep -v '^tests/')
