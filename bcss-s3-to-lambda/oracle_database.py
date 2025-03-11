@@ -1,6 +1,11 @@
+import logging
 from contextlib import contextmanager
 from typing import Optional
 import oracledb
+
+logging.basicConfig(
+    format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
+)
 
 
 class OracleDatabase:
@@ -25,16 +30,16 @@ class OracleDatabase:
     def connect(self):
         """Establishes a connection to the database."""
         if self.connection:
-            print("Already connected to the database.")
+            logging.info("Already connected to the database.")
             return
 
         try:
             self.connection = oracledb.connect(
                 user=self.user, password=self.password, dsn=self.dsn
             )
-            print("Connection to Oracle database established successfully.")
+            logging.info("Connected to Oracle database: %s", self.dsn)
         except oracledb.Error as e:
-            print(f"Error connecting to Oracle database: {e}")
+            logging.error("Error connecting to Oracle database: %s", e)
             raise
 
     def disconnect(self):
@@ -42,9 +47,9 @@ class OracleDatabase:
         if self.connection:
             try:
                 self.connection.close()
-                print("Connection to Oracle database closed successfully.")
+                logging.info("Connection to Oracle database closed successfully.")
             except oracledb.Error as e:
-                print(f"Error closing the connection: {e}")
+                logging.error("Error closing the connection: %s", e)
                 raise
             finally:
                 self.connection = None
@@ -64,7 +69,7 @@ class OracleDatabase:
             cursor = self.connection.cursor()
             yield cursor
         except oracledb.Error as e:
-            print(f"Error while executing query: {e}")
+            logging.error("Error while executing query: %s", e)
             raise
         finally:
             if cursor:
@@ -84,7 +89,7 @@ class OracleDatabase:
                 results = cursor.fetchall()
                 return results
             except oracledb.Error as e:
-                print(f"Error executing query: {e}")
+                logging.error("Error executing query: %s", e)
                 raise
 
     def execute_non_query(self, query: str, params: Optional[dict] = None):
@@ -98,9 +103,9 @@ class OracleDatabase:
             try:
                 cursor.execute(query, params or {})
                 self.connection.commit()
-                print("Non-query executed and changes committed.")
+                logging.info("Non-query executed and changes committed.")
             except oracledb.Error as e:
-                print(f"Error executing non-query: {e}")
+                logging.error("Error executing non-query: %s", e)
                 self.connection.rollback()
                 raise
 
@@ -119,5 +124,5 @@ class OracleDatabase:
                 self.connection.commit()
                 return result
             except oracledb.Error as e:
-                print(f"Error invoking function '{function_name}': {e}")
+                logging.error("Error invoking function %s': %s", function_name, e)
                 raise

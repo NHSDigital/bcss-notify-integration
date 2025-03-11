@@ -1,6 +1,7 @@
 """Lambda function to monitor Oracle tablespace utilisation and send alerts."""
 
 import json
+import logging
 import os
 import boto3
 import oracledb
@@ -16,6 +17,10 @@ TS_THRESHOLD = int(os.getenv("ts_threshold", "85"))  # Tablespace threshold perc
 
 # Initialize AWS client
 SECRETS_CLIENT = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
+
+logging.basicConfig(
+    format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
+)
 
 
 def lambda_handler(_event: dict, _context: object) -> dict:
@@ -33,7 +38,7 @@ def lambda_handler(_event: dict, _context: object) -> dict:
     connection = None
 
     try:
-        print("Starting lambda execution")
+        logging.info("Starting lambda execution")
         session = boto3.Session()
         client = session.client(service_name="secretsmanager")
 
@@ -47,10 +52,9 @@ def lambda_handler(_event: dict, _context: object) -> dict:
         dsn_tns = f"{db_user}/{db_password}@{HOST}:{PORT}/{SID}"
         connection = oracledb.connect(dsn_tns)
         cursor = connection.cursor()
-
-        print(f"Connected to database: {SID}")
-        print(f"Database Version: {connection.version}")
-        print(f"Fetching Utilization of tablespace: {TABLESPACE_NAME}")
+        logging.info("Connected to database: %s", SID)
+        logging.info("Database Version: %s", connection.version)
+        logging.info("Fetching Utilization of tablespace: %s", TABLESPACE_NAME)
 
         # Query tablespace utilisation
         cursor.execute(
@@ -78,12 +82,13 @@ def lambda_handler(_event: dict, _context: object) -> dict:
 
         result = cursor.fetchone()
         utilisation = result[0] if result else 0
-        print(f"Tablespace Utilization(%): {utilisation}")
+        logging.info("Tablespace Utilization(%%): %s", utilisation)
 
         if utilisation > TS_THRESHOLD:
-            print(
-                f"Tablespace:{TABLESPACE_NAME} utilisation is above threshold "
-                f"({TS_THRESHOLD}%), alert required"
+            logging.warning(
+                "Tablespace:%s utilisation is above threshold\n(%s%%), alert required",
+                TABLESPACE_NAME,
+                TS_THRESHOLD,
             )
             return {
                 "statusCode": 200,
@@ -91,8 +96,7 @@ def lambda_handler(_event: dict, _context: object) -> dict:
                     {"message": "Threshold exceeded", "utilisation": utilisation}
                 ),
             }
-
-        print(f"Tablespace:{TABLESPACE_NAME} utilisation is below threshold")
+        logging.info("Tablespace:%s utilisation is below threshold", TABLESPACE_NAME)
         return {
             "statusCode": 200,
             "body": json.dumps(
@@ -101,7 +105,7 @@ def lambda_handler(_event: dict, _context: object) -> dict:
         }
 
     except Exception as err:
-        print(f"Error: {str(err)}")
+        logging.error("Error: %s", str(err))
         return {"statusCode": 500, "body": json.dumps({"error": str(err)})}
 
     finally:
