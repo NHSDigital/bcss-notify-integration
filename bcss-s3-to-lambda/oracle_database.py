@@ -1,7 +1,7 @@
-import oracledb
 import logging
 from contextlib import contextmanager
 from typing import Optional
+import oracledb
 
 logging.basicConfig(
     format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"

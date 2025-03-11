@@ -1,6 +1,6 @@
 import uuid
-import oracledb
 import logging
+import oracledb
 from oracle_database import OracleDatabase
 from notify_message_queue import NotifyMeesageQueue
 

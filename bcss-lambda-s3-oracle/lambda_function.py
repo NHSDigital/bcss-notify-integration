@@ -105,7 +105,7 @@ def lambda_handler(_event: dict, _context: object) -> dict:
         }
 
     except Exception as err:
-        logging.error(f"Error: {str(err)}")
+        logging.error("Error: %s", str(err))
         return {"statusCode": 500, "body": json.dumps({"error": str(err)})}
 
     finally:
