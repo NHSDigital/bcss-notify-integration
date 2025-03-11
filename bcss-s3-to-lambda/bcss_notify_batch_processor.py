@@ -1,7 +1,12 @@
 import uuid
 import oracledb
+import logging
 from oracle_database import OracleDatabase
 from notify_message_queue import NotifyMeesageQueue
+
+logging.basicConfig(
+    format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
+)
 
 
 class BCSSNotifyBatchProcessor:
@@ -29,7 +34,7 @@ class BCSSNotifyBatchProcessor:
                 [batch_id],
             )
         except oracledb.Error as e:
-            print({"error": str(e)})
+            logging.error({"error": str(e)})
         finally:
             self.db.disconnect()
 
@@ -45,7 +50,7 @@ class BCSSNotifyBatchProcessor:
                 {"batch_id": batch_id},
             )
         except oracledb.Error as e:
-            print({"error": str(e)})
+            logging.error({"error": str(e)})
         finally:
             self.db.disconnect()
 
@@ -68,8 +73,9 @@ class BCSSNotifyBatchProcessor:
             nhs_number = participant_list[NotifyMeesageQueue.NHS_NUMBER.value]
             message_reference = str(uuid.uuid4())
             while self.check_message_reference_exists(message_reference):
-                print(
-                    f"Clash detected for UUID {message_reference}. Generating a new one..."
+                logging.warning(
+                    "Clash detected for UUID %s. Generating a new one...",
+                    message_reference,
                 )
                 message_reference = str(uuid.uuid4())
             participant_list[NotifyMeesageQueue.MESSAGE_ID.value] = message_reference
@@ -94,7 +100,7 @@ class BCSSNotifyBatchProcessor:
             count = result[0][0] if result else 0
             return count > 0
         except Exception as e:
-            print(f"Error checking MESSAGE_REF: {e}")
+            logging.error("Error checking MESSAGE_REF: %s", e)
             raise
 
     def update_participant_message_reference(
@@ -113,6 +119,6 @@ class BCSSNotifyBatchProcessor:
                 {"message_referce": message_referce, "nhs_number": nhs_number},
             )
         except oracledb.Error as e:
-            print({"error": str(e)})
+            logging.error({"error": str(e)})
         finally:
             self.db.disconnect()
