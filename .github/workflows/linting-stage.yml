@@ -39,4 +39,4 @@ jobs:
 
       - name: "Lint Python files:"
         run: |
-          pylint $(git ls-files '*.py' | grep -v '^tests/')
+          ./lint.sh
