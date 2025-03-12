@@ -84,10 +84,6 @@ def lambda_handler(_event: dict, _context: object) -> None:
     batch_id = str(uuid.uuid4())
     logger.debug("Generated batch ID: %s", batch_id)
 
-    logger.info("Getting routing ID...")
-
     logger.info("Getting participants...")
     participants = batch_processor.get_participants(batch_id)
-    logger.info("Got participants.")
-
-    logger.debug("PARTICIPANTS - \n %s", participants)
+    logger.info("participants:\n%s", participants)
