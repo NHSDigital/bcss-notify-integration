@@ -9,9 +9,6 @@ import boto3
 from bcss_notify_batch_processor import (
     BCSSNotifyBatchProcessor,
 )  # pylint: disable=import-error
-from bcss_notify_request_handler import (
-    BCSSNotifyRequestHandler,
-)  # pylint: disable=import-error
 
 # Set up logger
 LOGGER = logging.getLogger()
@@ -36,6 +33,7 @@ REGION_NAME = os.getenv("region_name")  # AWS region
 NHS_NOTIFY_BASE_URL = os.getenv("nhs_notify_base_url")  # NHS Notify API base URL
 TOKEN_URL = os.getenv("token_url")  # OAuth token URL
 
+
 # Initialize AWS clients
 SECRETS_CLIENT = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
 
@@ -53,6 +51,8 @@ def get_secret(secret_name: str) -> dict:
     response = SECRETS_CLIENT.get_secret_value(SecretId=secret_name)
     return json.loads(response["SecretString"])
 
+def connect_to_db(database):
+    database.connect()
 
 def lambda_handler(_event: dict, _context: object) -> None:
     """
@@ -66,9 +66,7 @@ def lambda_handler(_event: dict, _context: object) -> None:
 
     # Fetch required secrets
     db_secret = get_secret(SECRET_NAME)
-    notify_secrets = get_secret("bcss-notify-nonprod-pem-key")
 
-    # Configure database connection
     db_config = {
         "user": db_secret["username"],
         "password": db_secret["password"],
@@ -77,58 +75,15 @@ def lambda_handler(_event: dict, _context: object) -> None:
 
     # Initialize processors
     batch_processor = BCSSNotifyBatchProcessor(db_config)
-    request_handler = BCSSNotifyRequestHandler(
-        TOKEN_URL, notify_secrets["private-key"], NHS_NOTIFY_BASE_URL, db_config
-    )
 
     # Generate unique batch ID
     batch_id = str(uuid.uuid4())
     LOGGER.debug("Generated batch ID: %s", batch_id)
 
-    # Process participants
+    LOGGER.info("Getting routing ID...")
+
     LOGGER.info("Getting participants...")
-    participants, routing_config_id = batch_processor.get_participants(batch_id)
-    LOGGER.info("Retrieved participants successfully.")
+    participants = batch_processor.get_participants(batch_id)
+    LOGGER.info("Got participants.")
 
-    LOGGER.debug(
-        "Participants data: \n%s\nRouting config ID: %s",
-        participants,
-        routing_config_id,
-    )
-
-    # Send batch message
-    LOGGER.info("Sending batch message...")
-    message_response = request_handler.send_message(
-        batch_id, routing_config_id, participants
-    )
-    LOGGER.info("Batch message sent successfully.")
-
-    LOGGER.debug("Message response: \n%s", message_response)
-    LOGGER.info("Lambda function has completed.")
-
-
-"""
-    # BCSSNotifyBatchProcessor
-
-    # Generate Batch ID
-
-    # Call PKG_NOTIFY_WRAP.f_get_next_batch with Batch ID, should Return Routing Config
-
-    # Check presence of Routing Config
-
-    # If not present, no records to process
-
-    # If present, Call SELECT * FROM v_notify_message_queue WHERE batch_id = your batch UUID
-
-    # Return list of participants
-
-    # BCSSNotifyRequestHandler
-
-    # Using participants list param, check length of participants list
-
-    # If 0 stop,
-
-    # If > 0, send message
-
-    # 
-"""
+    LOGGER.debug("PARTICIPANTS - \n %s", participants)

@@ -1,11 +1,19 @@
-import logging
 from contextlib import contextmanager
 from typing import Optional
+import logging
 import oracledb
 
 logging.basicConfig(
     format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
 )
+
+
+class DatabaseConnectionError(Exception):
+    """Exception raised when an error occurs connecting to the database."""
+
+
+class DatabaseFetchError(Exception):
+    """Exception raised when an error occurs fetching data from the database."""
 
 
 class OracleDatabase:
@@ -33,14 +41,19 @@ class OracleDatabase:
             logging.info("Already connected to the database.")
             return
 
+        if (not self.user) or (not self.password) or (not self.dsn):
+            logging.error("Missing connection parameters.")
+            raise DatabaseConnectionError("Missing connection parameters.")
+
         try:
             self.connection = oracledb.connect(
                 user=self.user, password=self.password, dsn=self.dsn
             )
-            logging.info("Connected to Oracle database: %s", self.dsn)
+            logging.info("Connection to Oracle database established successfully.")
+            return True
         except oracledb.Error as e:
             logging.error("Error connecting to Oracle database: %s", e)
-            raise
+            raise DatabaseConnectionError("Failed to connect to the database.") from e
 
     def disconnect(self):
         """Closes the connection to the database."""
@@ -62,7 +75,7 @@ class OracleDatabase:
         :yield: Cursor object for executing SQL queries.
         """
         if not self.connection:
-            raise ConnectionError("Database is not connected.")
+            raise DatabaseConnectionError("Database is not connected.")
 
         cursor = None
         try:
@@ -126,3 +139,30 @@ class OracleDatabase:
             except oracledb.Error as e:
                 logging.error("Error invoking function %s': %s", function_name, e)
                 raise
+
+
+    def get_next_batch(self, batch_id: str):
+        """
+        Calls a stored procedure to get the next batch ID.
+
+        :return: The next batch ID
+        """
+        return self.call_function("PKG_NOTIFY_WRAP.f_get_next_batch", oracledb.NUMBER, [batch_id])
+
+
+    def get_set_of_participants(self, batch_id: str):
+        """
+        Calls a stored procedure to get the set of participants for a given batch ID.
+
+        :return: A set of participants
+        """
+        if not batch_id:
+            logging.info("No batch ID provided.")
+            return self.execute_query(
+                "SELECT * FROM v_notify_message_queue WHERE batch_id IS NULL"
+            )
+
+        return self.execute_query(
+            "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
+            {"batch_id": batch_id},
+        )

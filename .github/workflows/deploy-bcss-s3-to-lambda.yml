@@ -3,7 +3,7 @@ name: Deploy BCSS S3 To Lambda Trigger
 on:
   push:
     paths:
-      - "bcss-s3-to-lambda/**"
+      - "bcss_s3_to_lambda/**"
     branches: [main]
 
 jobs:
@@ -28,11 +28,11 @@ jobs:
       - name: Install zip tool
         uses: montudor/action-zip@v1
       - name: Create zip file for Lambda function
-        run: cd bcss-s3-to-lambda && zip -r code.zip .
+        run: cd bcss_s3_to_lambda && zip -r code.zip .
       - name: AWS CLI v2
         uses: imehedi/actions-awscli-v2@latest
         with:
           args:
             "lambda update-function-code \ 
-            --function-name arn:aws:lambda:eu-west-2:730319765130:function:bcss-s3-to-lambda-trigger
-            --zip-file fileb://bcss-s3-to-lambda/code.zip"
+            --function-name arn:aws:lambda:eu-west-2:730319765130:function:bcss_s3_to_lambda-trigger
+            --zip-file fileb://bcss_s3_to_lambda/code.zip"

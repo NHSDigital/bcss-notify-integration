@@ -1,12 +1,14 @@
 import uuid
+import requests
+
 from util import Util
-from base_api_client import BaseAPIClient
+
 
 
 class NHSNotify:
 
     def __init__(self, base_url: str) -> None:
-        self.api_client = BaseAPIClient(base_url)
+        self.base_url = base_url
 
     def send_single_message(
         self,
@@ -25,10 +27,14 @@ class NHSNotify:
             recipient, routing_config_id
         )
 
-        response: dict = self.api_client.make_request(
-            method="POST", endpoint="/v1/messages", json=request_body, headers=headers
-        )
-        return response
+        url = f"{self.base_url}/v1/messages"
+
+        return requests.request(
+            'POST', url,
+            headers=headers,
+            json=request_body,
+            timeout=10
+        ).json()
 
     def send_batch_message(
         self,
@@ -48,12 +54,15 @@ class NHSNotify:
             routing_config_id, batch_id, recipients
         )
 
-        response: dict = self.api_client.make_request(
-            method="POST",
-            endpoint="/v1/message-batches",
-            json=request_body,
+        url = f"{self.base_url}/v1/message-batches"
+
+        response: dict = requests.request(
+            'POST', url,
             headers=headers,
-        )
+            json=request_body,
+            timeout=10
+        ).json()
+
         return response
 
     def get_message_status(self, access_token: str, message_id: str) -> dict:
@@ -64,13 +73,18 @@ class NHSNotify:
             "authorization": "Bearer " + access_token,
         }
 
-        response: dict = self.api_client.make_request(
-            method="GET", endpoint=f"/v1/messages/{message_id}", headers=headers
+        url = f"{self.base_url}/v1/messages/{message_id}"
+
+        response = requests.request(
+            'GET',
+            url,
+            headers=headers,
+            timeout=10
         )
 
-        return response
+        return response.json()
 
-    def get_nhs_acccount_details(
+    def get_nhs_account_details(
         self, access_token: str, ods_code: str, page_number: str
     ):
         headers = {
@@ -82,11 +96,14 @@ class NHSNotify:
 
         params: dict = {"ods-organisation-code": ods_code, "page": page_number}
 
-        response: dict = self.api_client.make_request(
-            method="GET",
-            endpoint="/channels/nhsapp/accounts",
+        url = f"{self.base_url}/channels/nhsapp/accounts"
+
+        response = requests.request(
+            'GET',
+            url,
             headers=headers,
             params=params,
+            timeout=10
         )
 
-        return response
+        return response.json()

@@ -1,4 +1,3 @@
-from oracle_database import OracleDatabase
 from auth_manager import AuthManager
 from nhs_notify import NHSNotify
 
@@ -8,10 +7,10 @@ class BCSSNotifyRequestHandler:
     Class responsible for handling individual notification requests.
     """
 
-    def __init__(self, token_url, private_key, nhs_notify_base_url, db_config):
+    def __init__(self, token_url, private_key, nhs_notify_base_url, database):
         self.auth_manager = AuthManager(token_url, private_key)
         self.nhs_notify = NHSNotify(nhs_notify_base_url)
-        self.db = OracleDatabase(**db_config)
+        self.db = database
 
     def send_message(self, batch_id, routing_config_id, participants):
         """
@@ -23,7 +22,7 @@ class BCSSNotifyRequestHandler:
             participants (list[str]): The list of the participant string NHS numbers.
         """
         if len(participants) == 0:
-            return
+            return None
 
         access_token = self.auth_manager.get_access_token()
 

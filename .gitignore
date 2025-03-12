@@ -24,3 +24,6 @@ terraform/**/*.vars.json      # Ignore JSON variable files
 .env             # Environment variables file
 *.zip
 *.log
+.vscode/settings.json
+__pycache__/
+.coverage
