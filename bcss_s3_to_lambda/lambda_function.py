@@ -6,22 +6,7 @@ import os
 import uuid
 import boto3
 
-from bcss_notify_batch_processor import (
-    BCSSNotifyBatchProcessor,
-)  # pylint: disable=import-error
-
-# Set up logger
-
-# Environment variables
-HOST = os.getenv("host")  # Oracle database host
-PORT = os.getenv("port")  # Oracle database port
-SID = os.getenv("sid")  # Oracle database SID
-TABLESPACE_NAME = os.getenv("tablespace")  # Oracle tablespace name
-SNS_ARN = os.getenv("sns_arn")  # AWS SNS topic ARN
-SECRET_NAME = os.getenv("secret_arn")  # AWS Secrets Manager secret name
-REGION_NAME = os.getenv("region_name")  # AWS region
-NHS_NOTIFY_BASE_URL = os.getenv("nhs_notify_base_url")  # NHS Notify API base URL
-TOKEN_URL = os.getenv("token_url")  # OAuth token URL
+from bcss_notify_batch_processor import BCSSNotifyBatchProcessor
 
 
 def initialise_logger() -> logging.Logger:
@@ -37,7 +22,7 @@ def initialise_logger() -> logging.Logger:
 
 
 def secrets_client():
-    return boto3.client("secretsmanager", region_name=REGION_NAME)
+    return boto3.client("secretsmanager", region_name=os.getenv("region_name"))
 
 
 def get_secret(secret_name: str) -> dict:
@@ -54,8 +39,16 @@ def get_secret(secret_name: str) -> dict:
     response = secrets_client().get_secret_value(SecretId=secret_name)
     return json.loads(response["SecretString"])
 
-def connect_to_db(database):
-    database.connect()
+
+def db_config():
+    db_secret = get_secret(os.getenv("secret_arn"))
+
+    return {
+        "user": db_secret["username"],
+        "password": db_secret["password"],
+        "dsn": f"{os.getenv('host')}:{os.getenv('port')}/{os.getenv('sid')}",
+    }
+
 
 def lambda_handler(_event: dict, _context: object) -> None:
     """
@@ -68,17 +61,8 @@ def lambda_handler(_event: dict, _context: object) -> None:
     logger = initialise_logger()
     logger.info("Lambda function has started.")
 
-    # Fetch required secrets
-    db_secret = get_secret(SECRET_NAME)
-
-    db_config = {
-        "user": db_secret["username"],
-        "password": db_secret["password"],
-        "dsn": f"{HOST}:{PORT}/{SID}",
-    }
-
     # Initialize processors
-    batch_processor = BCSSNotifyBatchProcessor(db_config)
+    batch_processor = BCSSNotifyBatchProcessor(db_config())
 
     # Generate unique batch ID
     batch_id = str(uuid.uuid4())
