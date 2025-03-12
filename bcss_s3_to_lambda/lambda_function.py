@@ -11,16 +11,6 @@ from bcss_notify_batch_processor import (
 )  # pylint: disable=import-error
 
 # Set up logger
-LOGGER = logging.getLogger()
-LOGGER.setLevel(logging.INFO)
-
-# Set up log format
-FORMATTER = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-
-# Create a stream handler to output logs to CloudWatch
-CONSOLE_HANDLER = logging.StreamHandler()
-CONSOLE_HANDLER.setFormatter(FORMATTER)
-LOGGER.addHandler(CONSOLE_HANDLER)
 
 # Environment variables
 HOST = os.getenv("host")  # Oracle database host
@@ -32,6 +22,18 @@ SECRET_NAME = os.getenv("secret_arn")  # AWS Secrets Manager secret name
 REGION_NAME = os.getenv("region_name")  # AWS region
 NHS_NOTIFY_BASE_URL = os.getenv("nhs_notify_base_url")  # NHS Notify API base URL
 TOKEN_URL = os.getenv("token_url")  # OAuth token URL
+
+
+def initialise_logger() -> logging.Logger:
+    """Configure logging for the Lambda function."""
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    logger.addHandler(logging.StreamHandler())
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+    return logger
 
 
 def secrets_client():
@@ -63,7 +65,8 @@ def lambda_handler(_event: dict, _context: object) -> None:
         event: AWS Lambda event
         context: AWS Lambda context
     """
-    LOGGER.info("Lambda function has started.")
+    logger = initialise_logger()
+    logger.info("Lambda function has started.")
 
     # Fetch required secrets
     db_secret = get_secret(SECRET_NAME)
@@ -79,12 +82,12 @@ def lambda_handler(_event: dict, _context: object) -> None:
 
     # Generate unique batch ID
     batch_id = str(uuid.uuid4())
-    LOGGER.debug("Generated batch ID: %s", batch_id)
+    logger.debug("Generated batch ID: %s", batch_id)
 
-    LOGGER.info("Getting routing ID...")
+    logger.info("Getting routing ID...")
 
-    LOGGER.info("Getting participants...")
+    logger.info("Getting participants...")
     participants = batch_processor.get_participants(batch_id)
-    LOGGER.info("Got participants.")
+    logger.info("Got participants.")
 
-    LOGGER.debug("PARTICIPANTS - \n %s", participants)
+    logger.debug("PARTICIPANTS - \n %s", participants)
