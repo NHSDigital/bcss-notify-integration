@@ -5,10 +5,10 @@ from parameterized import parameterized
 import pytest
 import oracledb
 
-from oracle_database import OracleDatabase
-from requests.exceptions import ConnectionError
+from oracle_database import OracleDatabase, DatabaseConnectionError
 
-class MyTestCase(unittest.TestCase):
+
+class TestOracleDatabase(unittest.TestCase):
     @parameterized.expand([
         ["user", "password", None,],
         ["user", None, "dsn"],
@@ -24,7 +24,7 @@ class MyTestCase(unittest.TestCase):
         }
         database = OracleDatabase(**db_config)
 
-        with pytest.raises(ConnectionError) as exc_info:
+        with pytest.raises(DatabaseConnectionError) as exc_info:
             database.connect()
 
         assert str(exc_info.value) == "Missing connection parameters."
@@ -51,10 +51,10 @@ class MyTestCase(unittest.TestCase):
         with patch('oracledb.connect') as mock_oracle_connect:
             mock_oracle_connect.side_effect = (oracledb.Error, "Error connecting to Oracle database")
 
-            with pytest.raises(ConnectionError) as exc_info:
+            with pytest.raises(DatabaseConnectionError) as exc_info:
                 database.connect()
 
-                assert str(exc_info.value) == "Failed to connect to the database."
+            assert str(exc_info.value) == "Failed to connect to the database."
 
     def test_get_next_batch(self):
         db_config = {
@@ -104,7 +104,7 @@ class MyTestCase(unittest.TestCase):
         database = OracleDatabase(**db_config)
 
 
-        with pytest.raises(ConnectionError) as exc_info:
+        with pytest.raises(DatabaseConnectionError) as exc_info:
             database.get_set_of_participants('1234')
 
             assert str(exc_info.value) == "Database is not connected."

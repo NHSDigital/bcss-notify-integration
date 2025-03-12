@@ -1,14 +1,19 @@
 from contextlib import contextmanager
 from typing import Optional
-import oracledb
 import logging
 import oracledb
-from requests.exceptions import ConnectionError
 
 logging.basicConfig(
     format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
 )
 
+
+class DatabaseConnectionError(Exception):
+    """Exception raised when an error occurs connecting to the database."""
+
+
+class DatabaseFetchError(Exception):
+    """Exception raised when an error occurs fetching data from the database."""
 
 
 class OracleDatabase:
@@ -37,18 +42,18 @@ class OracleDatabase:
             return
 
         if (not self.user) or (not self.password) or (not self.dsn):
-            logging.error("ERROR - Missing connection parameters.")
-            raise ConnectionError("Missing connection parameters.")
+            logging.error("Missing connection parameters.")
+            raise DatabaseConnectionError("Missing connection parameters.")
 
         try:
             self.connection = oracledb.connect(
                 user=self.user, password=self.password, dsn=self.dsn
             )
-            logging.info("INFO - Connection to Oracle database established successfully.")
+            logging.info("Connection to Oracle database established successfully.")
             return True
         except oracledb.Error as e:
             logging.error("Error connecting to Oracle database: %s", e)
-            raise ConnectionError("Failed to connect to the database.")
+            raise DatabaseConnectionError("Failed to connect to the database.") from e
 
     def disconnect(self):
         """Closes the connection to the database."""
@@ -70,7 +75,7 @@ class OracleDatabase:
         :yield: Cursor object for executing SQL queries.
         """
         if not self.connection:
-            raise ConnectionError("Database is not connected.")
+            raise DatabaseConnectionError("Database is not connected.")
 
         cursor = None
         try:
@@ -144,6 +149,7 @@ class OracleDatabase:
         """
         return self.call_function("PKG_NOTIFY_WRAP.f_get_next_batch", oracledb.NUMBER, [batch_id])
 
+
     def get_set_of_participants(self, batch_id: str):
         """
         Calls a stored procedure to get the set of participants for a given batch ID.
@@ -151,10 +157,11 @@ class OracleDatabase:
         :return: A set of participants
         """
         if not batch_id:
-            logging.info("INFO - No batch ID provided.")
+            logging.info("No batch ID provided.")
             return self.execute_query(
                 "SELECT * FROM v_notify_message_queue WHERE batch_id IS NULL"
             )
+
         return self.execute_query(
             "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
             {"batch_id": batch_id},

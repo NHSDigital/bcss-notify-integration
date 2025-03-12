@@ -9,9 +9,6 @@ import boto3
 from bcss_notify_batch_processor import (
     BCSSNotifyBatchProcessor,
 )  # pylint: disable=import-error
-from bcss_notify_request_handler import (
-    BCSSNotifyRequestHandler,
-)  # pylint: disable=import-error
 
 # Set up logger
 LOGGER = logging.getLogger()
@@ -69,7 +66,6 @@ def lambda_handler(_event: dict, _context: object) -> None:
 
     # Fetch required secrets
     db_secret = get_secret(SECRET_NAME)
-    notify_secrets = get_secret("bcss-notify-nonprod-pem-key")
 
     db_config = {
         "user": db_secret["username"],
@@ -79,16 +75,12 @@ def lambda_handler(_event: dict, _context: object) -> None:
 
     # Initialize processors
     batch_processor = BCSSNotifyBatchProcessor(db_config)
-    request_handler = BCSSNotifyRequestHandler(
-        TOKEN_URL, notify_secrets["private-key"], NHS_NOTIFY_BASE_URL, db_config
-    )
 
     # Generate unique batch ID
     batch_id = str(uuid.uuid4())
     LOGGER.debug("Generated batch ID: %s", batch_id)
 
     LOGGER.info("Getting routing ID...")
-    routing_config_id = batch_processor.get_routing_plan_id()
 
     LOGGER.info("Getting participants...")
     participants = batch_processor.get_participants(batch_id)

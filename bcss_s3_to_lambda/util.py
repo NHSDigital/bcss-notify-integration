@@ -38,8 +38,8 @@ class Util:
     @staticmethod
     def generate_message(recipient) -> dict:
         return {
-            "messageReference": recipient[NotifyMeesageQueue.MESSAGE_ID.value],
-            "recipient": {"nhsNumber": recipient[NotifyMeesageQueue.NHS_NUMBER.value]},
+            "messageReference": recipient[NotifyMessageQueue.MESSAGE_ID.value],
+            "recipient": {"nhsNumber": recipient[NotifyMessageQueue.NHS_NUMBER.value]},
             "personalisation": {},
         }
 

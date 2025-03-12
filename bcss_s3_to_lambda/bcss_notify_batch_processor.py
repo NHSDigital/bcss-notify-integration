@@ -2,6 +2,7 @@ import uuid
 import logging
 import oracledb
 from notify_message_queue import NotifyMessageQueue
+from oracle_database import DatabaseConnectionError, DatabaseFetchError
 
 logging.basicConfig(
     format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
@@ -17,9 +18,8 @@ class BCSSNotifyBatchProcessor:
         self.db = database
         try:
             self.db.connect()
-        except ConnectionError as e:
-            logging.error(f"Error connecting to the database: {e}")
-            raise ConnectionError("Failed to connect to the database.")
+        except DatabaseConnectionError as e:
+            logging.error("Error connecting to the database: %s", e)
 
     def get_routing_plan_id(self):
         """
@@ -47,22 +47,6 @@ class BCSSNotifyBatchProcessor:
             if not participants:
                 logging.error("Failed to fetch participants.")
                 raise DatabaseFetchError("Failed to fetch participants.")
-        except oracledb.Error as e:
-            logging.error({"error": str(e)})
-        finally:
-            self.db.disconnect()
-
-        if routing_plan_id is None or routing_plan_id == "":
-            return [], routing_plan_id
-
-        participants = []
-
-        try:
-            self.db.connect()
-            participants = self.db.execute_query(
-                "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
-                {"batch_id": batch_id},
-            )
         except oracledb.Error as e:
             logging.error({"error": str(e)})
         finally:

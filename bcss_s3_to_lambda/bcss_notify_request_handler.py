@@ -8,7 +8,7 @@ class BCSSNotifyRequestHandler:
     """
 
     def __init__(self, token_url, private_key, nhs_notify_base_url, database):
-        self.auth_manager = AuthManager(token_url, private_key, nhs_notify_base_url)
+        self.auth_manager = AuthManager(token_url, private_key)
         self.nhs_notify = NHSNotify(nhs_notify_base_url)
         self.db = database
 

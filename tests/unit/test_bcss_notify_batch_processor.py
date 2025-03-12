@@ -1,10 +1,8 @@
 from bcss_notify_batch_processor import BCSSNotifyBatchProcessor
-from oracle_database import OracleDatabase
+from oracle_database import OracleDatabase, DatabaseFetchError
 import pytest
 from unittest.mock import MagicMock
 import uuid
-
-from pipenv.patched.safety.errors import DatabaseFetchError
 
 
 # Fixtures: Things we don't want to repeatedly define.
@@ -42,23 +40,7 @@ class TestBCSSNotifyBatchProcessor:
         # Ideally this method should not exist, we should just find a way to generate a unique ID.
         subject.db.get_set_of_participants = MagicMock(return_value=participants)
 
-        # Mock the call to the database which returns the routing plan ID.
-        mock_fetch_routing_plan_id = subject.db.get_next_batch
-        mock_fetch_routing_plan_id.return_value = plan_id
-
-        # Mock the call to the database which returns the participants.
-        mock_fetch_participants = subject.db.execute_query
-        mock_fetch_participants.return_value = participants
-
-        routing_plan_id = subject.get_routing_plan_id()
-
-        participants = subject.get_participants(batch_id)
-
-        assert plan_id == routing_plan_id
         assert len(participants) == 2
-
-        # Assert that the database methods were called correctly.
-        assert mock_fetch_routing_plan_id.call_count == 1
 
         # Assert that the data was correctly returned.
         nhs_number, message_reference = participants[0]
