@@ -1,15 +1,14 @@
 from contextlib import contextmanager
-
 from typing import Optional
 import oracledb
+import logging
+import oracledb
+from requests.exceptions import ConnectionError
 
 logging.basicConfig(
     format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
 )
 
-import logging
-import oracledb
-from requests.exceptions import ConnectionError
 
 
 class OracleDatabase:
