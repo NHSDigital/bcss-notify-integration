@@ -34,8 +34,8 @@ NHS_NOTIFY_BASE_URL = os.getenv("nhs_notify_base_url")  # NHS Notify API base UR
 TOKEN_URL = os.getenv("token_url")  # OAuth token URL
 
 
-# Initialize AWS clients
-SECRETS_CLIENT = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
+def secrets_client():
+    return boto3.client("secretsmanager", region_name=REGION_NAME)
 
 
 def get_secret(secret_name: str) -> dict:
@@ -48,7 +48,8 @@ def get_secret(secret_name: str) -> dict:
     Returns:
         dict: Parsed secret value
     """
-    response = SECRETS_CLIENT.get_secret_value(SecretId=secret_name)
+
+    response = secrets_client().get_secret_value(SecretId=secret_name)
     return json.loads(response["SecretString"])
 
 def connect_to_db(database):
