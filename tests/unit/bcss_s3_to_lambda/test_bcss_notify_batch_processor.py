@@ -1,7 +1,7 @@
 from bcss_notify_batch_processor import BCSSNotifyBatchProcessor
 from oracle_database import OracleDatabase, DatabaseFetchError
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import uuid
 
 
@@ -30,14 +30,12 @@ def participants():
     ]
 
 
+@patch("bcss_notify_batch_processor.OracleDatabase", autospec=True)
 class TestBCSSNotifyBatchProcessor:
     # Test the get_participants method
     # We need to mock the OracleDatabase class and its methods but we can still test that they are called correctly.
-    def test_get_participants(self, db_config, batch_id, plan_id, participants):
-        database = MagicMock(spec=OracleDatabase)
-        subject = BCSSNotifyBatchProcessor(database)
-        # We have to mock this because it also calls db.execute_query.
-        # Ideally this method should not exist, we should just find a way to generate a unique ID.
+    def test_get_participants(self, mock_oracle_database, db_config, batch_id, plan_id, participants):
+        subject = BCSSNotifyBatchProcessor(batch_id, db_config)
         subject.db.get_set_of_participants = MagicMock(return_value=participants)
 
         assert len(participants) == 2
@@ -51,24 +49,20 @@ class TestBCSSNotifyBatchProcessor:
         assert nhs_number == "1111111111"
         assert message_reference == "message_reference_1"
 
-    def test_null_participants(self):
-        database = MagicMock(spec=OracleDatabase)
-        subject = BCSSNotifyBatchProcessor(database)
-
-        batch_id = str(uuid.uuid4())
+    def test_null_participants(self, mock_oracle_database, db_config, batch_id):
+        subject = BCSSNotifyBatchProcessor(batch_id, db_config)
 
         mock_fetch_participants = subject.db.get_set_of_participants
         mock_fetch_participants.return_value = None
 
         with pytest.raises(DatabaseFetchError) as exc_info:
-            subject.get_participants(batch_id)
+            subject.get_participants()
 
         assert str(exc_info.value) == "Failed to fetch participants."
         assert mock_fetch_participants.call_count == 1
 
-    def test_get_routing_plan_id(self):
-        database = MagicMock(spec=OracleDatabase)
-        subject = BCSSNotifyBatchProcessor(database)
+    def test_get_routing_plan_id(self, mock_oracle_database, db_config, batch_id):
+        subject = BCSSNotifyBatchProcessor(batch_id, db_config)
 
         plan_id = str(uuid.uuid4())
 
@@ -80,9 +74,8 @@ class TestBCSSNotifyBatchProcessor:
         assert routing_plan_id == plan_id
         assert mock_fetch_routing_plan_id.call_count == 1
 
-    def test_null_routing_plan_id(self):
-        database = MagicMock(spec=OracleDatabase)
-        subject = BCSSNotifyBatchProcessor(database)
+    def test_null_routing_plan_id(self, mock_oracle_database, db_config, batch_id):
+        subject = BCSSNotifyBatchProcessor(batch_id, db_config)
 
         plan_id = None
 
@@ -94,4 +87,3 @@ class TestBCSSNotifyBatchProcessor:
 
         assert str(exc_info.value) == "Failed to fetch routing plan ID."
         assert mock_fetch_routing_plan_id.call_count == 1
-

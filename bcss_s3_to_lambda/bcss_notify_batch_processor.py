@@ -2,7 +2,7 @@ import uuid
 import logging
 import oracledb
 from notify_message_queue import NotifyMessageQueue
-from oracle_database import DatabaseConnectionError, DatabaseFetchError
+from oracle_database import OracleDatabase, DatabaseConnectionError, DatabaseFetchError
 
 logging.basicConfig(
     format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
@@ -14,8 +14,9 @@ class BCSSNotifyBatchProcessor:
     Class responsible for processing batches of participants to notify.
     """
 
-    def __init__(self, database):
-        self.db = database
+    def __init__(self, batch_id: str, db_config: dict):
+        self.batch_id = batch_id
+        self.db = OracleDatabase(db_config["dsn"], db_config["user"], db_config["password"])
         try:
             self.db.connect()
         except DatabaseConnectionError as e:
@@ -25,7 +26,7 @@ class BCSSNotifyBatchProcessor:
         """
         Retrieves the next batch ID from the database.
         """
-        routing_plan_id = self.db.get_next_batch()
+        routing_plan_id = self.db.get_next_batch(self.batch_id)
 
         if not routing_plan_id:
             logging.error("Failed to fetch routing plan ID.")
@@ -33,7 +34,7 @@ class BCSSNotifyBatchProcessor:
 
         return routing_plan_id
 
-    def get_participants(self, batch_id: str):
+    def get_participants(self):
         """
         Retrieves a list of participants for notification.
 
@@ -43,7 +44,7 @@ class BCSSNotifyBatchProcessor:
         participants = []
 
         try:
-            participants = self.db.get_set_of_participants(batch_id)
+            participants = self.db.get_set_of_participants(self.batch_id)
             if not participants:
                 logging.error("Failed to fetch participants.")
                 raise DatabaseFetchError("Failed to fetch participants.")

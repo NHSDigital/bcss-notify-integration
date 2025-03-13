@@ -50,6 +50,10 @@ def db_config():
     }
 
 
+def generate_batch_id():
+    return str(uuid.uuid4())
+
+
 def lambda_handler(_event: dict, _context: object) -> None:
     """
     AWS Lambda handler to process and send batch notifications.
@@ -61,13 +65,13 @@ def lambda_handler(_event: dict, _context: object) -> None:
     logger = initialise_logger()
     logger.info("Lambda function has started.")
 
-    # Initialize processors
-    batch_processor = BCSSNotifyBatchProcessor(db_config())
-
     # Generate unique batch ID
-    batch_id = str(uuid.uuid4())
+    batch_id = generate_batch_id()
     logger.debug("Generated batch ID: %s", batch_id)
 
+    # Initialize processors
+    batch_processor = BCSSNotifyBatchProcessor(batch_id, db_config())
+
     logger.info("Getting participants...")
-    participants = batch_processor.get_participants(batch_id)
+    participants = batch_processor.get_participants()
     logger.info("participants:\n%s", participants)

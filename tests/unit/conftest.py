@@ -55,12 +55,6 @@ def mock_requests_get():
 
 
 @pytest.fixture
-def mock_get_message_references():
-    with patch("lambda_function.get_message_references") as mock_get_message_references:
-        yield mock_get_message_references
-
-
-@pytest.fixture
 def mock_read_queue_to_dict():
     with patch("sql.read_queue_table_to_dict") as mock_read_queue_to_dict:
         yield mock_read_queue_to_dict
