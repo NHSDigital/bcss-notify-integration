@@ -1,11 +1,15 @@
 from unittest.mock import MagicMock, patch
-from lambda_function import lambda_handler, initialise_logger, secrets_client, get_secret, db_config
+from lambda_function import (
+        lambda_handler, initialise_logger, secrets_client, 
+        get_secret, db_config, generate_batch_id
+)
 import boto3
 import logging
 
 
+@patch("lambda_function.generate_batch_id", return_value="b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3")
 @patch("lambda_function.BCSSNotifyBatchProcessor", autospec=True)
-def test_lambda_handler(mock_bcss_notify_batch_processor, monkeypatch):
+def test_lambda_handler(mock_bcss_notify_batch_processor, generate_batch_id, monkeypatch):
     monkeypatch.setenv("host", "host")
     monkeypatch.setenv("port", "port")
     monkeypatch.setenv("sid", "sid")
@@ -16,7 +20,10 @@ def test_lambda_handler(mock_bcss_notify_batch_processor, monkeypatch):
 
     lambda_handler({}, {})
 
-    mock_bcss_notify_batch_processor.assert_called_once_with({"dsn": "host:port/sid", "user": "user", "password": "pass"})
+    mock_bcss_notify_batch_processor.assert_called_once_with(
+        "b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3",
+        {"dsn": "host:port/sid", "user": "user", "password": "pass"}
+    )
     mock_bcss_notify_batch_processor.return_value.get_participants.assert_called_once()
 
 
