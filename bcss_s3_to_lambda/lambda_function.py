@@ -7,6 +7,7 @@ import uuid
 import boto3
 
 from bcss_notify_batch_processor import BCSSNotifyBatchProcessor
+from communication_management import CommunicationManagement
 
 
 def initialise_logger() -> logging.Logger:
@@ -72,6 +73,16 @@ def lambda_handler(_event: dict, _context: object) -> None:
     # Initialize processors
     batch_processor = BCSSNotifyBatchProcessor(batch_id, db_config())
 
-    logger.info("Getting participants...")
+    routing_plan_id = batch_processor.get_routing_plan_id()
+
     participants = batch_processor.get_participants()
     logger.info("participants:\n%s", participants)
+
+    response = CommunicationManagement().send_batch_message(
+        batch_id, routing_plan_id, participants
+    )
+
+    if response.status_code == 201:
+        logger.info("Batch message sent successfully.")
+    else:
+        logger.error("Failed to send batch message. Status code: %s", response.status_code)

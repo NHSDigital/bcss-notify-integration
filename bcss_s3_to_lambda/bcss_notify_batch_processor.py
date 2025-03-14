@@ -1,7 +1,6 @@
-import uuid
 import logging
+import uuid
 import oracledb
-from notify_message_queue import NotifyMessageQueue
 from oracle_database import OracleDatabase, DatabaseConnectionError, DatabaseFetchError
 
 logging.basicConfig(
@@ -68,14 +67,14 @@ class BCSSNotifyBatchProcessor:
         for participant in participants:
             participant_list = list(participant)
 
-            nhs_number = participant_list[NotifyMessageQueue.NHS_NUMBER.value]
+            nhs_number = participant_list[0]
             message_reference = str(uuid.uuid4())
             while self.check_message_reference_exists(message_reference):
                 logging.info(
                     "Clash detected for UUID %s . Generating a new one...", {message_reference}
                 )
                 message_reference = str(uuid.uuid4())
-            participant_list[NotifyMessageQueue.MESSAGE_ID.value] = message_reference
+            participant_list[1] = message_reference
             self.update_participant_message_reference(nhs_number, message_reference)
             participants_list.append(participant_list)
 
