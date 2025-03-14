@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define necessary variables
-DOCKERFILE=create-artifacts.dockerfile
+DOCKERFILE=create-artefacts.dockerfile
 
 # # Create a directory for project code and virtualenv installation
 PROJECT_DIR="$(realpath "$(dirname "$0")/..")"
@@ -15,7 +15,7 @@ fi
 
 echo "Pipfile found at $"
 
-# Pull the official Python 3.12 image for linux/amd64
+# Pull the official Python 3.13 image for linux/amd64
 docker build -f $DOCKERFILE --target export --output type=local,dest=./artefacts .
 
 # Check if the export was successful

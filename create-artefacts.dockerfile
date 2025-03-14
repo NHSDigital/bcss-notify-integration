@@ -4,14 +4,12 @@ FROM --platform=linux/amd64 python:3.13 AS builder
 ENV PIPENV_VENV_IN_PROJECT=1
 WORKDIR /tmp/project/app
 
-# Copy only the Pipfile
-COPY Pipfile .
+COPY Pipfile Pipfile.lock ./
 
 # Install dependencies (update pip, install pipenv, and install from Pipfile)
 RUN pip install --upgrade pip && \
     pip install pipenv && \
-    pipenv --python 3.13 && \
-    pipenv install
+    pipenv install --deploy --ignore-pipfile
 
 # Assume the installed packages are in the .venv folder; copy them to an export folder
 RUN mkdir -p /artefacts/ && \
