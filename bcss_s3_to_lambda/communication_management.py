@@ -12,7 +12,7 @@ class CommunicationManagement:
         self.base_url = os.getenv("base_url")
         self.application_id = os.getenv("application_id")
         self.api_key = os.getenv("api_key")
-        self.secret = f"{self.application_id}:{self.api_key}"
+        self.secret = f"{self.application_id}.{self.api_key}"
 
     def send_batch_message(
         self,
