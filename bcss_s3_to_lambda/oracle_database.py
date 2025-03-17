@@ -70,9 +70,6 @@ class OracleDatabase:
         try:
             cursor = self.connection.cursor()
             yield cursor
-        except oracledb.Error as e:
-            logging.error("Error initialising cursor: %s", e)
-            raise
         finally:
             if cursor:
                 cursor.close()
