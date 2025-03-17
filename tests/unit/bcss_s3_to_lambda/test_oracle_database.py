@@ -36,23 +36,22 @@ class TestOracleDatabase(unittest.TestCase):
 
         assert str(exc_info.value) == "Failed to connect to the database. Something's not right"
 
-    def test_get_next_batch(self, mock_oracledb):
+    def test_get_routing_plan_id(self, mock_oracledb):
         database = OracleDatabase(**db_config())
 
-        routing_plan_id = str(uuid.uuid4())
+        expected_routing_plan_id = str(uuid.uuid4())
         batch_id = '1234'
         mock_cursor = database.cursor().__enter__()
-        mock_cursor.callfunc = Mock(return_value=routing_plan_id)
+        mock_cursor.callfunc = Mock(return_value=expected_routing_plan_id)
 
-        next_batch = database.get_next_batch(batch_id)
+        routing_plan_id = database.get_routing_plan_id(batch_id)
 
         mock_cursor.callfunc.assert_called_with(
             "PKG_NOTIFY_WRAP.f_get_next_batch",
             mock_oracledb.STRING,
             [batch_id]
         )
-        assert next_batch == routing_plan_id
-
+        assert routing_plan_id == expected_routing_plan_id
 
     def test_get_recipients(self, mock_oracledb):
         database = OracleDatabase(**db_config())
