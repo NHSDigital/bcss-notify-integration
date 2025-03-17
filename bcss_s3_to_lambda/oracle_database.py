@@ -3,6 +3,8 @@ from typing import Optional
 import logging
 import oracledb
 
+from recipient import Recipient
+
 logging.basicConfig(
     format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
 )
@@ -30,30 +32,22 @@ class OracleDatabase:
         :param user: Database username
         :param password: Database password
         """
-        self.dsn = dsn
-        self.user = user
-        self.password = password
+        self.dsn: str = dsn
+        self.user: str = user
+        self.password: str = password
         self.connection: Optional[oracledb.Connection] = None
 
     def connect(self):
-        """Establishes a connection to the database."""
         if self.connection:
-            logging.info("Already connected to the database.")
             return
-
-        if (not self.user) or (not self.password) or (not self.dsn):
-            logging.error("Missing connection parameters.")
-            raise DatabaseConnectionError("Missing connection parameters.")
 
         try:
             self.connection = oracledb.connect(
                 user=self.user, password=self.password, dsn=self.dsn
             )
-            logging.info("Connection to Oracle database established successfully.")
-            return True
         except oracledb.Error as e:
             logging.error("Error connecting to Oracle database: %s", e)
-            raise DatabaseConnectionError("Failed to connect to the database.") from e
+            raise DatabaseConnectionError(f"Failed to connect to the database. {e}") from e
 
     def disconnect(self):
         """Closes the connection to the database."""
@@ -69,100 +63,63 @@ class OracleDatabase:
 
     @contextmanager
     def cursor(self):
-        """
-        Provides a context-managed database cursor.
-
-        :yield: Cursor object for executing SQL queries.
-        """
         if not self.connection:
-            raise DatabaseConnectionError("Database is not connected.")
+            self.connect()
 
         cursor = None
         try:
             cursor = self.connection.cursor()
             yield cursor
         except oracledb.Error as e:
-            logging.error("Error while executing query: %s", e)
+            logging.error("Error initialising cursor: %s", e)
             raise
         finally:
             if cursor:
                 cursor.close()
 
-    def execute_query(self, query: str, params: Optional[dict] = None):
-        """
-        Executes a query and returns the results.
-
-        :param query: SQL query to execute
-        :param params: Parameters for the SQL query
-        :return: Query results as a list of tuples
-        """
+    def get_routing_plan_id(self, batch_id: str):
         with self.cursor() as cursor:
             try:
-                cursor.execute(query, params or {})
-                results = cursor.fetchall()
-                return results
-            except oracledb.Error as e:
-                logging.error("Error executing query: %s", e)
-                raise
-
-    def execute_non_query(self, query: str, params: Optional[dict] = None):
-        """
-        Executes a non-query SQL statement (INSERT, UPDATE, DELETE).
-
-        :param query: SQL query to execute
-        :param params: Parameters for the SQL query
-        """
-        with self.cursor() as cursor:
-            try:
-                cursor.execute(query, params or {})
-                self.connection.commit()
-                logging.info("Non-query executed and changes committed.")
-            except oracledb.Error as e:
-                logging.error("Error executing non-query: %s", e)
-                self.connection.rollback()
-                raise
-
-    def call_function(self, function_name: str, return_type: any, params: list):
-        """
-        Invokes a PL/SQL function directly.
-
-        :param function_name: The name of the function to call
-        :param return_type: The return type of the function (e.g., oracledb.NUMBER)
-        :param params: List of parameters to pass to the function
-        :return: The function's return value
-        """
-        with self.cursor() as cursor:
-            try:
-                result = cursor.callfunc(function_name, return_type, params)
+                result = cursor.callfunc("PKG_NOTIFY_WRAP.f_get_next_batch", oracledb.STRING, [batch_id])
                 self.connection.commit()
                 return result
             except oracledb.Error as e:
-                logging.error("Error invoking function %s': %s", function_name, e)
+                logging.error("Error calling PKG_NOTIFY_WRAP.f_get_next_batch: %s", e)
                 raise
 
+    def get_recipients(self, batch_id: str) -> list[Recipient]:
+        recipient_data = []
 
-    def get_next_batch(self, batch_id: str):
-        """
-        Calls a stored procedure to get the next batch ID.
+        with self.cursor() as cursor:
+            try:
+                cursor.execute(
+                    "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
+                    {"batch_id": batch_id},
+                )
+                recipient_data = cursor.fetchall()
+            except oracledb.Error as e:
+                logging.error("Error executing query: %s", e)
 
-        :return: The next batch ID
-        """
-        return self.call_function("PKG_NOTIFY_WRAP.f_get_next_batch", oracledb.NUMBER, [batch_id])
+        return [Recipient(rd) for rd in recipient_data]
 
-
-    def get_set_of_participants(self, batch_id: str):
-        """
-        Calls a stored procedure to get the set of participants for a given batch ID.
-
-        :return: A set of participants
-        """
-        if not batch_id:
-            logging.info("No batch ID provided.")
-            return self.execute_query(
-                "SELECT * FROM v_notify_message_queue WHERE batch_id IS NULL"
-            )
-
-        return self.execute_query(
-            "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
-            {"batch_id": batch_id},
-        )
+    def update_recipient(self, recipient: Recipient):
+        with self.cursor() as cursor:
+            try:
+                cursor.execute(
+                    (
+                        "UPDATE v_notify_message_queue "
+                        "SET MESSAGE_ID = :message_reference, "
+                        "MESSAGE_STATUS = :message_status "
+                        "WHERE NHS_NUMBER = :nhs_number"
+                    ),
+                    {
+                        "message_reference": recipient.message_reference,
+                        "message_status": recipient.message_status,
+                        "nhs_number": recipient.nhs_number
+                    },
+                )
+                self.connection.commit()
+            except oracledb.Error as e:
+                logging.error("Error updating recipient: %s", e)
+                self.connection.rollback()
+                raise
