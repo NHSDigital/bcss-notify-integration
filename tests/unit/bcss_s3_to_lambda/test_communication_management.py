@@ -27,8 +27,8 @@ class TestCommunicationManagement:
                 "batch_id",
                 "routing_config_id",
                 [
-                    ["0000000000", "message_reference_0"],
-                    ["1111111111", "message_reference_1"],
+                    Recipient(("0000000000", "message_reference_0", "REQUESTED")),
+                    Recipient(("1111111111", "message_reference_1", "REQUESTED")),
                 ]
             )
             assert adapter.last_request.url == "http://example.com/api/message/batch"
@@ -56,14 +56,14 @@ class TestCommunicationManagement:
             }
 
     def test_generate_batch_message_request_body(self, setup):
-        recipients_data = [
-            ["0000000000", "message_reference_0"],
-            ["1111111111", "message_reference_1"],
+        recipients = [
+            Recipient(("0000000000", "message_reference_0", "REQUESTED")),
+            Recipient(("1111111111", "message_reference_1", "REQUESTED")),
         ]
 
         subject = CommunicationManagement()
 
-        message_batch = subject.generate_batch_message_request_body("routing_config_id", "batch_reference", recipients_data)
+        message_batch = subject.generate_batch_message_request_body("routing_config_id", "batch_reference", recipients)
 
         assert message_batch["data"]["attributes"]["routingPlanId"] == "routing_config_id"
         assert message_batch["data"]["attributes"]["messageBatchReference"] == "batch_reference"
@@ -75,11 +75,11 @@ class TestCommunicationManagement:
 
 
     def test_generate_message(self, setup):
-        recipient_data = ["0000000000", "message_reference_0"]
+        recipient = Recipient(("0000000000", "message_reference_0", "REQUESTED"))
 
         subject = CommunicationManagement()
 
-        message = subject.generate_message(recipient_data)
+        message = subject.generate_message(recipient)
 
         assert message["messageReference"] == "message_reference_0"
         assert message["recipient"]["nhsNumber"] == "0000000000"
