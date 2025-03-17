@@ -3,10 +3,10 @@ import hashlib
 import hmac
 import logging
 import os
-import requests
 from typing import Dict, Any
+import requests
 from patients_to_update import patient_to_update
-from ..oracle.oracle import (
+from oracle.oracle import (
     get_connection,
     close_connection,
     get_cursor,

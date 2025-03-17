@@ -1,4 +1,4 @@
-from ..oracle.oracle import get_cursor, close_cursor
+from oracle.oracle import get_cursor, close_cursor
 
 
 def patient_to_update(connection, message_id, queue_dict) -> dict:

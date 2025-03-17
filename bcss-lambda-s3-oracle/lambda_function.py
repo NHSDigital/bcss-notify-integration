@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import boto3
-from ..oracle.oracle import (
+from oracle.oracle import (
     get_connection,
     get_cursor,
     query_tablespace_utilisation,
