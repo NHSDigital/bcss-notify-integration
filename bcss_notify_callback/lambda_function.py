@@ -3,8 +3,9 @@ import hashlib
 import hmac
 import logging
 import os
-from typing import Dict, Any
 import requests
+from typing import Dict, Any
+from patients_to_update import patient_to_update
 from ..oracle.oracle import (
     get_connection,
     close_connection,
@@ -14,7 +15,6 @@ from ..oracle.oracle import (
     close_cursor,
     commit_changes,
 )
-from patients_to_update import patient_to_update
 
 
 logging.basicConfig(

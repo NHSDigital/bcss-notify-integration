@@ -1,8 +1,8 @@
-import oracle_connection as db
+from ..oracle.oracle import get_cursor, close_cursor
 
 
 def patient_to_update(connection, message_id, queue_dict) -> dict:
-    cursor = db.get_cursor(connection)
+    cursor = get_cursor(connection)
     var = cursor.var(int)
     queue_dict_by_message_id = {
         str(queue_patient["MESSAGE_ID"]): queue_patient for queue_patient in queue_dict
@@ -17,5 +17,5 @@ def patient_to_update(connection, message_id, queue_dict) -> dict:
             "in_val3": "read",
             "out_val": var,
         }
-    db.close_cursor(cursor)
+    close_cursor(cursor)
     return data
