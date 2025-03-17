@@ -1,4 +1,4 @@
-import utils.uuid_generator as uuid_generator
+import uuid_generator
 import uuid
 
 
