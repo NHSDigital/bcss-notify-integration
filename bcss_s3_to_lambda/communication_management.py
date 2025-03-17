@@ -12,13 +12,13 @@ class CommunicationManagement:
         self.base_url = os.getenv("base_url")
         self.application_id = os.getenv("application_id")
         self.api_key = os.getenv("api_key")
-        self.secret = f"{self.application_id}:{self.api_key}"
+        self.secret = f"{self.application_id}.{self.api_key}"
 
     def send_batch_message(
         self,
         batch_id: str,
         routing_config_id: str,
-        recipients: list[list[any]],
+        recipients: list[Recipient],
     ) -> requests.Response:
         request_body: dict = self.generate_batch_message_request_body(
             routing_config_id, batch_id, recipients
@@ -45,7 +45,7 @@ class CommunicationManagement:
         return response
 
     def generate_batch_message_request_body(
-        self, routing_config_id: str, message_batch_reference: str, recipients: list[list[any]]
+        self, routing_config_id: str, message_batch_reference: str, recipients: list[Recipient]
     ) -> dict:
         return {
             "data": {
@@ -53,13 +53,12 @@ class CommunicationManagement:
                 "attributes": {
                     "routingPlanId": routing_config_id,
                     "messageBatchReference": message_batch_reference,
-                    "messages": list(map(self.generate_message, recipients)),
+                    "messages": [self.generate_message(r) for r in recipients],
                 },
             }
         }
 
-    def generate_message(self, recipient_data) -> dict:
-        recipient = Recipient(recipient_data)
+    def generate_message(self, recipient) -> dict:
         return {
             "messageReference": recipient.message_id, # pylint: disable=no-member
             "recipient": {"nhsNumber": recipient.nhs_number}, # pylint: disable=no-member
