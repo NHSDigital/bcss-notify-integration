@@ -28,13 +28,13 @@ pylint = "==3.3.4"
 requests = "==2.32.3"
 tomlkit = "==0.13.2"
 urllib3 = "==2.3.0"
-parameterized = "*"
 boto3 = "*"
 pytest = "*"
 virtualenv = "*"
 pytest-cov = "*"
 
 [dev-packages]
+requests-mock = "*"
 
 [requires]
 python_version = "3.13"

@@ -1,114 +1,79 @@
 import unittest
-from unittest.mock import MagicMock, patch, Mock
+from unittest.mock import patch, Mock
 
-from parameterized import parameterized
 import pytest
 import oracledb
+import uuid
 
 from oracle_database import OracleDatabase, DatabaseConnectionError
+from recipient import Recipient
 
 
+def db_config():
+    return {
+        'dsn': "dsn",
+        'user': "user",
+        'password': "password"
+    }
+
+
+@patch("oracle_database.oracledb", autospec=True)
 class TestOracleDatabase(unittest.TestCase):
-    @parameterized.expand([
-        ["user", "password", None,],
-        ["user", None, "dsn"],
-        [None, 'password', "dsn"],
-        [None, None, None],
-        ["", "", ""]
-    ])
-    def testConnectionToDbWithNullValues(self, user, password, dsn):
-        db_config = {
-            'user': user,
-            'password': password,
-            'dsn': dsn
-        }
-        database = OracleDatabase(**db_config)
+    def testSuccessfulConnectionToDb(self, mock_oracledb):
+        database = OracleDatabase(**db_config())
+
+        database.connect()
+
+        assert database.connection is not None
+
+    def testFailedConnectionToDb(self, mock_oracledb):
+        database = OracleDatabase(**db_config())
+        mock_oracledb.Error = oracledb.Error
+        mock_oracledb.connect = Mock(side_effect=oracledb.Error("Something's not right"))
 
         with pytest.raises(DatabaseConnectionError) as exc_info:
             database.connect()
 
-        assert str(exc_info.value) == "Missing connection parameters."
+        assert str(exc_info.value) == "Failed to connect to the database. Something's not right"
 
-    def testSuccessfulConnectionToDb(self):
-        db_config = {
-            'user': "user",
-            'password': "password",
-            'dsn': "dsn"
-        }
-        database = OracleDatabase(**db_config)
+    def test_get_routing_plan_id(self, mock_oracledb):
+        database = OracleDatabase(**db_config())
 
-        with patch('oracledb.connect', return_value='Successful Connection'):
-            assert(database.connect() == True)
+        expected_routing_plan_id = str(uuid.uuid4())
+        batch_id = '1234'
+        mock_cursor = database.cursor().__enter__()
+        mock_cursor.callfunc = Mock(return_value=expected_routing_plan_id)
 
-    def testFailedConnectionToDb(self):
-        db_config = {
-            'user': "user",
-            'password': "INCORRECT_PASSWORD",
-            'dsn': "dsn"
-        }
-        database = OracleDatabase(**db_config)
+        routing_plan_id = database.get_routing_plan_id(batch_id)
 
-        with patch('oracledb.connect') as mock_oracle_connect:
-            mock_oracle_connect.side_effect = (oracledb.Error, "Error connecting to Oracle database")
+        mock_cursor.callfunc.assert_called_with(
+            "PKG_NOTIFY_WRAP.f_get_next_batch",
+            mock_oracledb.STRING,
+            [batch_id]
+        )
+        assert routing_plan_id == expected_routing_plan_id
 
-            with pytest.raises(DatabaseConnectionError) as exc_info:
-                database.connect()
+    def test_get_recipients(self, mock_oracledb):
+        database = OracleDatabase(**db_config())
+        raw_recipient_data = [
+            ("1111111111", "message_reference_1"),
+            ("2222222222", "message_reference_2"),
+        ]
 
-            assert str(exc_info.value) == "Failed to connect to the database."
-
-    def test_get_next_batch(self):
-        db_config = {
-            'user': "user",
-            'password': "INCORRECT_PASSWORD",
-            'dsn': "dsn"
-        }
-        database = OracleDatabase(**db_config)
-
-        with patch('oracle_database.OracleDatabase.call_function', return_value='5678'):
-            assert(database.get_next_batch('1234') == '5678')
-
-    def test_get_set_of_participants(self):
-        db_config = {
-            'user': "user",
-            'password': "password",
-            'dsn': "dsn"
-        }
-        database = OracleDatabase(**db_config)
-
-        database.execute_query = Mock(return_value=['participant_1', 'participant_2'])
+        mock_cursor = database.cursor().__enter__()
+        mock_cursor.fetchall = Mock(return_value=raw_recipient_data)
 
         batch_id = '1234'
 
-        assert(database.get_set_of_participants(batch_id) == ['participant_1', 'participant_2'])
-        database.execute_query.assert_called_with("SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id", {'batch_id': batch_id})
+        recipients = database.get_recipients(batch_id)
 
-    def test_get_set_of_participants_null_batch_id(self):
-        db_config = {
-            'user': "user",
-            'password': "password",
-            'dsn': "dsn"
-        }
-        database = OracleDatabase(**db_config)
+        mock_cursor.execute.assert_called_with(
+            "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id", {'batch_id': batch_id})
 
-        database.execute_query = Mock(return_value=['participant_1', 'participant_2'])
-
-        assert(database.get_set_of_participants(None) == ['participant_1', 'participant_2'])
-        database.execute_query.assert_called_with("SELECT * FROM v_notify_message_queue WHERE batch_id IS NULL")
-
-    def test_get_participants_no_db_connection(self):
-        db_config = {
-            'user': "user",
-            'password': "password",
-            'dsn': "dsn"
-        }
-        database = OracleDatabase(**db_config)
-
-
-        with pytest.raises(DatabaseConnectionError) as exc_info:
-            database.get_set_of_participants('1234')
-
-            assert str(exc_info.value) == "Database is not connected."
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert len(recipients) == 2
+        assert isinstance(recipients[0], Recipient)
+        assert recipients[0].nhs_number == "1111111111"
+        assert recipients[0].message_id == "message_reference_1"
+        assert isinstance(recipients[1], Recipient)
+        assert recipients[1].nhs_number == "2222222222"
+        assert recipients[1].message_id == "message_reference_2"

@@ -110,7 +110,6 @@ def test_get_message_references_invalid_missing_message_reference_key(
 
 
 def test_get_statuses_from_communication_management_api_valid(
-    mock_get_message_references,
     mock_requests_get,
     example_batch_id,
     example_comms_management_response,
@@ -121,7 +120,8 @@ def test_get_statuses_from_communication_management_api_valid(
     mock_comms_management_response.json.return_value = example_comms_management_response
     mock_requests_get.return_value = mock_comms_management_response
 
-    mock_get_message_references.return_value = example_message_references
+    mock_get_message_references = MagicMock(return_value=example_message_references)
+    lf.get_message_references = mock_get_message_references
 
     response = lf.get_statuses_from_communication_management_api(example_batch_id)
     mock_requests_get.assert_called_once_with(
