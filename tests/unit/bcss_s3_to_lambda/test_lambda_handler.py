@@ -9,7 +9,7 @@ import logging
 
 @patch("lambda_function.generate_batch_id", return_value="b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3")
 @patch("lambda_function.CommunicationManagement", autospec=True)
-@patch("lambda_function.BCSSNotifyBatchProcessor", autospec=True)
+@patch("lambda_function.BatchProcessor", autospec=True)
 def test_lambda_handler(mock_bcss_notify_batch_processor, mock_communication_management, generate_batch_id, monkeypatch):
     monkeypatch.setenv("host", "host")
     monkeypatch.setenv("port", "port")

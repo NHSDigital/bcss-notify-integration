@@ -6,7 +6,7 @@ import os
 import uuid
 import boto3
 
-from bcss_notify_batch_processor import BCSSNotifyBatchProcessor
+from batch_processor import BatchProcessor
 from communication_management import CommunicationManagement
 
 
@@ -71,7 +71,7 @@ def lambda_handler(_event: dict, _context: object) -> None:
     logger.debug("Generated batch ID: %s", batch_id)
 
     # Initialize processors
-    batch_processor = BCSSNotifyBatchProcessor(batch_id, db_config())
+    batch_processor = BatchProcessor(batch_id, db_config())
 
     routing_plan_id = batch_processor.get_routing_plan_id()
 

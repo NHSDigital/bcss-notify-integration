@@ -1,4 +1,4 @@
-from bcss_notify_batch_processor import BCSSNotifyBatchProcessor
+from batch_processor import BatchProcessor
 from oracle_database import OracleDatabase, DatabaseFetchError
 import pytest
 from unittest.mock import MagicMock, patch
@@ -30,12 +30,12 @@ def participants():
     ]
 
 
-@patch("bcss_notify_batch_processor.OracleDatabase", autospec=True)
-class TestBCSSNotifyBatchProcessor:
+@patch("batch_processor.OracleDatabase", autospec=True)
+class TestBatchProcessor:
     # Test the get_participants method
     # We need to mock the OracleDatabase class and its methods but we can still test that they are called correctly.
     def test_get_participants(self, mock_oracle_database, db_config, batch_id, plan_id, participants):
-        subject = BCSSNotifyBatchProcessor(batch_id, db_config)
+        subject = BatchProcessor(batch_id, db_config)
         subject.db.get_set_of_participants = MagicMock(return_value=participants)
 
         assert len(participants) == 2
@@ -50,7 +50,7 @@ class TestBCSSNotifyBatchProcessor:
         assert message_reference == "message_reference_1"
 
     def test_null_participants(self, mock_oracle_database, db_config, batch_id):
-        subject = BCSSNotifyBatchProcessor(batch_id, db_config)
+        subject = BatchProcessor(batch_id, db_config)
 
         mock_fetch_participants = subject.db.get_set_of_participants
         mock_fetch_participants.return_value = None
@@ -62,7 +62,7 @@ class TestBCSSNotifyBatchProcessor:
         assert mock_fetch_participants.call_count == 1
 
     def test_get_routing_plan_id(self, mock_oracle_database, db_config, batch_id):
-        subject = BCSSNotifyBatchProcessor(batch_id, db_config)
+        subject = BatchProcessor(batch_id, db_config)
 
         plan_id = str(uuid.uuid4())
 
@@ -75,7 +75,7 @@ class TestBCSSNotifyBatchProcessor:
         assert mock_fetch_routing_plan_id.call_count == 1
 
     def test_null_routing_plan_id(self, mock_oracle_database, db_config, batch_id):
-        subject = BCSSNotifyBatchProcessor(batch_id, db_config)
+        subject = BatchProcessor(batch_id, db_config)
 
         plan_id = None
 

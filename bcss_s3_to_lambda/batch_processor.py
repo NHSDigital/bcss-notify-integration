@@ -8,7 +8,7 @@ logging.basicConfig(
 )
 
 
-class BCSSNotifyBatchProcessor:
+class BatchProcessor:
     """
     Class responsible for processing batches of participants to notify.
     """
