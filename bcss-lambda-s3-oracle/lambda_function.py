@@ -4,7 +4,13 @@ import json
 import logging
 import os
 import boto3
-import oracledb
+from ..oracle.oracle import (
+    get_connection,
+    get_cursor,
+    query_tablespace_utilisation,
+    close_cursor,
+    close_connection,
+)
 
 # Constants for environment variables
 HOST = os.getenv("host")  # Database host
@@ -39,70 +45,15 @@ def lambda_handler(_event: dict, _context: object) -> dict:
 
     try:
         logging.info("Starting lambda execution")
-        session = boto3.Session()
-        client = session.client(service_name="secretsmanager")
-
-        # Fetch database credentials from Secrets Manager
-        secret_response = client.get_secret_value(SecretId=SECRET_NAME)
-        secret = json.loads(secret_response["SecretString"])
-        db_user = secret["username"]
-        db_password = secret["password"]
-
-        # Connect to Oracle database
-        dsn_tns = f"{db_user}/{db_password}@{HOST}:{PORT}/{SID}"
-        connection = oracledb.connect(dsn_tns)
-        cursor = connection.cursor()
+        connection = get_connection()
+        cursor = get_cursor(connection)
         logging.info("Connected to database: %s", SID)
         logging.info("Database Version: %s", connection.version)
         logging.info("Fetching Utilization of tablespace: %s", TABLESPACE_NAME)
 
         # Query tablespace utilisation
-        cursor.execute(
-            """
-            SELECT ROUND(((t.totalspace - NVL(fs.freespace, 0)) / t.totalspace) * 100, 2) 
-            AS used_pct
-            FROM (
-                SELECT ROUND(SUM(d.bytes) / (1024 * 1024)) AS totalspace, 
-                       d.tablespace_name tablespace
-                FROM dba_data_files d
-                WHERE d.tablespace_name = :id
-                GROUP BY d.tablespace_name
-            ) t,
-            (
-                SELECT ROUND(SUM(f.bytes) / (1024 * 1024)) AS freespace, 
-                       f.tablespace_name tablespace
-                FROM dba_free_space f
-                WHERE f.tablespace_name = :id
-                GROUP BY f.tablespace_name
-            ) fs
-            WHERE t.tablespace = fs.tablespace (+)
-            """,
-            {"id": TABLESPACE_NAME},
-        )
-
-        result = cursor.fetchone()
-        utilisation = result[0] if result else 0
-        logging.info("Tablespace Utilization(%%): %s", utilisation)
-
-        if utilisation > TS_THRESHOLD:
-            logging.warning(
-                "Tablespace:%s utilisation is above threshold\n(%s%%), alert required",
-                TABLESPACE_NAME,
-                TS_THRESHOLD,
-            )
-            return {
-                "statusCode": 200,
-                "body": json.dumps(
-                    {"message": "Threshold exceeded", "utilisation": utilisation}
-                ),
-            }
-        logging.info("Tablespace:%s utilisation is below threshold", TABLESPACE_NAME)
-        return {
-            "statusCode": 200,
-            "body": json.dumps(
-                {"message": "Utilisation normal", "utilisation": utilisation}
-            ),
-        }
+        response = query_tablespace_utilisation(cursor, TABLESPACE_NAME, TS_THRESHOLD)
+        return response
 
     except Exception as err:
         logging.error("Error: %s", str(err))
@@ -110,6 +61,6 @@ def lambda_handler(_event: dict, _context: object) -> dict:
 
     finally:
         if cursor:
-            cursor.close()
+            close_cursor(cursor)
         if connection:
-            connection.close()
+            close_connection(connection)

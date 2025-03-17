@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 import boto3
 import oracledb
 
@@ -27,7 +28,8 @@ def create_oracle_connection(client):
 
 
 def get_connection():
-    client = boto3.client(service_name="secretsmanager", region_name=REGION_NAME)
+    session = boto3.Session()
+    client = session.client(service_name="secretsmanager", region_name=REGION_NAME)
     connection = create_oracle_connection(client)
     return connection
 
@@ -74,6 +76,55 @@ def call_update_message_status(connection, data):
     close_cursor(cursor)
 
     return response_code
+
+
+def query_tablespace_utilisation(cursor, tablespace_name, ts_threshold):
+    cursor.execute(
+        """
+            SELECT ROUND(((t.totalspace - NVL(fs.freespace, 0)) / t.totalspace) * 100, 2) 
+            AS used_pct
+            FROM (
+                SELECT ROUND(SUM(d.bytes) / (1024 * 1024)) AS totalspace, 
+                       d.tablespace_name tablespace
+                FROM dba_data_files d
+                WHERE d.tablespace_name = :id
+                GROUP BY d.tablespace_name
+            ) t,
+            (
+                SELECT ROUND(SUM(f.bytes) / (1024 * 1024)) AS freespace, 
+                       f.tablespace_name tablespace
+                FROM dba_free_space f
+                WHERE f.tablespace_name = :id
+                GROUP BY f.tablespace_name
+            ) fs
+            WHERE t.tablespace = fs.tablespace (+)
+            """,
+        {"id": tablespace_name},
+    )
+
+    result = cursor.fetchone()
+    utilisation = result[0] if result else 0
+    logging.info("Tablespace Utilization(%%): %s", utilisation)
+
+    if utilisation > ts_threshold:
+        logging.warning(
+            "Tablespace:%s utilisation is above threshold\n(%s%%), alert required",
+            tablespace_name,
+            ts_threshold,
+        )
+        return {
+            "statusCode": 200,
+            "body": json.dumps(
+                {"message": "Threshold exceeded", "utilisation": utilisation}
+            ),
+        }
+    logging.info("Tablespace:%s utilisation is below threshold", tablespace_name)
+    return {
+        "statusCode": 200,
+        "body": json.dumps(
+            {"message": "Utilisation normal", "utilisation": utilisation}
+        ),
+    }
 
 
 def commit_changes(connection):
