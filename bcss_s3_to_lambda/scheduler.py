@@ -1,36 +1,54 @@
-import boto3
 import json
+import datetime
+import boto3
 
 
 class Scheduler:
-    def __init__(self):
+    SCHEDULE_FORMAT = "at(%Y-%m-%dT%H:%M:%S)"
+
+    def __init__(self, batch_id: str, retries: int = 0):
+        self.batch_id = batch_id
+        self.retries = retries + 1
         self.scheduler = boto3.client("scheduler")
         self.flex_window = {"Mode": "OFF"}
 
-    def schedule_batch_processor_retry(self, batch_id, schedule_expression):
+    def schedule_batch_processor_retry(self, minutes_from_now: int):
         name = "lambda_batch_processor_retry"
         target = {
             "RoleArn": "<ROLE_ARN>",
             "Arn": "<LAMBDA_ARN>",
-            "Input": self.payload(batch_id)
+            "Input": self.payload()
         }
-        self.create_schedule(name, schedule_expression, target)
+        self.create_schedule(name, minutes_from_now, target)
 
-    def schedule_status_check(self, batch_id, schedule_expression):
+    def schedule_status_check(self, minutes_from_now: int):
         name = "lambda_status_check"
         target = {
             "RoleArn": "<ROLE_ARN>",
             "Arn": "<LAMBDA_ARN>",
-            "Input": self.payload(batch_id)
+            "Input": self.payload()
         }
-        self.create_schedule(name, schedule_expression, target)
+        self.create_schedule(name, minutes_from_now, target)
 
-    def create_schedule(self, name, schedule_expression, target):
+    def create_schedule(self, name: str, minutes_from_now: int, target: dict):
+        if self.retries > 5:
+            return
+
+        scheduled_at = Scheduler.schedule_time(minutes_from_now * self.retries)
+
         self.scheduler.create_schedule(
             Name=name,
-            ScheduleExpression=schedule_expression,
+            ScheduleExpression=scheduled_at.strftime(self.SCHEDULE_FORMAT),
             Target=target,
             FlexibleTimeWindow=self.flex_window)
 
-    def payload(self, batch_id):
-        return json.dumps({"batch_id": batch_id})
+    def payload(self):
+        return json.dumps({"batch_id": self.batch_id, "retries": self.retries})
+
+    @staticmethod
+    def schedule_time(minutes_from_now: int):
+        return Scheduler.now() + datetime.timedelta(minutes=minutes_from_now)
+
+    @staticmethod
+    def now():
+        return datetime.datetime.now()

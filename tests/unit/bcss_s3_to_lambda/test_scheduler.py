@@ -1,50 +1,77 @@
-from unittest.mock import patch
+import datetime
+from unittest.mock import patch, Mock
 from scheduler import Scheduler
 
 
 @patch("boto3.client")
+@patch.object(Scheduler, "now", return_value=datetime.datetime(2025, 3, 18, 12, 35, 22))
 class TestScheduler:
-    def test_schedule_batch_processor_retry(self, mock_boto3_scheduler):
-        subject = Scheduler()
-        subject.schedule_batch_processor_retry("123", "rate(5 minutes)")
+    def test_schedule_batch_processor_retry(self, mock_now, mock_boto3_scheduler):
+        subject = Scheduler("123")
+        subject.schedule_batch_processor_retry(5)
 
         mock_boto3_scheduler.return_value.create_schedule.assert_called_once_with(
             Name="lambda_batch_processor_retry",
-            ScheduleExpression="rate(5 minutes)",
+            ScheduleExpression="at(2025-03-18T12:40:22)",
             Target={
                 "RoleArn": "<ROLE_ARN>",
                 "Arn": "<LAMBDA_ARN>",
-                "Input": '{"batch_id": "123"}'
+                "Input": '{"batch_id": "123", "retries": 1}'
             },
             FlexibleTimeWindow={"Mode": "OFF"}
         )
 
-    def test_schedule_status_check(self, mock_boto3_scheduler):
-        subject = Scheduler()
-        subject.schedule_status_check("123", "rate(5 minutes)")
+    def test_schedule_status_check(self, mock_now, mock_boto3_scheduler):
+        subject = Scheduler("123")
+        subject.schedule_status_check(5)
 
         mock_boto3_scheduler.return_value.create_schedule.assert_called_once_with(
             Name="lambda_status_check",
-            ScheduleExpression="rate(5 minutes)",
+            ScheduleExpression="at(2025-03-18T12:40:22)",
             Target={
                 "RoleArn": "<ROLE_ARN>",
                 "Arn": "<LAMBDA_ARN>",
-                "Input": '{"batch_id": "123"}'
+                "Input": '{"batch_id": "123", "retries": 1}'
             },
             FlexibleTimeWindow={"Mode": "OFF"}
         )
 
-    def test_create_schedule(self, mock_boto3_scheduler):
-        subject = Scheduler()
+    def test_create_schedule(self, mock_now, mock_boto3_scheduler):
+        subject = Scheduler("123")
         subject.create_schedule(
             "name",
-            "rate(5 minutes)",
+            10,
             {"RoleArn": "role", "Arn": "arn", "Input": "input"},
         )
 
         mock_boto3_scheduler.return_value.create_schedule.assert_called_once_with(
             Name="name",
-            ScheduleExpression="rate(5 minutes)",
+            ScheduleExpression="at(2025-03-18T12:45:22)",
+            Target={"RoleArn": "role", "Arn": "arn", "Input": "input"},
+            FlexibleTimeWindow={"Mode": "OFF"}
+        )
+
+    def test_create_schedule_with_too_many_retries(self, mock_now, mock_boto3_scheduler):
+        subject = Scheduler("123", 5)
+        subject.create_schedule(
+            "name",
+            10,
+            {"RoleArn": "role", "Arn": "arn", "Input": "input"},
+        )
+
+        mock_boto3_scheduler.return_value.create_schedule.assert_not_called()
+
+    def test_create_schedule_with_retries(self, mock_now, mock_boto3_scheduler):
+        subject = Scheduler("123", 2)
+        subject.create_schedule(
+            "name",
+            10,
+            {"RoleArn": "role", "Arn": "arn", "Input": "input"},
+        )
+
+        mock_boto3_scheduler.return_value.create_schedule.assert_called_once_with(
+            Name="name",
+            ScheduleExpression="at(2025-03-18T13:05:22)",
             Target={"RoleArn": "role", "Arn": "arn", "Input": "input"},
             FlexibleTimeWindow={"Mode": "OFF"}
         )
