@@ -192,6 +192,33 @@ def test_get_recipients_to_update_no_matches(
     assert len(recipients_to_update) == 0
 
 
+def test_patient_to_update_valid_match(
+    example_patient_to_update_dict, mock_connection, mock_cursor
+):
+    """Test that a valid patient is returned."""
+    message_id, queue_dict = example_patient_to_update_dict
+    data = lf.patient_to_update(mock_connection, message_id, queue_dict)
+
+    mock_var = mock_cursor.var(int)
+    mock_var.getvalue.return_value = 0
+
+    assert data["in_val1"] == "456"
+    assert data["in_val2"] == "123"
+    assert data["in_val3"] == "read"
+    assert data["out_val"] == mock_var
+
+
+def test_patient_to_update_valid_no_match(
+    example_patient_to_update_dict, mock_connection
+):
+    """Test that False is returned if no match is found."""
+    message_id, queue_dict = example_patient_to_update_dict
+    message_id = "XYZ"
+    data = lf.patient_to_update(mock_connection, message_id, queue_dict)
+
+    assert not data
+
+
 def test_update_message_statuses(
     mock_connection,
     mock_call_update_message_status,

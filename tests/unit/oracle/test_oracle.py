@@ -3,7 +3,7 @@ import json
 import logging
 import pytest
 from unittest.mock import MagicMock
-from oracle import get_queue_table_records, call_update_message_status
+from oracle.oracle import get_queue_table_records, call_update_message_status
 
 
 @pytest.fixture
