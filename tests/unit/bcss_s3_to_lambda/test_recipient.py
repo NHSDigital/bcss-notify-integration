@@ -3,10 +3,10 @@ from recipient import Recipient
 
 class TestRecipient:
     def test_recipient(self):
-        recipient_data = ["1234567890", "message_reference_0", "abc123", "routing_plan_id",
+        recipient_data = ("1234567890", "message_reference_0", "abc123", "routing_plan_id",
                           "message_status", "variable_text_1", "address_line_1",
                           "address_line_2", "address_line_3", "address_line_4",
-                          "address_line_5", "postcode", "gp_practice_name"]
+                          "address_line_5", "postcode", "gp_practice_name")
         recipient = Recipient(recipient_data)
 
         assert recipient.nhs_number == "1234567890"
@@ -23,9 +23,8 @@ class TestRecipient:
         assert recipient.postcode == "postcode"
         assert recipient.gp_practice_name == "gp_practice_name"
 
-
     def test_recipient_with_partial_data(self):
-        recipient_data = ["1234567890", "message_reference_0"]
+        recipient_data = ("1234567890", "message_reference_0")
         recipient = Recipient(recipient_data)
 
         assert recipient.nhs_number == "1234567890"
@@ -41,3 +40,13 @@ class TestRecipient:
         assert recipient.address_line_5 is None
         assert recipient.postcode is None
         assert recipient.gp_practice_name is None
+
+    def test_recipient_attribute_assignment(self):
+        recipient_data = ("1234567890", "message_reference_0", "abc123", "routing_plan_id")
+        recipient = Recipient(recipient_data)
+
+        recipient.message_reference = "message_reference"
+        recipient.message_status = "message_status"
+
+        assert recipient.message_reference == "message_reference"
+        assert recipient.message_status == "message_status"
