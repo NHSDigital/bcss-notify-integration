@@ -6,6 +6,7 @@ import boto3
 
 
 class Scheduler:
+    MAX_RETRIES = 5
     SCHEDULE_FORMAT = "at(%Y-%m-%dT%H:%M:%S)"
 
     def __init__(self, batch_id: str, retries: int = 0):
@@ -42,10 +43,10 @@ class Scheduler:
         self.create_schedule(name, minutes_from_now, target)
 
     def create_schedule(self, name: str, minutes_from_now: int, target: dict):
-        if self.retries > 5:
+        if self.retries > self.MAX_RETRIES:
             return
 
-        scheduled_at = Scheduler.schedule_time(minutes_from_now * self.retries)
+        scheduled_at = Scheduler.schedule_time(minutes_from_now)
 
         self.scheduler.create_schedule(
             Name=name,

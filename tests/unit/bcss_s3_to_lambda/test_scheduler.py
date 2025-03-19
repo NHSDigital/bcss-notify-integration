@@ -10,6 +10,7 @@ mock_arns = {
     "LAMBDA_STATUS_CHECK_ARN": "<STATUS_CHECK_LAMBDA_ARN>",
 }
 
+
 @patch.dict(os.environ, mock_arns)
 @patch("boto3.client")
 @patch.object(Scheduler, "now", return_value=datetime.datetime(2025, 3, 18, 12, 35, 22))
@@ -79,7 +80,7 @@ class TestScheduler:
 
         mock_boto3_scheduler.return_value.create_schedule.assert_called_once_with(
             Name="name",
-            ScheduleExpression="at(2025-03-18T13:05:22)",
+            ScheduleExpression="at(2025-03-18T12:45:22)",
             Target={"RoleArn": "role", "Arn": "arn", "Input": "input"},
             FlexibleTimeWindow={"Mode": "OFF"}
         )
