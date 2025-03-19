@@ -99,19 +99,21 @@ class OracleDatabase:
 
         return [Recipient(rd) for rd in recipient_data]
 
-    def update_recipient(self, recipient: Recipient):
+    def update_recipient(self, recipient: Recipient, attr: str):
+        attr = attr.lower()
+        if attr not in ["message_id", "message_status"]:
+            raise ValueError(f"Invalid attribute for Recipient update: {attr}")
+
         with self.cursor() as cursor:
             try:
                 cursor.execute(
                     (
                         "UPDATE v_notify_message_queue "
-                        "SET MESSAGE_ID = :message_reference, "
-                        "MESSAGE_STATUS = :message_status "
-                        "WHERE NHS_NUMBER = :nhs_number"
+                        f"SET {attr} = :{attr} "
+                        "WHERE nhs_number = :nhs_number"
                     ),
                     {
-                        "message_reference": recipient.message_reference,
-                        "message_status": recipient.message_status,
+                        attr: getattr(recipient, attr),
                         "nhs_number": recipient.nhs_number
                     },
                 )
@@ -120,3 +122,9 @@ class OracleDatabase:
                 logging.error("Error updating recipient: %s", e)
                 self.connection.rollback()
                 raise
+
+    def update_message_id(self, recipient: Recipient):
+        self.update_recipient(recipient, "message_id")
+
+    def update_message_status(self, recipient: Recipient):
+        self.update_recipient(recipient, "message_status")

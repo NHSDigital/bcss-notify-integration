@@ -77,3 +77,31 @@ class TestOracleDatabase(unittest.TestCase):
         assert isinstance(recipients[1], Recipient)
         assert recipients[1].nhs_number == "2222222222"
         assert recipients[1].message_id == "message_reference_2"
+
+    def test_update_message_id(self, mock_oracledb):
+        database = OracleDatabase(**db_config())
+        recipient = Recipient(("1111111111", "message_reference_1"))
+
+        mock_cursor = database.cursor().__enter__()
+
+        database.update_message_id(recipient)
+
+        mock_cursor.execute.assert_called_with(
+            "UPDATE v_notify_message_queue SET message_id = :message_id WHERE nhs_number = :nhs_number",
+            {'message_id': recipient.message_id, 'nhs_number': recipient.nhs_number}
+        )
+        database.connection.commit.assert_called_once()
+
+    def test_update_message_status(self, mock_oracledb):
+        database = OracleDatabase(**db_config())
+        recipient = Recipient(("1111111111", "message_reference_1"))
+
+        mock_cursor = database.cursor().__enter__()
+
+        database.update_message_status(recipient)
+
+        mock_cursor.execute.assert_called_with(
+            "UPDATE v_notify_message_queue SET message_status = :message_status WHERE nhs_number = :nhs_number",
+            {'message_status': recipient.message_status, 'nhs_number': recipient.nhs_number}
+        )
+        database.connection.commit.assert_called_once()

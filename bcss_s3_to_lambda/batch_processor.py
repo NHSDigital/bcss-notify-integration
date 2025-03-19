@@ -38,16 +38,15 @@ class BatchProcessor:
             logging.error({"error": str(e)})
 
         for recipient in recipients:
-            recipient.message_reference = self.generate_message_reference()
-            recipient.message_status = "REQUESTED"
-            self.db.update_recipient(recipient)
+            recipient.message_id = self.generate_message_reference()
+            self.db.update_message_id(recipient)
 
         return recipients
 
     def mark_batch_as_sent(self, recipients):
         for recipient in recipients:
             recipient.message_status = "SENT"
-            self.db.update_recipient(recipient)
+            self.db.update_message_status(recipient)
 
     @staticmethod
     def generate_message_reference():

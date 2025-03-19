@@ -25,7 +25,10 @@ def plan_id():
 
 @pytest.fixture
 def recipients():
-    return [Recipient(("0000000000",)), Recipient(("1111111111",))]
+    return [
+        Recipient(("0000000000", None, None, None, "REQUESTED")),
+        Recipient(("1111111111", None, None, None, "REQUESTED")),
+    ]
 
 
 @patch("batch_processor.OracleDatabase", autospec=True)
@@ -41,11 +44,11 @@ class TestBatchProcessor:
         assert len(recipients) == 2
 
         assert recipients[0].nhs_number == "0000000000"
-        assert recipients[0].message_reference == "message_reference_0"
+        assert recipients[0].message_id == "message_reference_0"
         assert recipients[0].message_status == "REQUESTED"
 
         assert recipients[1].nhs_number == "1111111111"
-        assert recipients[1].message_reference == "message_reference_1"
+        assert recipients[1].message_id == "message_reference_1"
         assert recipients[1].message_status == "REQUESTED"
 
     def test_null_recipients(self, mock_oracle_database, db_config, batch_id):
