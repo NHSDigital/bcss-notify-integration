@@ -8,6 +8,7 @@ import boto3
 
 from batch_processor import BatchProcessor
 from communication_management import CommunicationManagement
+from scheduler import Scheduler
 
 
 def initialise_logger() -> logging.Logger:
@@ -85,5 +86,6 @@ def lambda_handler(_event: dict, _context: object) -> None:
     if response.status_code == 201:
         logger.info("Batch message sent successfully.")
         batch_processor.mark_batch_as_sent(recipients)
+        Scheduler(batch_id).schedule_status_check(720)
     else:
         logger.error("Failed to send batch message. Status code: %s", response.status_code)
