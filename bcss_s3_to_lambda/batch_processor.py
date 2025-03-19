@@ -9,6 +9,8 @@ logging.basicConfig(
 
 
 class BatchProcessor:
+    SENDING_STATUS = "SENDING"
+
     def __init__(self, batch_id: str, db_config: dict):
         self.batch_id = batch_id
         self.db = OracleDatabase(db_config["dsn"], db_config["user"], db_config["password"])
@@ -45,7 +47,7 @@ class BatchProcessor:
 
     def mark_batch_as_sent(self, recipients):
         for recipient in recipients:
-            recipient.message_status = "SENT"
+            recipient.message_status = self.SENDING_STATUS
             self.db.update_message_status(recipient)
 
     @staticmethod

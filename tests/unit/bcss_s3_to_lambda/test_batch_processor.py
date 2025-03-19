@@ -89,3 +89,18 @@ class TestBatchProcessor:
 
         assert str(exc_info.value) == "Failed to fetch routing plan ID."
         assert mock_fetch_routing_plan_id.call_count == 1
+
+    def test_mark_batch_as_sent(self, mock_oracle_database, db_config, recipients):
+        subject = BatchProcessor(batch_id, db_config)
+
+        mock_update_message_status = subject.db.update_message_status
+
+        subject.mark_batch_as_sent(recipients)
+
+        assert mock_update_message_status.call_count == 2
+        assert recipients[0].message_status == "SENDING"
+        assert recipients[1].message_status == "SENDING"
+        assert mock_update_message_status.call_args_list == [
+            ((recipients[0],),),
+            ((recipients[1],),),
+        ]
