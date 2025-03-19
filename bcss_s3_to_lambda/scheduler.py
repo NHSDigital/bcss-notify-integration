@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+import os
 import boto3
 
 
@@ -16,8 +17,8 @@ class Scheduler:
     def schedule_batch_processor_retry(self, minutes_from_now: int):
         name = "lambda_batch_processor_retry"
         target = {
-            "RoleArn": "<ROLE_ARN>",
-            "Arn": "<LAMBDA_ARN>",
+            "RoleArn": os.getenv("LAMBDA_BATCH_PROCESSOR_ROLE_ARN"),
+            "Arn": os.getenv("LAMBDA_BATCH_PROCESSOR_ARN"),
             "Input": self.payload()
         }
         logging.info(
@@ -29,8 +30,8 @@ class Scheduler:
     def schedule_status_check(self, minutes_from_now: int):
         name = "lambda_status_check"
         target = {
-            "RoleArn": "<ROLE_ARN>",
-            "Arn": "<LAMBDA_ARN>",
+            "RoleArn": os.getenv("LAMBDA_STATUS_CHECK_ROLE_ARN"),
+            "Arn": os.getenv("LAMBDA_STATUS_CHECK_ARN"),
             "Input": self.payload()
         }
 

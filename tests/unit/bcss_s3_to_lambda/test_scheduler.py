@@ -1,8 +1,16 @@
 import datetime
+import os
 from unittest.mock import patch, Mock
 from scheduler import Scheduler
 
+mock_arns = {
+    "LAMBDA_BATCH_PROCESSOR_ROLE_ARN": "<BATCH_PROCESSOR_ROLE_ARN>",
+    "LAMBDA_BATCH_PROCESSOR_ARN": "<BATCH_PROCESSOR_LAMBDA_ARN>",
+    "LAMBDA_STATUS_CHECK_ROLE_ARN": "<STATUS_CHECK_ROLE_ARN>",
+    "LAMBDA_STATUS_CHECK_ARN": "<STATUS_CHECK_LAMBDA_ARN>",
+}
 
+@patch.dict(os.environ, mock_arns)
 @patch("boto3.client")
 @patch.object(Scheduler, "now", return_value=datetime.datetime(2025, 3, 18, 12, 35, 22))
 class TestScheduler:
@@ -14,8 +22,8 @@ class TestScheduler:
             Name="lambda_batch_processor_retry",
             ScheduleExpression="at(2025-03-18T12:40:22)",
             Target={
-                "RoleArn": "<ROLE_ARN>",
-                "Arn": "<LAMBDA_ARN>",
+                "RoleArn": "<BATCH_PROCESSOR_ROLE_ARN>",
+                "Arn": "<BATCH_PROCESSOR_LAMBDA_ARN>",
                 "Input": '{"batch_id": "123", "retries": 1}'
             },
             FlexibleTimeWindow={"Mode": "OFF"}
@@ -29,8 +37,8 @@ class TestScheduler:
             Name="lambda_status_check",
             ScheduleExpression="at(2025-03-18T12:40:22)",
             Target={
-                "RoleArn": "<ROLE_ARN>",
-                "Arn": "<LAMBDA_ARN>",
+                "RoleArn": "<STATUS_CHECK_ROLE_ARN>",
+                "Arn": "<STATUS_CHECK_LAMBDA_ARN>",
                 "Input": '{"batch_id": "123", "retries": 1}'
             },
             FlexibleTimeWindow={"Mode": "OFF"}
