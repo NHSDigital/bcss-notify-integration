@@ -1,5 +1,6 @@
-import json
 import datetime
+import json
+import logging
 import boto3
 
 
@@ -19,6 +20,10 @@ class Scheduler:
             "Arn": "<LAMBDA_ARN>",
             "Input": self.payload()
         }
+        logging.info(
+            "Scheduling batch processor retry. batch_id: %s, retries: %s",
+            self.batch_id, self.retries
+        )
         self.create_schedule(name, minutes_from_now, target)
 
     def schedule_status_check(self, minutes_from_now: int):
@@ -28,6 +33,11 @@ class Scheduler:
             "Arn": "<LAMBDA_ARN>",
             "Input": self.payload()
         }
+
+        logging.info(
+            "Scheduling status check. batch_id: %s, retries: %s",
+            self.batch_id, self.retries
+        )
         self.create_schedule(name, minutes_from_now, target)
 
     def create_schedule(self, name: str, minutes_from_now: int, target: dict):
