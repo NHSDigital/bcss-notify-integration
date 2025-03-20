@@ -3,10 +3,6 @@ import uuid
 import oracledb
 from oracle_database import OracleDatabase, DatabaseConnectionError, DatabaseFetchError
 
-logging.basicConfig(
-    format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
-)
-
 
 class BatchProcessor:
     def __init__(self, batch_id: str, db_config: dict):

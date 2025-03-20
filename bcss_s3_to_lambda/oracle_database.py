@@ -5,10 +5,6 @@ import oracledb
 
 from recipient import Recipient
 
-logging.basicConfig(
-    format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
-)
-
 
 class DatabaseConnectionError(Exception):
     """Exception raised when an error occurs connecting to the database."""

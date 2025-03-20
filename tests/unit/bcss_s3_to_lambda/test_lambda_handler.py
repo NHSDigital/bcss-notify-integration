@@ -1,8 +1,5 @@
 from unittest.mock import Mock, patch
-from lambda_function import (
-        lambda_handler, initialise_logger, secrets_client,
-        get_secret, db_config
-)
+from lambda_function import lambda_handler, secrets_client, get_secret, db_config
 from recipient import Recipient
 
 import boto3
@@ -46,19 +43,6 @@ def test_lambda_handler(mock_batch_processor, mock_communication_management, gen
         [recipient]
     )
     mock_batch_processor.return_value.mark_batch_as_sent.assert_called_once_with([recipient])
-
-
-def test_initialise_logger():
-    mock_logger = Mock()
-    mock_stream_handler = Mock()
-    logging.getLogger = Mock(return_value=mock_logger)
-    logging.StreamHandler = Mock(return_value=mock_stream_handler)
-
-    logger = initialise_logger()
-    assert logger == mock_logger
-
-    mock_logger.setLevel.assert_called_once_with(logging.INFO)
-    mock_logger.addHandler.assert_any_call(mock_stream_handler)
 
 
 def test_secrets_client(monkeypatch):
