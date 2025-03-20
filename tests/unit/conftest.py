@@ -22,9 +22,10 @@ def mock_connection(mock_cursor):
 
 
 @pytest.fixture
-def mock_cursor(example_message_reference, example_message_reference_2):
+def mock_cursor(mock_var, example_message_reference, example_message_reference_2):
     mock_cursor = MagicMock()
-    mock_cursor.var.return_value.getvalue.return_value = 0
+    mock_cursor.cursor.return_value = mock_cursor
+    mock_cursor.var.return_value = mock_var
     mock_cursor.execute.return_value = None
     mock_cursor.fetchall.return_value = [
         ("123456789", example_message_reference, "ABC"),
@@ -37,6 +38,13 @@ def mock_cursor(example_message_reference, example_message_reference_2):
         ("BATCH_ID",),
     ]
     return mock_cursor
+
+
+@pytest.fixture
+def mock_var():
+    mock_var = MagicMock()
+    mock_var.getvalue.return_value = 0
+    return mock_var
 
 
 @pytest.fixture
@@ -175,6 +183,15 @@ def example_comms_management_response(
         ],
     ]
     return data
+
+
+@pytest.fixture
+def example_recipient_to_update(example_message_reference):
+    return {
+        "NHS_NUMBER": "123456789",
+        "MESSAGE_ID": example_message_reference,
+        "BATCH_ID": "ABC",
+    }
 
 
 @pytest.fixture

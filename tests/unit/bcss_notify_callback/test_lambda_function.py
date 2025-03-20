@@ -228,7 +228,51 @@ def test_patient_to_update_valid_no_match(
     assert not data
 
 
-def test_update_message_statuses(
+def test_update_message_status_valid(
+    mock_connection, example_recipient_to_update, caplog
+):
+    caplog.set_level(logging.INFO)
+
+    response_code = lf.update_message_status(
+        mock_connection, example_recipient_to_update
+    )
+
+    assert caplog.records[0].levelname == "INFO"
+    assert (
+        caplog.records[0].message == f"Record to update: {example_recipient_to_update}"
+    )
+
+    assert response_code == 0
+    assert caplog.records[1].levelname == "INFO"
+    assert caplog.records[1].message == "Message status updated successfully"
+
+
+def test_update_message_status_invalid(
+    mock_connection, mock_var, example_recipient_to_update, caplog
+):
+    caplog.set_level(logging.INFO)
+
+    example_recipient_to_update["MESSAGE_ID"] = "false_message_id"
+    mock_var.getvalue.return_value = 1
+
+    response_code = lf.update_message_status(
+        mock_connection, example_recipient_to_update
+    )
+
+    assert caplog.records[0].levelname == "INFO"
+    assert (
+        caplog.records[0].message == f"Record to update: {example_recipient_to_update}"
+    )
+
+    assert response_code == 1
+    assert caplog.records[1].levelname == "ERROR"
+    assert (
+        caplog.records[1].message
+        == f"Failed to update message status for message_id: {example_recipient_to_update["MESSAGE_ID"]}"
+    )
+
+
+def test_update_message_statuses_valid(
     mock_connection,
     example_recipients_to_update,
     caplog,
@@ -238,7 +282,6 @@ def test_update_message_statuses(
     response_codes = lf.update_message_statuses(
         mock_connection, example_recipients_to_update
     )
-    logging.info("Test response codes: %s", response_codes)
 
     assert caplog.records[0].levelname == "INFO"
     assert (
