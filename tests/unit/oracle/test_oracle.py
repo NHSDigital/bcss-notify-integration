@@ -3,7 +3,6 @@ import json
 import logging
 import pytest
 from unittest.mock import MagicMock
-from oracle.oracle import get_queue_table_records, call_update_message_status
 
 
 @pytest.fixture
@@ -45,7 +44,7 @@ def test_oracle_connection_missing_secret(setup, mock_boto3_client):
     }
 
 
-def test_read_queue_table_to_dict_valid(mock_connection, mock_cursor):
+def test_get_queue_table_records_valid(mock_connection, mock_cursor):
     logger = logging.getLogger()
 
     mock_cursor.description = [
@@ -74,17 +73,17 @@ def test_read_queue_table_to_dict_valid(mock_connection, mock_cursor):
         },
     ]
 
-    response = get_queue_table_records(mock_connection, logger)
+    response = oc.get_queue_table_records(mock_connection, logger)
 
     assert response == expected
 
 
-def test_read_queue_table_to_dict_invalid_empty_table(mock_connection, mock_cursor):
+def test_get_queue_table_records_invalid_empty_table(mock_connection, mock_cursor):
     with pytest.raises(TypeError):
         mock_cursor.fetchall.return_value = None
         logger = logging.getLogger()
 
-        get_queue_table_records(mock_connection, logger)
+        oc.get_queue_table_records(mock_connection, logger)
 
 
 def test_call_update_message_status_valid(mock_connection, mock_cursor):
@@ -93,7 +92,7 @@ def test_call_update_message_status_valid(mock_connection, mock_cursor):
 
     data = {"in_val1": "456", "in_val2": "123", "in_val3": "read"}
 
-    response = call_update_message_status(mock_connection, data)
+    response = oc.call_update_message_status(mock_connection, data)
 
     mock_cursor.execute.assert_called_once_with(
         """
@@ -113,7 +112,7 @@ def test_call_update_message_status_invalid_message_id(mock_connection, mock_cur
 
     data = {"in_val1": "456", "in_val2": "INVALIDMESSAGEID", "in_val3": "read"}
 
-    response = call_update_message_status(mock_connection, data)
+    response = oc.call_update_message_status(mock_connection, data)
 
     mock_cursor.execute.assert_called_once_with(
         """
@@ -133,7 +132,7 @@ def test_call_update_message_status_invalid_data(mock_connection, mock_cursor):
 
     data = {"in_val1": "456", "in_val2": "123"}
 
-    response = call_update_message_status(mock_connection, data)
+    response = oc.call_update_message_status(mock_connection, data)
 
     mock_cursor.execute.assert_called_once_with(
         """
