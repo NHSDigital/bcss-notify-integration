@@ -178,9 +178,7 @@ def test_get_recipients_to_update(
 def test_get_recipients_to_update_no_matches(
     mock_connection,
     mock_cursor,
-    example_queue_table_data,
     example_message_references,
-    mock_get_queue_table_records,
     caplog,
 ):
     caplog.set_level(logging.INFO)
