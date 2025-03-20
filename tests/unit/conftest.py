@@ -194,6 +194,17 @@ def example_queue_table_data(example_message_reference, example_message_referenc
 
 
 @pytest.fixture
+def example_patient_to_update_dict():
+    message_id = "123"
+    queue_dict = [
+        {"MESSAGE_ID": "123", "BATCH_ID": "456"},
+        {"MESSAGE_ID": "789", "BATCH_ID": "ABC"},
+    ]
+
+    return message_id, queue_dict
+
+
+@pytest.fixture
 def example_batch_id():
     return "example_batch_id"
 
