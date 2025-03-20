@@ -1,5 +1,7 @@
 import pytest
 import os
+import uuid
+from bcss_s3_to_lambda.recipient import Recipient
 from unittest.mock import MagicMock, patch
 
 
@@ -20,8 +22,21 @@ def mock_connection(mock_cursor):
 
 
 @pytest.fixture
-def mock_cursor():
-    return MagicMock()
+def mock_cursor(example_message_reference, example_message_reference_2):
+    mock_cursor = MagicMock()
+    mock_cursor.var.return_value.getvalue.return_value = 0
+    mock_cursor.execute.return_value = None
+    mock_cursor.fetchall.return_value = [
+        ("123456789", example_message_reference, "ABC"),
+        ("987654321", example_message_reference_2, "ABC"),
+        ("123987456", "example_message_id", "ABC"),
+    ]
+    mock_cursor.description = [
+        ("NHS_NUMBER",),
+        ("MESSAGE_ID",),
+        ("BATCH_ID",),
+    ]
+    return mock_cursor
 
 
 @pytest.fixture
@@ -49,21 +64,29 @@ def mock_oracledb_makedsn():
 
 
 @pytest.fixture
+def mock_get_recipients():
+    with patch("oracle.oracle.get_recipients") as mock_get_recipients:
+        yield mock_get_recipients
+
+
+@pytest.fixture
 def mock_requests_get():
     with patch("requests.get") as mock_get:
         yield mock_get
 
 
-@pytest.fixture
-def mock_read_queue_to_dict():
-    with patch("sql.read_queue_table_to_dict") as mock_read_queue_to_dict:
-        yield mock_read_queue_to_dict
+@pytest.fixture(scope="function")
+def mock_get_queue_table_records_test(example_queue_table_data):
+    with patch("oracle.oracle.get_queue_table_records") as mock_get_queue_table_records:
+        mock_get_queue_table_records.return_value = example_queue_table_data
+        yield mock_get_queue_table_records
 
 
 @pytest.fixture
-def mock_call_update_message_status():
-    with patch("sql.call_update_message_status") as mock_call_update_message_status:
-        yield mock_call_update_message_status
+def mock_get_queue_table_records(example_queue_table_data):
+    mock_get_queue_table_records = MagicMock()
+    mock_get_queue_table_records.return_value = example_queue_table_data
+    return mock_get_queue_table_records
 
 
 @pytest.fixture
@@ -212,3 +235,24 @@ def example_batch_id():
 @pytest.fixture
 def example_comms_management_url():
     return "www.example_comms_management_url.com"
+
+
+######### do we need?
+@pytest.fixture
+def db_config():
+    return {"dsn": "dsn", "password": "password", "user": "user"}
+
+
+@pytest.fixture
+def batch_id():
+    return str(uuid.uuid4())
+
+
+@pytest.fixture
+def plan_id():
+    return str(uuid.uuid4())
+
+
+@pytest.fixture
+def recipients():
+    return [Recipient(("0000000000",)), Recipient(("1111111111",))]

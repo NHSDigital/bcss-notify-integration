@@ -161,9 +161,9 @@ def test_get_recipients_to_update(
     mock_connection,
     example_queue_table_data,
     example_message_references,
-    mock_read_queue_to_dict,
+    caplog,
 ):
-    mock_read_queue_to_dict.return_value = example_queue_table_data
+    caplog.set_level(logging.INFO)
 
     recipients_to_update = lf.get_recipients_to_update(
         mock_connection, example_message_references
@@ -177,13 +177,23 @@ def test_get_recipients_to_update(
 
 def test_get_recipients_to_update_no_matches(
     mock_connection,
+    mock_cursor,
     example_queue_table_data,
     example_message_references,
-    mock_read_queue_to_dict,
+    mock_get_queue_table_records,
+    caplog,
 ):
-    example_queue_table_data[0]["MESSAGE_ID"] = "false_message_id"
-    example_queue_table_data[1]["MESSAGE_ID"] = "false_message_id"
-    mock_read_queue_to_dict.return_value = example_queue_table_data
+    caplog.set_level(logging.INFO)
+    mock_cursor.fetchall.return_value = [
+        ("123456789", "false_message_id", "ABC"),
+        ("987654321", "false_message_id", "ABC"),
+        ("123987456", "example_message_id", "ABC"),
+    ]
+    mock_cursor.description = [
+        ("NHS_NUMBER",),
+        ("MESSAGE_ID",),
+        ("BATCH_ID",),
+    ]
 
     recipients_to_update = lf.get_recipients_to_update(
         mock_connection, example_message_references
@@ -192,6 +202,7 @@ def test_get_recipients_to_update_no_matches(
     assert len(recipients_to_update) == 0
 
 
+# Patient to update
 def test_patient_to_update_valid_match(
     example_patient_to_update_dict, mock_connection, mock_cursor
 ):
@@ -221,16 +232,15 @@ def test_patient_to_update_valid_no_match(
 
 def test_update_message_statuses(
     mock_connection,
-    mock_call_update_message_status,
     example_recipients_to_update,
     caplog,
 ):
     caplog.set_level(logging.INFO)
-    mock_call_update_message_status.return_value = 0
 
     response_codes = lf.update_message_statuses(
         mock_connection, example_recipients_to_update
     )
+    logging.info("Test response codes: %s", response_codes)
 
     assert caplog.records[0].levelname == "INFO"
     assert (
@@ -256,12 +266,12 @@ def test_update_message_statuses(
 
 def test_update_message_statuses_invalid(
     mock_connection,
-    mock_call_update_message_status,
+    mock_cursor,
     example_recipients_to_update,
     caplog,
 ):
     caplog.set_level(logging.ERROR)
-    mock_call_update_message_status.return_value = 1
+    mock_cursor.var.return_value.getvalue.return_value = 1
 
     response_codes = lf.update_message_statuses(
         mock_connection, example_recipients_to_update
