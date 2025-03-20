@@ -7,9 +7,10 @@ import logging
 
 
 @patch("lambda_function.generate_batch_id", return_value="b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3")
+@patch("lambda_function.Scheduler", autospec=True)
 @patch("lambda_function.CommunicationManagement", autospec=True)
 @patch("lambda_function.BatchProcessor", autospec=True)
-def test_lambda_handler(mock_batch_processor, mock_communication_management, generate_batch_id, monkeypatch):
+def test_lambda_handler(mock_batch_processor, mock_communication_management, mock_scheduler, generate_batch_id, monkeypatch):
     monkeypatch.setenv("host", "host")
     monkeypatch.setenv("port", "port")
     monkeypatch.setenv("sid", "sid")
@@ -43,6 +44,7 @@ def test_lambda_handler(mock_batch_processor, mock_communication_management, gen
         [recipient]
     )
     mock_batch_processor.return_value.mark_batch_as_sent.assert_called_once_with([recipient])
+    mock_scheduler.return_value.schedule_status_check.assert_called_once()
 
 
 def test_secrets_client(monkeypatch):
