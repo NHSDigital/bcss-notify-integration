@@ -1,8 +1,8 @@
 terraform {
   backend "s3" {
     bucket         = "bcss-terraform-nonprod-iac"
-    key            = "bcss/infrastructure/comms-manager/terraform.tfstate"
+    key            = "bcss/infrastructure/communication-management/terraform.tfstate"
     region         = "eu-west-2"
-    dynamodb_table = "bcss-comms-manager-terraform-lock-dev"
+    dynamodb_table = "bcss-communication-management-terraform-lock-prod"
   }
 }

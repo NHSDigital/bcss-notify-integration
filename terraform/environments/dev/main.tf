@@ -1,5 +1,5 @@
-module "lambda_batch_processor" {
-  source                          = "../../modules/lambda_batch_processor"
+module "batch_notification_processor" {
+  source                          = "../../modules/batch_notification_processor"
   team                            = var.team
   project                         = var.project
   environment                     = var.environment
@@ -9,7 +9,7 @@ module "lambda_batch_processor" {
   security_group                  = module.network.security_group
 }
 
-module "request_handler_processor" {
+module "lambda_request_handler" {
   source                          = "../../modules/lambda_request_handler"
   team                            = var.team
   project                         = var.project
@@ -42,18 +42,18 @@ module "eventbridge" {
   team                        = var.team
   project                     = var.project
   environment                 = var.environment
-  batch_processor_lambda_arn  = module.lambda_batch_processor.batch_processor_arn
-  batch_processor_lambda_name = module.lambda_batch_processor.batch_processor_name
+  batch_processor_lambda_arn  = module.batch_notification_processor.batch_processor_arn
+  batch_processor_lambda_name = module.batch_notification_processor.batch_processor_name
 }
 
 module "iam" {
-  source              = "../../modules/iam"
-  team                = var.team
-  project             = var.project
-  environment         = var.environment
-  sqs_queue_arn       = module.sqs.sqs_queue_arn
-  comms_s3_bucket_arn = module.s3.bucket_arn
-  tags                = var.tags
+  source                     = "../../modules/iam"
+  team                       = var.team
+  project                    = var.project
+  environment                = var.environment
+  sqs_queue_arn              = module.sqs.sqs_queue_arn
+  notification_s3_bucket_arn = module.s3.bucket_arn
+  tags                       = var.tags
 }
 
 module "network" {

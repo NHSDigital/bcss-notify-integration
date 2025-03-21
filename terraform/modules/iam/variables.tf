@@ -12,12 +12,12 @@ variable "environment" {
 
 variable "sqs_queue_arn" {
   type        = string
-  description = "ARN for the BCSS Comms SQS Queue"
+  description = "ARN for the BCSS Communication Management SQS Queue"
 }
 
-variable "comms_s3_bucket_arn" {
+variable "notification_s3_bucket_arn" {
   type        = string
-  description = "ARN for the BCSS Comms S3 Bucket"
+  description = "ARN for the BCSS Communication Management S3 Bucket"
 }
 
 variable "tags" {

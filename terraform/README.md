@@ -21,17 +21,17 @@ terraform/
 │   ├── dev/
 │   └── prod/
 ├── providers.tf         # AWS provider configuration
-└── versions.tf          # Terraform and provider version constraints
+└── versions.tf         # Terraform and provider version constraints
 ```
 
 ### **Modules**
 The `modules/` directory contains reusable Terraform modules:
 - **Lambda (Batch Processor & Request Handler):** Deploys and configures AWS Lambda functions with necessary permissions and triggers.
-- **S3:** Manages an S3 bucket for storing CSV files.
+- **S3:** Manages an S3 bucket for storing notification data.
 - **SQS:** Defines the message queue for async communication.
-- **EventBridge:** Sets up scheduled triggers for the Batch Processor Lambda.
-- **IAM:** Defines permissions for services like Lambda to interact with S3, SQS, and OracleDB.
-- **Network:** Configures networking (VPC, subnets, security groups) to allow Lambdas to connect to the Oracle database.
+- **EventBridge:** Sets up scheduled triggers for the Batch Notification Processor Lambda.
+- **IAM:** Defines permissions for services like Lambda to interact with AWS services.
+- **Network:** Configures networking (VPC, subnets, security groups) for Lambda functions.
 
 ### **Environments**
 The `environments/` directory contains configuration files specific to each environment:
@@ -57,10 +57,10 @@ Example backend configuration (`backend.tf`):
 ```hcl
 terraform {
   backend "s3" {
-    bucket         = "bcss-terraform-nonprod-iac"                            # Shared S3 bucket
-    key            = "bcss/infrastructure/comms-manager/terraform.tfstate"   # Change 'dev' to match the environment
+    bucket         = "bcss-terraform-nonprod-iac"                                    # Shared S3 bucket
+    key            = "bcss/infrastructure/communication-management/terraform.tfstate" # Environment-specific state file
     region         = "eu-west-2"
     encrypt        = true
-    dynamodb_table = "bcss-comms-manager-terraform-lock-dev"                 # State locking
+    dynamodb_table = "bcss-communication-management-terraform-lock-dev"              # State locking
   }
 }
