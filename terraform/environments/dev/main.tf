@@ -47,13 +47,13 @@ module "eventbridge" {
 }
 
 module "iam" {
-  source              = "../../modules/iam"
-  team                = var.team
-  project             = var.project
-  environment         = var.environment
-  sqs_queue_arn       = module.sqs.sqs_queue_arn
+  source                     = "../../modules/iam"
+  team                       = var.team
+  project                    = var.project
+  environment                = var.environment
+  sqs_queue_arn              = module.sqs.sqs_queue_arn
   notification_s3_bucket_arn = module.s3.bucket_arn
-  tags                = var.tags
+  tags                       = var.tags
 }
 
 module "network" {
