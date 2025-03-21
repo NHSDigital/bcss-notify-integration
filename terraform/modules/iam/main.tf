@@ -58,7 +58,7 @@ data "aws_iam_policy_document" "request_handler_sqs_policy_document" {
 }
 
 resource "aws_iam_policy" "request_handler_sqs_policy" {
-  name   = "bcss-comms-request-handler-sqs-policy-${var.environment}"
+  name   = "${var.team}-${var.project}-request-handler-sqs-policy-${var.environment}"
   policy = data.aws_iam_policy_document.request_handler_sqs_policy_document.json
   tags   = var.tags
 }
@@ -78,7 +78,7 @@ data "aws_iam_policy_document" "request_handler_s3_policy_document" {
       "s3:GetObject",
     ]
     resources = [
-      var.comms_s3_bucket_arn
+      var.notification_s3_bucket_arn
     ]
   }
 }
@@ -145,7 +145,7 @@ data "aws_iam_policy_document" "batch_processor_s3_policy_document" {
       "s3:PutObject",
     ]
     resources = [
-      var.comms_s3_bucket_arn
+      var.notification_s3_bucket_arn
     ]
   }
 }
@@ -186,4 +186,54 @@ resource "aws_iam_policy" "batch_processor_sqs_policy" {
 resource "aws_iam_role_policy_attachment" "batch_processor_lambda_sqs_access" {
   role       = aws_iam_role.batch_processor_lambda_role.name
   policy_arn = aws_iam_policy.batch_processor_sqs_policy.arn
+}
+
+##############################
+# MESSAGE STATUS HANDLER S3 POLICY #
+##############################
+
+data "aws_iam_policy_document" "message_status_handler_s3_policy_document" {
+  statement {
+    actions = [
+      "s3:GetObject",
+    ]
+    resources = [
+      var.notification_s3_bucket_arn
+    ]
+  }
+}
+
+resource "aws_iam_policy" "message_status_handler_s3_policy" {
+  name   = "${var.team}-${var.project}-message-status-handler-s3-policy-${var.environment}"
+  policy = data.aws_iam_policy_document.message_status_handler_s3_policy_document.json
+}
+
+resource "aws_iam_role_policy_attachment" "message_status_handler_lambda_s3_access" {
+  role       = aws_iam_role.message_status_handler_lambda_role.arn
+  policy_arn = aws_iam_policy.message_status_handler_s3_policy.arn
+}
+
+##############################
+# BATCH NOTIFICATION PROCESSOR S3 POLICY #
+##############################
+
+data "aws_iam_policy_document" "batch_notification_processor_s3_policy_document" {
+  statement {
+    actions = [
+      "s3:PutObject",
+    ]
+    resources = [
+      var.notification_s3_bucket_arn
+    ]
+  }
+}
+
+resource "aws_iam_policy" "batch_notification_processor_s3_policy" {
+  name   = "${var.team}-${var.project}-batch-notification-processor-s3-policy-${var.environment}"
+  policy = data.aws_iam_policy_document.batch_notification_processor_s3_policy_document.json
+}
+
+resource "aws_iam_role_policy_attachment" "batch_notification_processor_lambda_s3_access" {
+  role       = aws_iam_role.batch_notification_processor_lambda_role.arn
+  policy_arn = aws_iam_policy.batch_notification_processor_s3_policy.arn
 }
