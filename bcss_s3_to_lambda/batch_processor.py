@@ -1,7 +1,14 @@
 import logging
 import uuid
 import oracledb
-from oracle_database import OracleDatabase, DatabaseConnectionError, DatabaseFetchError
+from oracle.oracle import (
+    DatabaseConnectionError,
+    DatabaseFetchError,
+    get_connection,
+    get_routing_plan_id,
+    get_recipients,
+    update_recipient,
+)
 
 logging.basicConfig(
     format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
@@ -9,16 +16,15 @@ logging.basicConfig(
 
 
 class BatchProcessor:
-    def __init__(self, batch_id: str, db_config: dict):
+    def __init__(self, batch_id: str):
         self.batch_id = batch_id
-        self.db = OracleDatabase(db_config["dsn"], db_config["user"], db_config["password"])
         try:
-            self.db.connect()
+            self.db = get_connection()
         except DatabaseConnectionError as e:
             logging.error("Error connecting to the database: %s", e)
 
     def get_routing_plan_id(self):
-        routing_plan_id = self.db.get_routing_plan_id(self.batch_id)
+        routing_plan_id = get_routing_plan_id(self.db, self.batch_id)
 
         if not routing_plan_id:
             logging.error("Failed to fetch routing plan ID.")
@@ -30,7 +36,7 @@ class BatchProcessor:
         recipients = []
 
         try:
-            recipients = self.db.get_recipients(self.batch_id)
+            recipients = get_recipients(self.db, self.batch_id)
             if not recipients:
                 logging.error("Failed to fetch recipients.")
                 raise DatabaseFetchError("Failed to fetch recipients.")
@@ -40,14 +46,14 @@ class BatchProcessor:
         for recipient in recipients:
             recipient.message_reference = self.generate_message_reference()
             recipient.message_status = "REQUESTED"
-            self.db.update_recipient(recipient)
+            update_recipient(self.db, recipient)
 
         return recipients
 
     def mark_batch_as_sent(self, recipients):
         for recipient in recipients:
             recipient.message_status = "SENT"
-            self.db.update_recipient(recipient)
+            update_recipient(self.db, recipient)
 
     @staticmethod
     def generate_message_reference():

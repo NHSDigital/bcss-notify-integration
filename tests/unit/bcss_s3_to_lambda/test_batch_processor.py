@@ -1,42 +1,30 @@
-from batch_processor import BatchProcessor
-from oracle_database import OracleDatabase, DatabaseFetchError
-from recipient import Recipient
-import pytest
-from unittest.mock import MagicMock, patch
 import uuid
+import pytest
+from batch_processor import BatchProcessor
+from oracle.oracle import DatabaseFetchError
+from unittest.mock import MagicMock, patch
 
 
 # Fixtures: Things we don't want to repeatedly define.
 # They also help keep the tests a bit less cluttered.
-@pytest.fixture
-def db_config():
-    return {"dsn": "dsn", "password": "password", "user": "user"}
 
 
-@pytest.fixture
-def batch_id():
-    return str(uuid.uuid4())
-
-
-@pytest.fixture
-def plan_id():
-    return str(uuid.uuid4())
-
-
-@pytest.fixture
-def recipients():
-    return [Recipient(("0000000000",)), Recipient(("1111111111",))]
-
-
-@patch("batch_processor.OracleDatabase", autospec=True)
 class TestBatchProcessor:
-    def test_get_recipients(self, mock_oracle_database, db_config, recipients):
-        mock_oracle_database.return_value.get_recipients.return_value = recipients
-        subject = BatchProcessor(batch_id, db_config)
+    def test_get_recipients(
+        self,
+        mock_get_recipients,
+        mock_oracledb_connect,
+        batch_id,
+        db_config,
+        recipients,
+    ):
+        mock_get_recipients.return_value = recipients
+        subject = BatchProcessor(batch_id)
         subject.generate_message_reference = MagicMock(
-            side_effect=["message_reference_0", "message_reference_1"])
+            side_effect=["message_reference_0", "message_reference_1"]
+        )
 
-        recipients = subject.get_recipients()
+        recipients = mock_get_recipients()
 
         assert len(recipients) == 2
 
@@ -48,7 +36,7 @@ class TestBatchProcessor:
         assert recipients[1].message_reference == "message_reference_1"
         assert recipients[1].message_status == "REQUESTED"
 
-    def test_null_recipients(self, mock_oracle_database, db_config, batch_id):
+    def test_null_recipients(self, mock_oracledb_connect, db_config, batch_id):
         subject = BatchProcessor(batch_id, db_config)
 
         mock_fetch_recipients = subject.db.get_recipients
@@ -60,7 +48,7 @@ class TestBatchProcessor:
         assert str(exc_info.value) == "Failed to fetch recipients."
         assert mock_fetch_recipients.call_count == 1
 
-    def test_get_routing_plan_id(self, mock_oracle_database, db_config, batch_id):
+    def test_get_routing_plan_id(self, mock_oracledb_connect, db_config, batch_id):
         subject = BatchProcessor(batch_id, db_config)
 
         plan_id = str(uuid.uuid4())
@@ -73,7 +61,7 @@ class TestBatchProcessor:
         assert routing_plan_id == plan_id
         assert mock_fetch_routing_plan_id.call_count == 1
 
-    def test_null_routing_plan_id(self, mock_oracle_database, db_config, batch_id):
+    def test_null_routing_plan_id(self, mock_oracledb_connect, db_config, batch_id):
         subject = BatchProcessor(batch_id, db_config)
 
         plan_id = None

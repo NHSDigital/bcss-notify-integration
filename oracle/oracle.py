@@ -3,6 +3,7 @@ import os
 import logging
 import boto3
 import oracledb
+from bcss_s3_to_lambda.recipient import Recipient
 
 PORT = os.getenv("port")
 SID = os.getenv("sid")
@@ -11,20 +12,33 @@ BCSS_HOST = os.getenv("bcss_host")
 REGION_NAME = os.getenv("region_name")
 
 
+class DatabaseConnectionError(Exception):
+    """Exception raised when an error occurs connecting to the database."""
+
+
+class DatabaseFetchError(Exception):
+    """Exception raised when an error occurs fetching data from the database."""
+
+
 def create_oracle_connection(client):
     try:
         get_secret_value_response = client.get_secret_value(SecretId=BCSS_SECRET_NAME)
 
         secret = json.loads(get_secret_value_response["SecretString"])
-        db_user = secret["username"]
-        db_password = secret["password"]
+        try:
+            db_user = secret["username"]
+            db_password = secret["password"]
+        except KeyError as e:
+            logging.error("Error Connecting to Database: %s", e)
+            return {"statusCode": 500, "body": f"Error Connecting to Database: {e}"}
 
         dsn_tns = oracledb.makedsn(BCSS_HOST, PORT, SID)
         connection = oracledb.connect(user=db_user, password=db_password, dsn=dsn_tns)
 
         return connection
-    except Exception as e:
-        return {"statusCode": 500, "body": f"Error Connecting to Database: {str(e)}"}
+    except oracledb.Error as e:
+        logging.error("Error connecting to Oracle database: %s", e)
+        raise DatabaseConnectionError(f"Failed to connect to the database. {e}") from e
 
 
 def get_connection():
@@ -38,7 +52,60 @@ def get_cursor(connection):
     return connection.cursor()
 
 
+def get_routing_plan_id(connection, batch_id: str):
+    with get_cursor(connection) as cursor:
+        try:
+            result = cursor.callfunc(
+                "PKG_NOTIFY_WRAP.f_get_next_batch", oracledb.STRING, [batch_id]
+            )
+            commit_changes(connection)
+            return result
+        except oracledb.Error as e:
+            logging.error("Error calling PKG_NOTIFY_WRAP.f_get_next_batch: %s", e)
+            raise
+
+
+def get_recipients(connection, batch_id: str) -> list[Recipient]:
+    recipient_data = []
+
+    with get_cursor(connection) as cursor:
+        try:
+            cursor.execute(
+                "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
+                {"batch_id": batch_id},
+            )
+            recipient_data = cursor.fetchall()
+        except oracledb.Error as e:
+            logging.error("Error executing query: %s", e)
+
+    return [Recipient(rd) for rd in recipient_data]
+
+
+def update_recipient(connection, recipient: Recipient):
+    with get_cursor(connection) as cursor:
+        try:
+            cursor.execute(
+                (
+                    "UPDATE v_notify_message_queue "
+                    "SET MESSAGE_ID = :message_reference, "
+                    "MESSAGE_STATUS = :message_status "
+                    "WHERE NHS_NUMBER = :nhs_number"
+                ),
+                {
+                    "message_reference": recipient.message_reference,
+                    "message_status": recipient.message_status,
+                    "nhs_number": recipient.nhs_number,
+                },
+            )
+            commit_changes(connection)
+        except oracledb.Error as e:
+            logging.error("Error updating recipient: %s", e)
+            rollback_changes(connection)
+            raise
+
+
 def get_queue_table_records(connection, logger):
+    cursor = connection.cursor()
     cursor = get_cursor(connection)
     try:
         cursor.execute(
@@ -125,6 +192,10 @@ def query_tablespace_utilisation(cursor, tablespace_name, ts_threshold):
             {"message": "Utilisation normal", "utilisation": utilisation}
         ),
     }
+
+
+def rollback_changes(connection):
+    connection.rollback()
 
 
 def commit_changes(connection):
