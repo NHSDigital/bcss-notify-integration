@@ -57,6 +57,13 @@ def mock_boto3_client():
 
 
 @pytest.fixture
+def mock_generate_batch_id():
+    mock_generate_batch_id = MagicMock()
+    mock_generate_batch_id.return_value = "b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3"
+    return mock_generate_batch_id
+
+
+@pytest.fixture
 def mock_oracledb_connect():
     """Fixture to mock oracledb.connect."""
     with patch("oracledb.connect") as mock_connect:
@@ -78,9 +85,39 @@ def mock_get_recipients():
 
 
 @pytest.fixture
+def mock_batch_processor():
+    with patch(
+        "batch_notification_processor.lambda_function.BatchProcessor"
+    ) as mock_batch_processor:
+        yield mock_batch_processor
+
+
+@pytest.fixture
+def mock_scheduler():
+    with patch(
+        "batch_notification_processor.lambda_function.Scheduler"
+    ) as mock_scheduler:
+        yield mock_scheduler
+
+
+@pytest.fixture
+def mock_communication_management():
+    with patch(
+        "batch_notification_processor.lambda_function.CommunicationManagement"
+    ) as mock_communication_management:
+        yield mock_communication_management
+
+
+@pytest.fixture
 def mock_batch_get_recipients():
     with patch("batch_processor.get_recipients") as mock_batch_get_recipients:
         yield mock_batch_get_recipients
+
+
+@pytest.fixture
+def mock_mark_batch_as_sent():
+    with patch("batch_processor.mark_batch_as_sent") as mock_mark_batch_as_sent:
+        yield mock_mark_batch_as_sent
 
 
 @pytest.fixture
