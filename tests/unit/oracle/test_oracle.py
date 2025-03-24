@@ -2,6 +2,9 @@ import oracle as oc
 import json
 import logging
 import pytest
+import uuid
+import oracledb
+from bcss_s3_to_lambda.recipient import Recipient
 from unittest.mock import MagicMock
 
 
@@ -144,3 +147,42 @@ def test_call_update_message_status_invalid_data(mock_connection, mock_cursor):
     )
 
     assert response != 0
+
+
+def test_get_routing_plan_id(mock_connection, mock_cursor):
+    expected_routing_plan_id = str(uuid.uuid4())
+    batch_id = "1234"
+    mock_cursor.callfunc = MagicMock(return_value=expected_routing_plan_id)
+
+    routing_plan_id = oc.get_routing_plan_id(mock_connection, batch_id)
+
+    mock_cursor.callfunc.assert_called_with(
+        "PKG_NOTIFY_WRAP.f_get_next_batch", oracledb.STRING, [batch_id]
+    )
+    assert routing_plan_id == expected_routing_plan_id
+
+
+def test_get_recipients(mock_connection, mock_cursor):
+    raw_recipient_data = [
+        ("1111111111", "message_reference_1"),
+        ("2222222222", "message_reference_2"),
+    ]
+
+    mock_cursor.fetchall = MagicMock(return_value=raw_recipient_data)
+
+    batch_id = "1234"
+
+    recipients = oc.get_recipients(mock_connection, batch_id)
+
+    mock_cursor.execute.assert_called_with(
+        "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
+        {"batch_id": batch_id},
+    )
+
+    assert len(recipients) == 2
+    assert isinstance(recipients[0], Recipient)
+    assert recipients[0].nhs_number == "1111111111"
+    assert recipients[0].message_id == "message_reference_1"
+    assert isinstance(recipients[1], Recipient)
+    assert recipients[1].nhs_number == "2222222222"
+    assert recipients[1].message_id == "message_reference_2"

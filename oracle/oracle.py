@@ -53,30 +53,29 @@ def get_cursor(connection):
 
 
 def get_routing_plan_id(connection, batch_id: str):
-    with get_cursor(connection) as cursor:
-        try:
-            result = cursor.callfunc(
-                "PKG_NOTIFY_WRAP.f_get_next_batch", oracledb.STRING, [batch_id]
-            )
-            commit_changes(connection)
-            return result
-        except oracledb.Error as e:
-            logging.error("Error calling PKG_NOTIFY_WRAP.f_get_next_batch: %s", e)
-            raise
+    try:
+        cursor = get_cursor(connection)
+        result = cursor.callfunc(
+            "PKG_NOTIFY_WRAP.f_get_next_batch", oracledb.STRING, [batch_id]
+        )
+        commit_changes(connection)
+        return result
+    except oracledb.Error as e:
+        logging.error("Error calling PKG_NOTIFY_WRAP.f_get_next_batch: %s", e)
+        raise
 
 
 def get_recipients(connection, batch_id: str) -> list[Recipient]:
-    recipient_data = []
-
-    with get_cursor(connection) as cursor:
-        try:
-            cursor.execute(
-                "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
-                {"batch_id": batch_id},
-            )
-            recipient_data = cursor.fetchall()
-        except oracledb.Error as e:
-            logging.error("Error executing query: %s", e)
+    try:
+        recipient_data = []
+        cursor = get_cursor(connection)
+        cursor.execute(
+            "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
+            {"batch_id": batch_id},
+        )
+        recipient_data = cursor.fetchall()
+    except oracledb.Error as e:
+        logging.error("Error executing query: %s", e)
 
     return [Recipient(rd) for rd in recipient_data]
 
