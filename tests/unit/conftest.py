@@ -78,6 +78,24 @@ def mock_get_recipients():
 
 
 @pytest.fixture
+def mock_batch_get_recipients():
+    with patch("batch_processor.get_recipients") as mock_batch_get_recipients:
+        yield mock_batch_get_recipients
+
+
+@pytest.fixture
+def mock_batch_get_routing_plan_id():
+    with patch("batch_processor.get_routing_plan_id") as mock_batch_get_routing_plan_id:
+        yield mock_batch_get_routing_plan_id
+
+
+@pytest.fixture
+def mock_get_connection():
+    with patch("batch_processor.get_connection") as mock_get_connection:
+        yield mock_get_connection
+
+
+@pytest.fixture
 def mock_requests_get():
     with patch("requests.get") as mock_get:
         yield mock_get
@@ -254,12 +272,6 @@ def example_comms_management_url():
     return "www.example_comms_management_url.com"
 
 
-######### do we need?
-@pytest.fixture
-def db_config():
-    return {"dsn": "dsn", "password": "password", "user": "user"}
-
-
 @pytest.fixture
 def batch_id():
     return str(uuid.uuid4())
@@ -272,4 +284,21 @@ def plan_id():
 
 @pytest.fixture
 def recipients():
-    return [Recipient(("0000000000",)), Recipient(("1111111111",))]
+    recip_attrs_1 = {
+        "nhs_number": "0000000000",
+        "message_reference": "message_reference_0",
+        "message_status": "REQUESTED",
+    }
+    recip_attrs_2 = {
+        "nhs_number": "1111111111",
+        "message_reference": "message_reference_1",
+        "message_status": "REQUESTED",
+    }
+
+    attrs_list_1 = [recip_attrs_1.get(attr, None) for attr in Recipient.ATTR_NAMES]
+    attrs_list_2 = [recip_attrs_2.get(attr, None) for attr in Recipient.ATTR_NAMES]
+
+    return [
+        Recipient(attrs_list_1),
+        Recipient(attrs_list_2),
+    ]

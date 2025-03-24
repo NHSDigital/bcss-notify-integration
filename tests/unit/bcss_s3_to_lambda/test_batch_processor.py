@@ -1,76 +1,83 @@
 import uuid
 import pytest
 from batch_processor import BatchProcessor
-from oracle.oracle import DatabaseFetchError
+from oracle.oracle import DatabaseFetchError, get_routing_plan_id, get_recipients
 from unittest.mock import MagicMock, patch
 
 
-# Fixtures: Things we don't want to repeatedly define.
-# They also help keep the tests a bit less cluttered.
+def test_get_recipients(
+    mock_get_recipients,
+    mock_get_connection,
+    mock_connection,
+    batch_id,
+    recipients,
+):
+    mock_get_connection.return_value = mock_connection
+    mock_get_recipients.return_value = recipients
+    subject = BatchProcessor(batch_id)
+    subject.generate_message_reference = MagicMock(
+        side_effect=["message_reference_0", "message_reference_1"]
+    )
+
+    recipients = mock_get_recipients()
+
+    assert len(recipients) == 2
+
+    assert recipients[0].nhs_number == "0000000000"
+    assert recipients[0].message_reference == "message_reference_0"
+    assert recipients[0].message_status == "REQUESTED"
+
+    assert recipients[1].nhs_number == "1111111111"
+    assert recipients[1].message_reference == "message_reference_1"
+    assert recipients[1].message_status == "REQUESTED"
 
 
-class TestBatchProcessor:
-    def test_get_recipients(
-        self,
-        mock_get_recipients,
-        mock_oracledb_connect,
-        batch_id,
-        db_config,
-        recipients,
-    ):
-        mock_get_recipients.return_value = recipients
-        subject = BatchProcessor(batch_id)
-        subject.generate_message_reference = MagicMock(
-            side_effect=["message_reference_0", "message_reference_1"]
-        )
+def test_null_recipients(mock_batch_get_recipients, batch_id):
+    subject = BatchProcessor(batch_id)
 
-        recipients = mock_get_recipients()
+    mock_fetch_recipients = mock_batch_get_recipients
+    mock_fetch_recipients.return_value = None
 
-        assert len(recipients) == 2
+    with pytest.raises(DatabaseFetchError) as exc_info:
+        subject.get_recipients()
 
-        assert recipients[0].nhs_number == "0000000000"
-        assert recipients[0].message_reference == "message_reference_0"
-        assert recipients[0].message_status == "REQUESTED"
+    assert str(exc_info.value) == "Failed to fetch recipients."
+    assert mock_fetch_recipients.called
 
-        assert recipients[1].nhs_number == "1111111111"
-        assert recipients[1].message_reference == "message_reference_1"
-        assert recipients[1].message_status == "REQUESTED"
 
-    def test_null_recipients(self, mock_oracledb_connect, db_config, batch_id):
-        subject = BatchProcessor(batch_id, db_config)
+def test_get_routing_plan_id(
+    mock_get_connection,
+    mock_connection,
+    mock_batch_get_routing_plan_id,
+    batch_id,
+):
+    mock_get_connection.return_value = mock_connection
+    subject = BatchProcessor(batch_id)
 
-        mock_fetch_recipients = subject.db.get_recipients
-        mock_fetch_recipients.return_value = None
+    plan_id = str(uuid.uuid4())
 
-        with pytest.raises(DatabaseFetchError) as exc_info:
-            subject.get_recipients()
+    mock_fetch_routing_plan_id = mock_batch_get_routing_plan_id
+    mock_fetch_routing_plan_id.return_value = plan_id
 
-        assert str(exc_info.value) == "Failed to fetch recipients."
-        assert mock_fetch_recipients.call_count == 1
+    routing_plan_id = subject.get_routing_plan_id()
 
-    def test_get_routing_plan_id(self, mock_oracledb_connect, db_config, batch_id):
-        subject = BatchProcessor(batch_id, db_config)
+    assert routing_plan_id == plan_id
+    assert mock_fetch_routing_plan_id.call_count == 1
 
-        plan_id = str(uuid.uuid4())
 
-        mock_fetch_routing_plan_id = subject.db.get_routing_plan_id
-        mock_fetch_routing_plan_id.return_value = plan_id
+def test_null_routing_plan_id(
+    mock_get_connection, mock_connection, mock_batch_get_routing_plan_id, batch_id
+):
+    mock_get_connection.return_value = mock_connection
+    subject = BatchProcessor(batch_id)
 
-        routing_plan_id = subject.get_routing_plan_id()
+    plan_id = None
 
-        assert routing_plan_id == plan_id
-        assert mock_fetch_routing_plan_id.call_count == 1
+    mock_fetch_routing_plan_id = mock_batch_get_routing_plan_id
+    mock_fetch_routing_plan_id.return_value = plan_id
 
-    def test_null_routing_plan_id(self, mock_oracledb_connect, db_config, batch_id):
-        subject = BatchProcessor(batch_id, db_config)
+    with pytest.raises(DatabaseFetchError) as exc_info:
+        subject.get_routing_plan_id()
 
-        plan_id = None
-
-        mock_fetch_routing_plan_id = subject.db.get_routing_plan_id
-        mock_fetch_routing_plan_id.return_value = plan_id
-
-        with pytest.raises(DatabaseFetchError) as exc_info:
-            subject.get_routing_plan_id()
-
-        assert str(exc_info.value) == "Failed to fetch routing plan ID."
-        assert mock_fetch_routing_plan_id.call_count == 1
+    assert str(exc_info.value) == "Failed to fetch routing plan ID."
+    assert mock_fetch_routing_plan_id.call_count == 1

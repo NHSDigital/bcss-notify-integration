@@ -1,7 +1,7 @@
 class Recipient:
     ATTR_NAMES = [
         "nhs_number",
-        "message_id",
+        "message_reference",
         "batch_id",
         "routing_plan_id",
         "message_status",
