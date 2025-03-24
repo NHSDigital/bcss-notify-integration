@@ -1,9 +1,9 @@
-name: Deploy BCSS S3 To Lambda Trigger
+name: Deploy Message Status Handler Lambda
 
 on:
   push:
     paths:
-      - "bcss_s3_to_lambda/**"
+      - "message_status_handler/**"
     branches: [main]
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
       contents: read
 
     steps:
-#      Get AWS Role to gain access
+      #      Get AWS Role to gain access
       - name: Git clone the repository
         uses: actions/checkout@v3
       - name: Configure AWS Credentials
@@ -23,16 +23,15 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::730319765130:role/bcss-github-actions-lambda-access
           aws-region: eu-west-2
-#          Should have AWS Access at this point
+      #          Should have AWS Access at this point
 
       - name: Install zip tool
         uses: montudor/action-zip@v1
       - name: Create zip file for Lambda function
-        run: cd bcss_s3_to_lambda && zip -r code.zip .
+        run: cd message_status_handler && zip -r code.zip .
       - name: AWS CLI v2
         uses: imehedi/actions-awscli-v2@latest
         with:
-          args:
-            "lambda update-function-code \ 
-            --function-name arn:aws:lambda:eu-west-2:730319765130:function:bcss_s3_to_lambda-trigger
-            --zip-file fileb://bcss_s3_to_lambda/code.zip"
+          args: "lambda update-function-code \
+            --function-name arn:aws:lambda:eu-west-2:730319765130:function:message_status_handler
+            --zip-file fileb://message_status_handler/code.zip"
