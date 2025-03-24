@@ -1,8 +1,8 @@
 import uuid
 import pytest
 from batch_processor import BatchProcessor
-from oracle.oracle import DatabaseFetchError, get_routing_plan_id, get_recipients
-from unittest.mock import MagicMock, patch
+from oracle.oracle import DatabaseFetchError
+from unittest.mock import MagicMock
 
 
 def test_get_recipients(
