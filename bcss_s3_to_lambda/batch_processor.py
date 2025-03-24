@@ -44,7 +44,7 @@ class BatchProcessor:
             logging.error({"error": str(e)})
 
         for recipient in recipients:
-            recipient.message_reference = self.generate_message_reference()
+            recipient.id = self.generate_message_reference()
             recipient.message_status = "REQUESTED"
             update_recipient(self.db, recipient)
 

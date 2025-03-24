@@ -286,12 +286,12 @@ def plan_id():
 def recipients():
     recip_attrs_1 = {
         "nhs_number": "0000000000",
-        "message_reference": "message_reference_0",
+        "message_id": "message_reference_0",
         "message_status": "REQUESTED",
     }
     recip_attrs_2 = {
         "nhs_number": "1111111111",
-        "message_reference": "message_reference_1",
+        "message_id": "message_reference_1",
         "message_status": "REQUESTED",
     }
 

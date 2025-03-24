@@ -24,15 +24,18 @@ def test_get_recipients(
     assert len(recipients) == 2
 
     assert recipients[0].nhs_number == "0000000000"
-    assert recipients[0].message_reference == "message_reference_0"
+    assert recipients[0].message_id == "message_reference_0"
     assert recipients[0].message_status == "REQUESTED"
 
     assert recipients[1].nhs_number == "1111111111"
-    assert recipients[1].message_reference == "message_reference_1"
+    assert recipients[1].message_id == "message_reference_1"
     assert recipients[1].message_status == "REQUESTED"
 
 
-def test_null_recipients(mock_batch_get_recipients, batch_id):
+def test_null_recipients(
+    mock_batch_get_recipients, mock_get_connection, mock_connection, batch_id
+):
+    mock_get_connection.return_value = mock_connection
     subject = BatchProcessor(batch_id)
 
     mock_fetch_recipients = mock_batch_get_recipients

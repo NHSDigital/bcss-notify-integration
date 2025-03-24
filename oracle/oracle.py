@@ -91,7 +91,7 @@ def update_recipient(connection, recipient: Recipient):
                     "WHERE NHS_NUMBER = :nhs_number"
                 ),
                 {
-                    "message_reference": recipient.message_reference,
+                    "message_reference": recipient.message_id,
                     "message_status": recipient.message_status,
                     "nhs_number": recipient.nhs_number,
                 },
