@@ -103,7 +103,7 @@ def mock_scheduler():
 @pytest.fixture
 def mock_communication_management():
     with patch(
-        "batch_notification_processor.lambda_function.CommunicationManagement"
+        "batch_notification_processor.communication_management.CommunicationManagement"
     ) as mock_communication_management:
         yield mock_communication_management
 
