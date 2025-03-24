@@ -1,7 +1,7 @@
 import pytest
 import os
 import uuid
-from bcss_s3_to_lambda.recipient import Recipient
+from batch_notification_processor.recipient import Recipient
 from unittest.mock import MagicMock, patch
 
 
@@ -93,6 +93,12 @@ def mock_batch_get_routing_plan_id():
 def mock_get_connection():
     with patch("batch_processor.get_connection") as mock_get_connection:
         yield mock_get_connection
+
+
+@pytest.fixture
+def mock_update_recipient():
+    with patch("batch_processor.update_recipient") as mock_update_recipient:
+        yield mock_update_recipient
 
 
 @pytest.fixture

@@ -3,7 +3,7 @@ import os
 import logging
 import boto3
 import oracledb
-from bcss_s3_to_lambda.recipient import Recipient
+from batch_notification_processor.recipient import Recipient
 
 PORT = os.getenv("port")
 SID = os.getenv("sid")

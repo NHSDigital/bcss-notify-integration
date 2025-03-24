@@ -10,12 +10,10 @@ from oracle.oracle import (
     update_recipient,
 )
 
-logging.basicConfig(
-    format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
-)
-
 
 class BatchProcessor:
+    SENDING_STATUS = "SENDING"
+
     def __init__(self, batch_id: str):
         self.batch_id = batch_id
         try:
@@ -44,7 +42,7 @@ class BatchProcessor:
             logging.error({"error": str(e)})
 
         for recipient in recipients:
-            recipient.id = self.generate_message_reference()
+            recipient.message_id = self.generate_message_reference()
             recipient.message_status = "REQUESTED"
             update_recipient(self.db, recipient)
 

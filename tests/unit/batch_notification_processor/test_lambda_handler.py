@@ -1,11 +1,5 @@
 from unittest.mock import Mock, patch
-from lambda_function import (
-    lambda_handler,
-    initialise_logger,
-    secrets_client,
-    get_secret,
-    db_config,
-)
+from lambda_function import lambda_handler, secrets_client, get_secret, db_config
 from recipient import Recipient
 
 import boto3
@@ -16,10 +10,15 @@ import logging
     "lambda_function.generate_batch_id",
     return_value="b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3",
 )
+@patch("lambda_function.Scheduler", autospec=True)
 @patch("lambda_function.CommunicationManagement", autospec=True)
 @patch("lambda_function.BatchProcessor", autospec=True)
 def test_lambda_handler(
-    mock_batch_processor, mock_communication_management, generate_batch_id, monkeypatch
+    mock_batch_processor,
+    mock_communication_management,
+    mock_scheduler,
+    generate_batch_id,
+    monkeypatch,
 ):
     monkeypatch.setenv("host", "host")
     monkeypatch.setenv("port", "port")
@@ -57,19 +56,10 @@ def test_lambda_handler(
     mock_batch_processor.return_value.mark_batch_as_sent.assert_called_once_with(
         [recipient]
     )
-
-
-def test_initialise_logger():
-    mock_logger = Mock()
-    mock_stream_handler = Mock()
-    logging.getLogger = Mock(return_value=mock_logger)
-    logging.StreamHandler = Mock(return_value=mock_stream_handler)
-
-    logger = initialise_logger()
-    assert logger == mock_logger
-
-    mock_logger.setLevel.assert_called_once_with(logging.INFO)
-    mock_logger.addHandler.assert_any_call(mock_stream_handler)
+    mock_batch_processor.return_value.mark_batch_as_sent.assert_called_once_with(
+        [recipient]
+    )
+    mock_scheduler.return_value.schedule_status_check.assert_called_once()
 
 
 def test_secrets_client(monkeypatch):

@@ -84,3 +84,27 @@ def test_null_routing_plan_id(
 
     assert str(exc_info.value) == "Failed to fetch routing plan ID."
     assert mock_fetch_routing_plan_id.call_count == 1
+
+
+def test_mark_batch_as_sent(
+    mock_get_connection,
+    mock_connection,
+    mock_update_recipient,
+    recipients,
+    batch_id,
+):
+    mock_get_connection.return_value = mock_connection
+    subject = BatchProcessor(batch_id)
+
+    mock_update_message_status = mock_update_recipient
+
+    subject.mark_batch_as_sent(recipients)
+
+    assert mock_update_message_status.call_count == 2
+    assert recipients[0].message_status == "SENT"
+    assert recipients[1].message_status == "SENT"
+    assert mock_update_recipient.call_count == 2
+    assert mock_update_recipient.call_args_list == [
+        ((mock_connection, recipients[0]),),
+        ((mock_connection, recipients[1]),),
+    ]

@@ -16,11 +16,6 @@ from oracle.oracle import (
 )
 
 
-logging.basicConfig(
-    format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S"
-)
-
-
 def generate_hmac_signature(secret: str, body: str) -> str:
     """Generate HMAC-SHA256 signature for request body."""
     return hmac.new(secret.encode(), body.encode(), hashlib.sha256).hexdigest()

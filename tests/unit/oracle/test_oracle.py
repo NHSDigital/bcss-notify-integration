@@ -4,7 +4,7 @@ import logging
 import pytest
 import uuid
 import oracledb
-from bcss_s3_to_lambda.recipient import Recipient
+from batch_notification_processor.recipient import Recipient
 from unittest.mock import MagicMock
 
 
