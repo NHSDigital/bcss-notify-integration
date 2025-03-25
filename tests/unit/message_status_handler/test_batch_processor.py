@@ -97,6 +97,8 @@ class TestBatchProcessor:
         subject.mark_batch_as_sent(recipients)
 
         assert mock_update_message_status.call_count == 2
+        assert recipients[0].message_status == "SENDING"
+        assert recipients[1].message_status == "SENDING"
         assert mock_update_message_status.call_args_list == [
             ((recipients[0],),),
             ((recipients[1],),),
