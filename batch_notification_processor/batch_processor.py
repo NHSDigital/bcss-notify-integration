@@ -32,9 +32,11 @@ class BatchProcessor:
 
     def get_recipients(self):
         recipients = []
-
+        logging.info("Self.db: %s", self.db)
+        logging.info("Self.batch_id: %s", self.batch_id)
         try:
             recipients = get_recipients(self.db, self.batch_id)
+            logging.info("Recipients: %s", recipients)
             if not recipients:
                 logging.error("Failed to fetch recipients.")
                 raise DatabaseFetchError("Failed to fetch recipients.")

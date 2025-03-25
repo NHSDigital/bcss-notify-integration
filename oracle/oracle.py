@@ -69,11 +69,13 @@ def get_recipients(connection, batch_id: str) -> list[Recipient]:
     try:
         recipient_data = []
         cursor = get_cursor(connection)
+        logging.info("Cursor, %s", cursor)
         cursor.execute(
             "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
             {"batch_id": batch_id},
         )
         recipient_data = cursor.fetchall()
+        logging.info("Recipient Data: %s", recipient_data)
     except oracledb.Error as e:
         logging.error("Error executing query: %s", e)
 
