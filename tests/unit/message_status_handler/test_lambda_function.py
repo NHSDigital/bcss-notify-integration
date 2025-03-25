@@ -268,7 +268,7 @@ def test_update_message_status_invalid(
     assert caplog.records[1].levelname == "ERROR"
     assert (
         caplog.records[1].message
-        == f"Failed to update message status for message_id: {example_recipient_to_update["MESSAGE_ID"]}"
+        == f'Failed to update message status for message_id: {example_recipient_to_update["MESSAGE_ID"]}'
     )
 
 

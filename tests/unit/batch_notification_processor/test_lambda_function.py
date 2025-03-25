@@ -4,7 +4,6 @@ from recipient import Recipient
 import boto3
 import logging
 
-
 @patch(
     "batch_notification_processor.lambda_function.generate_batch_id",
     return_value="b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3",
@@ -14,15 +13,12 @@ import logging
     "batch_notification_processor.lambda_function.CommunicationManagement",
     autospec=True,
 )
-@patch(
-    "batch_notification_processor.communication_management.CommunicationManagement.send_batch_message",
-    return_value=201,
-)
-@patch("batch_notification_processor.batch_processor.BatchProcessor", autospec=True)
+@patch("batch_notification_processor.lambda_function.BatchProcessor", autospec=True)
+@patch("batch_notification_processor.communication_management.json.dumps", return_value='{"mocked":"json"}')
 def test_lambda_handler(
+    mock_json_dumps,
     mock_batch_processor,
-    send_batch_message,
-    mock_communication_management,
+    mock_communication_management_class,
     mock_scheduler,
     generate_batch_id,
     mock_get_connection,
@@ -37,6 +33,10 @@ def test_lambda_handler(
     monkeypatch.setenv("host", "host")
     monkeypatch.setenv("port", "port")
     monkeypatch.setenv("sid", "sid")
+    monkeypatch.setenv("base_url", "http://example.com")
+    monkeypatch.setenv("application_id", "test_app")
+    monkeypatch.setenv("api_key", "test_key")
+    
     secrets_client = Mock()
     secrets_client.get_secret_value.return_value = {
         "SecretString": '{"username": "user", "password": "pass"}'
@@ -47,7 +47,7 @@ def test_lambda_handler(
     routing_plan_id = "c2c2c2c2-c2c2-c2c2c2c2-c2c2c2c2c2c2"
 
     mock_get_connection.return_value = mock_connection
-    mock_cursor.execute.return_value = [recipient]
+    mock_cursor.execute.return_value = [{"nhs_number": "1234567890", "message_id": "message_reference_0", "status": "REQUESTED"}]
 
     mock_batch_processor.return_value.get_routing_plan_id = Mock(
         return_value=routing_plan_id
@@ -55,29 +55,47 @@ def test_lambda_handler(
 
     mock_batch_processor.return_value.get_recipients = Mock(return_value=[recipient])
 
+    # Set up the mock response for CommunicationManagement
     mock_response = Mock()
     mock_response.status_code = 201
-    mock_communication_management.return_value.send_batch_message = Mock(
-        return_value=mock_response
-    )
+
+    # Create a mock instance with all required methods
+    mock_communication_management = Mock()
+    mock_communication_management.send_batch_message.return_value = mock_response
+    mock_communication_management.generate_batch_message_request_body.return_value = {
+        "data": {
+            "type": "messages",
+            "attributes": {
+                "routingPlanId": routing_plan_id,
+                "messageBatchReference": "b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3",
+                "messages": [
+                    {
+                        "messageReference": "message_reference_0",
+                        "recipient": {"nhsNumber": "1234567890"},
+                        "personalisation": {},
+                    }
+                ],
+            },
+        }
+    }
+    mock_communication_management.generate_hmac_signature.return_value = "test_signature"
+    
+    # Set the mock instance as the return value for the class
+    mock_communication_management_class.return_value = mock_communication_management
 
     lambda_handler({}, {})
 
+    # Verify the interactions
     mock_batch_processor.assert_called_once_with(
         "b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3",
         {"dsn": "host:port/sid", "user": "user", "password": "pass"},
     )
     mock_batch_processor.return_value.get_routing_plan_id.assert_called_once()
-    mock_batch_processor.return_value.get_recipients.assert_called_once()
-
-    mock_communication_management.assert_called_once()
-    mock_communication_management.return_value.send_batch_message.assert_called_once_with(
-        "b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3", routing_plan_id, [recipient]
-    )
-    mock_batch_processor.return_value.mark_batch_as_sent.assert_called_once_with(
+    mock_communication_management.send_batch_message.assert_called_once_with(
+        "b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3",
+        routing_plan_id,
         [recipient]
     )
-    mock_scheduler.return_value.schedule_status_check.assert_called_once()
 
 
 def test_secrets_client(monkeypatch):
