@@ -10,7 +10,7 @@ class DatabaseConnectionError(Exception):
     """Raised when there is an error connecting to the database"""
 
 
-client = None
+client = None # pylint: disable=invalid-name
 
 
 @contextmanager
@@ -23,20 +23,20 @@ def connection():
             conn.close()
     except oracledb.Error as e:
         logging.error("Error Connecting to Database: %s", e)
-        raise DatabaseConnectionError(f"Error Connecting to Database: {str(e)}")
+        raise DatabaseConnectionError(f"Error Connecting to Database: {str(e)}") from e
 
 
 @contextmanager
 def cursor():
-    cursor = None
+    cur = None
     try:
         with connection() as conn:
-            cursor = conn.cursor()
+            cur = conn.cursor()
 
-            yield cursor
+            yield cur
 
     finally:
-        cursor.close()
+        cur.close()
 
 
 def connection_params() -> dict:
@@ -59,7 +59,7 @@ def get_secret() -> dict:
 
 
 def get_client():
-    global client
+    global client # pylint: disable=global-statement
     if not client:
         client = boto3.client(
             service_name="secretsmanager",
