@@ -6,7 +6,7 @@ import oracledb
 import uuid
 
 from oracle_database import OracleDatabase, DatabaseConnectionError
-from recipient import Recipient, make_recipient
+from recipient import Recipient
 
 
 def db_config():
@@ -80,7 +80,7 @@ class TestOracleDatabase(unittest.TestCase):
 
     def test_update_message_id(self, mock_oracledb):
         database = OracleDatabase(**db_config())
-        recipient = make_recipient(("1111111111", "message_reference_1"))
+        recipient = Recipient(("1111111111", "message_reference_1"))
 
         mock_cursor = database.cursor().__enter__()
 
@@ -94,7 +94,7 @@ class TestOracleDatabase(unittest.TestCase):
 
     def test_update_message_status(self, mock_oracledb):
         database = OracleDatabase(**db_config())
-        recipient = make_recipient(("1111111111", "message_reference_1"))
+        recipient = Recipient(("1111111111", "message_reference_1"))
 
         mock_cursor = database.cursor().__enter__()
 

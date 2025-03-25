@@ -3,7 +3,7 @@ from typing import Optional
 import logging
 import oracledb
 
-from recipient import make_recipient, Recipient
+from recipient import Recipient
 
 
 class DatabaseConnectionError(Exception):
@@ -93,7 +93,7 @@ class OracleDatabase:
             except oracledb.Error as e:
                 logging.error("Error executing query: %s", e)
 
-        return [make_recipient(rd) for rd in recipient_data]
+        return [Recipient(rd) for rd in recipient_data]
 
     def update_recipient(self, recipient: Recipient, attr: str):
         attr = attr.lower()
