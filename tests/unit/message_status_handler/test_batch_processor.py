@@ -92,19 +92,11 @@ class TestBatchProcessor:
 
     def test_mark_batch_as_sent(self, mock_oracle_database, db_config, recipients):
         subject = BatchProcessor(batch_id, db_config)
-
         mock_update_message_status = subject.db.update_message_status
-
-        # Since namedtuples are immutable, we need to create new recipients with updated status
-        updated_recipients = [
-            Recipient((r.nhs_number, r.message_id, r.batch_id, r.routing_plan_id, "SENDING"))
-            for r in recipients
-        ]
 
         subject.mark_batch_as_sent(recipients)
 
         assert mock_update_message_status.call_count == 2
-        # We can't modify the status in place anymore, so we just verify the mock was called correctly
         assert mock_update_message_status.call_args_list == [
             ((recipients[0],),),
             ((recipients[1],),),
