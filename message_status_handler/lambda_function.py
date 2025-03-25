@@ -179,7 +179,8 @@ def get_statuses_from_communication_management_api(batch_id):
     try:
         message_references = []
         response = requests.get(
-            f"{os.getenv('communication_management_api_url')}/api/statuses/{batch_id}"
+            f"{os.getenv('communication_management_api_url')}/api/statuses/{batch_id}",
+            timeout=30
         )
         response.raise_for_status()
         if response.status_code == 200:
@@ -187,6 +188,8 @@ def get_statuses_from_communication_management_api(batch_id):
                 response.json(), message_references
             )
             return message_references
+
+        return []
 
     except requests.exceptions.HTTPError as e:
         logging.error(

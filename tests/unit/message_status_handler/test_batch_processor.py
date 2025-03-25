@@ -92,7 +92,6 @@ class TestBatchProcessor:
 
     def test_mark_batch_as_sent(self, mock_oracle_database, db_config, recipients):
         subject = BatchProcessor(batch_id, db_config)
-
         mock_update_message_status = subject.db.update_message_status
 
         subject.mark_batch_as_sent(recipients)

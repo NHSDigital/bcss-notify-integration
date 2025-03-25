@@ -125,7 +125,8 @@ def test_get_statuses_from_communication_management_api_valid(
 
     response = lf.get_statuses_from_communication_management_api(example_batch_id)
     mock_requests_get.assert_called_once_with(
-        f"{lf.os.getenv('communication_management_api_url')}/api/statuses/{example_batch_id}"
+        f"{lf.os.getenv('communication_management_api_url')}/api/statuses/{example_batch_id}",
+        timeout=30
     )
     assert response == example_message_references
 
@@ -147,7 +148,8 @@ def test_get_statuses_from_communication_management_api_invalid_non_200_response
 
         lf.get_statuses_from_communication_management_api(example_batch_id)
         mock_requests_get.assert_called_once_with(
-            f"{lf.os.getenv('communication_management_api_url')}/api/statuses/{example_batch_id}"
+            f"{lf.os.getenv('communication_management_api_url')}/api/statuses/{example_batch_id}",
+            timeout=30
         )
     assert str(e.value) == "500 Server Error"
     assert caplog.records[0].levelname == "ERROR"

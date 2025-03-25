@@ -394,29 +394,14 @@ confidence = [
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
 disable = [
-    "raw-checker-failed",
-    "bad-inline-option",
-    "locally-disabled",
-    "file-ignored",
-    "suppressed-message",
-    "useless-suppression",
-    "deprecated-pragma",
-    "use-symbolic-message-instead",
-    "use-implicit-booleaness-not-comparison-to-string",
-    "use-implicit-booleaness-not-comparison-to-zero",
     "missing-class-docstring",
     "missing-function-docstring",
     "missing-module-docstring",
     "broad-exception-caught",
     "too-many-locals",
     "too-many-return-statements",
-    "too-many-arguments",
-    "too-many-positional-arguments",
-    "too-few-public-methods",
-    "inconsistent-return-statements",
-    "missing-timeout",
-    "pointless-string-statement",
     "wrong-import-order",
+    "too-few-public-methods",
 ]
 
 # Enable the message, report, category or checker with the given id(s). You can
