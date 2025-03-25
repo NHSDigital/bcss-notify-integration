@@ -1,6 +1,6 @@
 from batch_processor import BatchProcessor
 from oracle_database import OracleDatabase, DatabaseFetchError
-from recipient import Recipient
+from recipient import Recipient, make_recipient
 import pytest
 from unittest.mock import MagicMock, patch
 import uuid
@@ -26,8 +26,8 @@ def plan_id():
 @pytest.fixture
 def recipients():
     return [
-        Recipient(("0000000000", None, None, None, "REQUESTED")),
-        Recipient(("1111111111", None, None, None, "REQUESTED")),
+        make_recipient(("0000000000", None, None, None, "REQUESTED")),
+        make_recipient(("1111111111", None, None, None, "REQUESTED")),
     ]
 
 

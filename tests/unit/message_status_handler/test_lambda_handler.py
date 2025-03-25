@@ -1,6 +1,6 @@
 from unittest.mock import Mock, patch
 from lambda_function import lambda_handler, secrets_client, get_secret, db_config
-from recipient import Recipient
+from recipient import make_recipient
 
 import boto3
 import logging
@@ -18,7 +18,7 @@ def test_lambda_handler(mock_batch_processor, mock_communication_management, moc
     secrets_client.get_secret_value.return_value = {"SecretString": '{"username": "user", "password": "pass"}'}
     boto3.client = Mock(return_value=secrets_client)
 
-    recipient = Recipient(("1234567890", "message_reference_0", "REQUESTED"))
+    recipient = make_recipient(("1234567890", "message_reference_0", "REQUESTED"))
     routing_plan_id = "c2c2c2c2-c2c2-c2c2c2c2-c2c2c2c2c2c2"
 
     mock_batch_processor.return_value.get_routing_plan_id = Mock(return_value=routing_plan_id)
