@@ -1,4 +1,6 @@
 import logging
+import hashlib
+import time
 import uuid
 import oracledb
 from oracle_database import OracleDatabase, DatabaseConnectionError, DatabaseFetchError
@@ -48,4 +50,5 @@ class BatchProcessor:
 
     @staticmethod
     def generate_message_reference():
-        return str(uuid.uuid4())
+        str_val = str(time.time())
+        return str(uuid.UUID(hashlib.md5(str_val.encode()).hexdigest()))

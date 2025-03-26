@@ -2,6 +2,7 @@ from batch_processor import BatchProcessor
 from oracle_database import OracleDatabase, DatabaseFetchError
 from recipient import Recipient
 import pytest
+import re
 from unittest.mock import MagicMock, patch
 import uuid
 
@@ -103,3 +104,16 @@ class TestBatchProcessor:
             ((recipients[0],),),
             ((recipients[1],),),
         ]
+
+    def test_generate_message_reference(self, mock_oracle_database, db_config):
+        subject = BatchProcessor(batch_id, db_config)
+
+        message_reference = subject.generate_message_reference()
+
+        assert isinstance(message_reference, str)
+        assert len(message_reference) == 36
+        assert re.match(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", message_reference)
+        for _ in range(100):
+            assert message_reference != subject.generate_message_reference()
+
+
