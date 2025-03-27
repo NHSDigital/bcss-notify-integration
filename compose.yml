@@ -1,0 +1,19 @@
+services:
+  oracle:
+    image: gvenzl/oracle-free:latest
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: password
+      APP_USER: mpi_notify_user
+      APP_USER_PASSWORD: test
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - ./tests/db/schema.sql:/container-entrypoint-initdb.d/my-init.sql:ro
+    profiles:
+      - integration-test
