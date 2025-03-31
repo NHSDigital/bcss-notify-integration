@@ -1,12 +1,50 @@
+import oracle as oc
+import json
 import logging
 import pytest
-from sql import (
-    read_queue_table_to_dict,
-    call_update_message_status,
-)
+from unittest.mock import MagicMock
 
 
-def test_read_queue_table_to_dict_valid(mock_connection, mock_cursor):
+@pytest.fixture
+def setup():
+    oc.PORT = "1521"
+    oc.SID = "mock_sid"
+    oc.BCSS_SECRET_NAME = "mock_secret_name"
+    oc.BCSS_HOST = "mock_host"
+    oc.REGION_NAME = "mock_region_name"
+    return oc.PORT, oc.SID, oc.BCSS_SECRET_NAME, oc.BCSS_HOST, oc.REGION_NAME
+
+
+def test_oracle_connection_valid(
+    setup, mock_boto3_client, mock_oracledb_connect, mock_oracledb_makedsn
+):
+    mock_connection = MagicMock()
+    mock_oracledb_connect.return_value = mock_connection
+
+    connection = oc.create_oracle_connection(mock_boto3_client)
+
+    mock_boto3_client.get_secret_value.assert_called_once_with(
+        SecretId="mock_secret_name"
+    )
+    mock_oracledb_connect.assert_called_once_with(
+        user="test_username", password="test_password", dsn="mock_dsn"
+    )
+    assert connection == mock_connection
+
+
+def test_oracle_connection_missing_secret(setup, mock_boto3_client):
+    missing_secret = {"password": "test_password"}
+    mock_boto3_client.get_secret_value.return_value = {
+        "SecretString": json.dumps(missing_secret)
+    }
+
+    assert oc.create_oracle_connection(mock_boto3_client) == {
+        "statusCode": 500,
+        "body": "Error Connecting to Database: 'username'",
+    }
+
+
+def test_get_queue_table_records_valid(mock_connection, mock_cursor):
     logger = logging.getLogger()
 
     mock_cursor.description = [
@@ -35,17 +73,17 @@ def test_read_queue_table_to_dict_valid(mock_connection, mock_cursor):
         },
     ]
 
-    response = read_queue_table_to_dict(mock_connection, logger)
+    response = oc.get_queue_table_records(mock_connection, logger)
 
     assert response == expected
 
 
-def test_read_queue_table_to_dict_invalid_empty_table(mock_connection, mock_cursor):
+def test_get_queue_table_records_invalid_empty_table(mock_connection, mock_cursor):
     with pytest.raises(TypeError):
         mock_cursor.fetchall.return_value = None
         logger = logging.getLogger()
 
-        read_queue_table_to_dict(mock_connection, logger)
+        oc.get_queue_table_records(mock_connection, logger)
 
 
 def test_call_update_message_status_valid(mock_connection, mock_cursor):
@@ -54,7 +92,7 @@ def test_call_update_message_status_valid(mock_connection, mock_cursor):
 
     data = {"in_val1": "456", "in_val2": "123", "in_val3": "read"}
 
-    response = call_update_message_status(mock_connection, data)
+    response = oc.call_update_message_status(mock_connection, data)
 
     mock_cursor.execute.assert_called_once_with(
         """
@@ -74,7 +112,7 @@ def test_call_update_message_status_invalid_message_id(mock_connection, mock_cur
 
     data = {"in_val1": "456", "in_val2": "INVALIDMESSAGEID", "in_val3": "read"}
 
-    response = call_update_message_status(mock_connection, data)
+    response = oc.call_update_message_status(mock_connection, data)
 
     mock_cursor.execute.assert_called_once_with(
         """
@@ -94,7 +132,7 @@ def test_call_update_message_status_invalid_data(mock_connection, mock_cursor):
 
     data = {"in_val1": "456", "in_val2": "123"}
 
-    response = call_update_message_status(mock_connection, data)
+    response = oc.call_update_message_status(mock_connection, data)
 
     mock_cursor.execute.assert_called_once_with(
         """

@@ -1,15 +1,5 @@
 import pytest
-import os
 from unittest.mock import MagicMock, patch
-
-
-@pytest.fixture
-def mock_environment():
-    os.environ["PORT"] = "1521"
-    os.environ["SID"] = "mock_sid"
-    os.environ["BCSS_SECRET_NAME"] = "mock_secret_name"
-    os.environ["BCSS_HOST"] = "mock_host"
-    os.environ["REGION_NAME"] = "mock_region_name"
 
 
 @pytest.fixture
@@ -20,8 +10,29 @@ def mock_connection(mock_cursor):
 
 
 @pytest.fixture
-def mock_cursor():
-    return MagicMock()
+def mock_cursor(mock_var, example_message_reference, example_message_reference_2):
+    mock_cursor = MagicMock()
+    mock_cursor.cursor.return_value = mock_cursor
+    mock_cursor.var.return_value = mock_var
+    mock_cursor.execute.return_value = None
+    mock_cursor.fetchall.return_value = [
+        ("123456789", example_message_reference, "ABC"),
+        ("987654321", example_message_reference_2, "ABC"),
+        ("123987456", "example_message_id", "ABC"),
+    ]
+    mock_cursor.description = [
+        ("NHS_NUMBER",),
+        ("MESSAGE_ID",),
+        ("BATCH_ID",),
+    ]
+    return mock_cursor
+
+
+@pytest.fixture
+def mock_var():
+    mock_var = MagicMock()
+    mock_var.getvalue.return_value = 0
+    return mock_var
 
 
 @pytest.fixture
@@ -31,6 +42,13 @@ def mock_boto3_client():
         "SecretString": '{\n  "username":"test_username",\n  "password":"test_password"\n}\n',
     }
     return mock_client
+
+
+@pytest.fixture
+def mock_generate_batch_id():
+    mock_generate_batch_id = MagicMock()
+    mock_generate_batch_id.return_value = "b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3"
+    return mock_generate_batch_id
 
 
 @pytest.fixture
@@ -49,21 +67,39 @@ def mock_oracledb_makedsn():
 
 
 @pytest.fixture
+def mock_get_recipients():
+    with patch("oracle.oracle.get_recipients") as mock_get_recipients:
+        yield mock_get_recipients
+
+
+@pytest.fixture
+def mock_batch_processor():
+    with patch(
+        "batch_notification_processor.lambda_function.BatchProcessor"
+    ) as mock_batch_processor:
+        yield mock_batch_processor
+
+
+@pytest.fixture
+def mock_scheduler():
+    with patch(
+        "batch_notification_processor.lambda_function.Scheduler"
+    ) as mock_scheduler:
+        yield mock_scheduler
+
+
+@pytest.fixture
+def mock_communication_management():
+    with patch(
+        "batch_notification_processor.communication_management.CommunicationManagement"
+    ) as mock_communication_management:
+        yield mock_communication_management
+
+
+@pytest.fixture
 def mock_requests_get():
     with patch("requests.get") as mock_get:
         yield mock_get
-
-
-@pytest.fixture
-def mock_read_queue_to_dict():
-    with patch("sql.read_queue_table_to_dict") as mock_read_queue_to_dict:
-        yield mock_read_queue_to_dict
-
-
-@pytest.fixture
-def mock_call_update_message_status():
-    with patch("sql.call_update_message_status") as mock_call_update_message_status:
-        yield mock_call_update_message_status
 
 
 @pytest.fixture
@@ -155,6 +191,15 @@ def example_comms_management_response(
 
 
 @pytest.fixture
+def example_recipient_to_update(example_message_reference):
+    return {
+        "NHS_NUMBER": "123456789",
+        "MESSAGE_ID": example_message_reference,
+        "BATCH_ID": "ABC",
+    }
+
+
+@pytest.fixture
 def example_recipients_to_update(
     example_message_reference, example_message_reference_2
 ):
@@ -194,10 +239,16 @@ def example_queue_table_data(example_message_reference, example_message_referenc
 
 
 @pytest.fixture
-def example_batch_id():
-    return "example_batch_id"
+def example_patient_to_update_dict():
+    message_id = "123"
+    queue_dict = [
+        {"MESSAGE_ID": "123", "BATCH_ID": "456"},
+        {"MESSAGE_ID": "789", "BATCH_ID": "ABC"},
+    ]
+
+    return message_id, queue_dict
 
 
 @pytest.fixture
-def example_comms_management_url():
-    return "www.example_comms_management_url.com"
+def example_batch_id():
+    return "example_batch_id"
