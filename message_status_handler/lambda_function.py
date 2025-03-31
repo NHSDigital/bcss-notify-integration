@@ -5,9 +5,15 @@ import logging
 import os
 from typing import Dict, Any
 import requests
-import sql
-import oracle_connection as db
-from patients_to_update import patient_to_update
+from oracle.oracle import (
+    get_connection,
+    close_connection,
+    get_cursor,
+    get_queue_table_records,
+    call_update_message_status,
+    close_cursor,
+    commit_changes,
+)
 
 
 def generate_hmac_signature(secret: str, body: str) -> str:
@@ -80,17 +86,17 @@ def lambda_handler(event: Dict[str, Any], _context: Any) -> Dict[str, Any]:
             }
         logging.info("Idempotency key not duplicate")
 
-        connection = db.get_connection()
+        connection = get_connection()
         logging.info("Connected to BCSS Database")
         message_id = get_status_from_notify_api(body_data)
         logging.info("Message ID: %s", message_id)
-        queue_dict = sql.read_queue_table_to_dict(connection, logging)
+        queue_dict = get_queue_table_records(connection, logging)
         recipient_to_update = patient_to_update(connection, message_id, queue_dict)
         logging.debug("Recipient to update: %s", recipient_to_update)
         response_code = update_message_status(connection, recipient_to_update)
 
-        db.close_cursor(connection.cursor())
-        db.close_connection(connection.close())
+        close_cursor(connection.cursor())
+        close_connection(connection.close())
 
         return {
             "statusCode": 200,
@@ -134,11 +140,31 @@ def get_status_from_notify_api(data: Dict[str, Any]):
         raise
 
 
+def patient_to_update(connection, message_id, queue_dict) -> dict:
+    cursor = get_cursor(connection)
+    var = cursor.var(int)
+    queue_dict_by_message_id = {
+        str(queue_patient["MESSAGE_ID"]): queue_patient for queue_patient in queue_dict
+    }
+    data = False
+    if message_id in queue_dict_by_message_id:
+        queue_patient = queue_dict_by_message_id[message_id]
+
+        data = {
+            "in_val1": queue_patient["BATCH_ID"],
+            "in_val2": queue_patient["MESSAGE_ID"],
+            "in_val3": "read",
+            "out_val": var,
+        }
+    close_cursor(cursor)
+    return data
+
+
 def update_message_status(connection, recipient_to_update):
-    cursor = db.get_cursor(connection)
+    cursor = get_cursor(connection)
 
     logging.info("Record to update: %s", recipient_to_update)
-    response_code = sql.call_update_message_status(cursor, recipient_to_update)
+    response_code = call_update_message_status(cursor, recipient_to_update)
     message_id = recipient_to_update["MESSAGE_ID"]
 
     if response_code == 0:
@@ -147,8 +173,8 @@ def update_message_status(connection, recipient_to_update):
         logging.error("Failed to update message status for message_id: %s", message_id)
 
     # db.commit_changes(connection)
-    db.close_cursor(cursor)
-    db.close_connection(connection)
+    close_cursor(cursor)
+    close_connection(connection)
 
     return response_code
 
@@ -180,7 +206,7 @@ def get_statuses_from_communication_management_api(batch_id):
         message_references = []
         response = requests.get(
             f"{os.getenv('communication_management_api_url')}/api/statuses/{batch_id}",
-            timeout=30
+            timeout=30,
         )
         response.raise_for_status()
         if response.status_code == 200:
@@ -205,7 +231,7 @@ def get_statuses_from_communication_management_api(batch_id):
 
 def get_recipients_to_update(connection, message_references):
 
-    existing_recipients = sql.read_queue_table_to_dict(connection, logging)
+    existing_recipients = get_queue_table_records(connection, logging)
 
     recipients_to_update = []
 
@@ -222,7 +248,7 @@ def update_message_statuses(connection, recipients_to_update):
     response_codes = []
     for recipient_to_update in recipients_to_update:
         logging.info("Record to update: %s", recipient_to_update)
-        response_code = sql.call_update_message_status(connection, recipient_to_update)
+        response_code = call_update_message_status(connection, recipient_to_update)
         message_id = recipient_to_update["MESSAGE_ID"]
 
         if response_code == 0:
@@ -232,7 +258,7 @@ def update_message_statuses(connection, recipients_to_update):
                 "Failed to update message status for message_id: %s", message_id
             )
 
-    db.commit_changes(connection)
-    db.close_connection(connection)
+    commit_changes(connection)
+    close_connection(connection)
 
     return response_codes

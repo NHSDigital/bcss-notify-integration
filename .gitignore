@@ -21,7 +21,7 @@ terraform/**/*.vars.json      # Ignore JSON variable files
 .DS_Store        # macOS Finder store (Correct location)
 .idea/           # IntelliJ IDEA project files
 .vscode/         # VS Code files
-.env             # Environment variables file
+.env             
 *.zip
 *.log
 .vscode/settings.json
