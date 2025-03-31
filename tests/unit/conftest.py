@@ -1,7 +1,6 @@
 import pytest
 import os
 import uuid
-from batch_notification_processor.recipient import Recipient
 from unittest.mock import MagicMock, patch
 
 
@@ -323,25 +322,3 @@ def batch_id():
 @pytest.fixture
 def plan_id():
     return str(uuid.uuid4())
-
-
-@pytest.fixture
-def recipients():
-    recip_attrs_1 = {
-        "nhs_number": "0000000000",
-        "message_id": "message_reference_0",
-        "message_status": "REQUESTED",
-    }
-    recip_attrs_2 = {
-        "nhs_number": "1111111111",
-        "message_id": "message_reference_1",
-        "message_status": "REQUESTED",
-    }
-
-    attrs_list_1 = [recip_attrs_1.get(attr, None) for attr in Recipient.ATTR_NAMES]
-    attrs_list_2 = [recip_attrs_2.get(attr, None) for attr in Recipient.ATTR_NAMES]
-
-    return [
-        Recipient(attrs_list_1),
-        Recipient(attrs_list_2),
-    ]
