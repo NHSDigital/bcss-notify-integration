@@ -13,9 +13,9 @@ def test_lambda_handler(monkeypatch):
     mock_scheduler = Mock()
     lambda_function.Scheduler = mock_scheduler
     lambda_function.generate_batch_id = Mock(return_value="b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3")
-    monkeypatch.setenv("host", "host")
-    monkeypatch.setenv("port", "port")
-    monkeypatch.setenv("sid", "sid")
+    monkeypatch.setenv("DATABASE_HOST", "host")
+    monkeypatch.setenv("DATABASE_PORT", "port")
+    monkeypatch.setenv("DATABASE_SID", "sid")
     secrets_client = Mock()
     secrets_client.get_secret_value.return_value = {"SecretString": '{"username": "user", "password": "pass"}'}
     boto3.client = Mock(return_value=secrets_client)
@@ -67,8 +67,8 @@ def test_get_secret():
 def test_db_config(monkeypatch):
     monkeypatch.setenv("username", "user")
     monkeypatch.setenv("password", "pass")
-    monkeypatch.setenv("host", "host")
-    monkeypatch.setenv("port", "port")
-    monkeypatch.setenv("sid", "sid")
+    monkeypatch.setenv("DATABASE_HOST", "host")
+    monkeypatch.setenv("DATABASE_PORT", "port")
+    monkeypatch.setenv("DATABASE_SID", "sid")
     config = lambda_function.db_config()
     assert config == {"user": "user", "password": "pass", "dsn": "host:port/sid"}
