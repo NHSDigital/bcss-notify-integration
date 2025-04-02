@@ -1,7 +1,12 @@
+import boto3
 from contextlib import contextmanager
-from typing import Optional
+import json
 import logging
+from typing import Optional
 import oracledb
+import os
+
+
 
 from recipient import Recipient
 
@@ -15,35 +20,18 @@ class DatabaseFetchError(Exception):
 
 
 class OracleDatabase:
-    """
-    A class to manage connections to an Oracle database using python-oracledb.
-    Follows good practices for resource management and error handling.
-    """
-
-    def __init__(self, dsn: str, user: str, password: str):
-        """
-        Initializes the OracleDatabase instance.
-
-        :param dsn: The Data Source Name (TNS string or hostname/service name)
-        :param user: Database username
-        :param password: Database password
-        """
-        self.dsn: str = dsn
-        self.user: str = user
-        self.password: str = password
+    def __init__(self):
         self.connection: Optional[oracledb.Connection] = None
+        self.db_config = self.connection_params()
 
     def connect(self):
-        if self.connection:
-            return
-
-        try:
-            self.connection = oracledb.connect(
-                user=self.user, password=self.password, dsn=self.dsn
-            )
-        except oracledb.Error as e:
-            logging.error("Error connecting to Oracle database: %s", e)
-            raise DatabaseConnectionError(f"Failed to connect to the database. {e}") from e
+        if not self.connection:
+            try:
+                self.connection = oracledb.connect(**self.db_config)
+            except oracledb.Error as e:
+                logging.error("Error connecting to Oracle database: %s", e)
+                raise DatabaseConnectionError(f"Failed to connect to the database. {e}") from e
+        return self.connection
 
     def disconnect(self):
         """Closes the connection to the database."""
@@ -124,3 +112,15 @@ class OracleDatabase:
 
     def update_message_status(self, recipient: Recipient):
         self.update_recipient(recipient, "message_status")
+
+    @staticmethod
+    def connection_params():
+        client = boto3.client("secretsmanager", region_name=os.getenv("REGION_NAME"))
+        response = client.get_secret_value(SecretId=os.getenv("SECRET_ARN"))
+        db_secrets = json.loads(response["SecretString"])
+
+        return {
+            "user": db_secrets["username"],
+            "password": db_secrets["password"],
+            "dsn": f"{os.getenv('DATABASE_HOST')}:{os.getenv('DATABASE_PORT')}/{os.getenv('DATABASE_SID')}",
+        }
