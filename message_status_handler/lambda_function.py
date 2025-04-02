@@ -5,7 +5,7 @@ import logging
 import os
 from typing import Dict, Any
 import requests
-from oracle.oracle import (
+from oracle import (
     get_connection,
     close_connection,
     get_cursor,

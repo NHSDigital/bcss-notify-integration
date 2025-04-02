@@ -59,7 +59,7 @@ def lambda_handler(_event: dict, _context: object) -> None:
     logging.debug("Generated batch ID: %s", batch_id)
 
     # Initialize processors
-    batch_processor = BatchProcessor(batch_id, db_config())
+    batch_processor = BatchProcessor(batch_id)
 
     routing_plan_id = batch_processor.get_routing_plan_id()
 
@@ -75,4 +75,6 @@ def lambda_handler(_event: dict, _context: object) -> None:
         batch_processor.mark_batch_as_sent(recipients)
         Scheduler(batch_id).schedule_status_check(720)
     else:
-        logging.error("Failed to send batch message. Status code: %s", response.status_code)
+        logging.error(
+            "Failed to send batch message. Status code: %s", response.status_code
+        )
