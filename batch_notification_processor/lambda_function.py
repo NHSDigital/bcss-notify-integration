@@ -12,7 +12,7 @@ from scheduler import Scheduler
 
 
 def secrets_client():
-    return boto3.client("secretsmanager", region_name=os.getenv("region_name"))
+    return boto3.client("secretsmanager", region_name=os.getenv("REGION_NAME"))
 
 
 def get_secret(secret_name: str) -> dict:
@@ -31,12 +31,12 @@ def get_secret(secret_name: str) -> dict:
 
 
 def db_config():
-    db_secret = get_secret(os.getenv("secret_arn"))
+    db_secret = get_secret(os.getenv("SECRET_ARN"))
 
     return {
         "user": db_secret["username"],
         "password": db_secret["password"],
-        "dsn": f"{os.getenv('host')}:{os.getenv('port')}/{os.getenv('sid')}",
+        "dsn": f"{os.getenv('DATABASE_HOST')}:{os.getenv('DATABASE_PORT')}/{os.getenv('DATABASE_SID')}",
     }
 
 

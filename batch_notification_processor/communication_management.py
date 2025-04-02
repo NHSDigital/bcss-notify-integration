@@ -9,9 +9,9 @@ import requests
 
 class CommunicationManagement:
     def __init__(self) -> None:
-        self.base_url = os.getenv("base_url")
-        self.application_id = os.getenv("application_id")
-        self.api_key = os.getenv("api_key")
+        self.base_url = os.getenv("COMMGT_BASE_URL")
+        self.application_id = os.getenv("APPLICATION_ID")
+        self.api_key = os.getenv("API_KEY")
         self.secret = f"{self.application_id}.{self.api_key}"
 
     def send_batch_message(

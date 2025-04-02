@@ -2,15 +2,14 @@ from communication_management import CommunicationManagement
 from recipient import Recipient
 import pytest
 import requests_mock
-import unittest.mock
 
 
 class TestCommunicationManagement:
     @pytest.fixture
     def setup(self, monkeypatch):
-        monkeypatch.setenv("base_url", "http://example.com")
-        monkeypatch.setenv("application_id", "application_id")
-        monkeypatch.setenv("api_key", "api_key")
+        monkeypatch.setenv("COMMGT_BASE_URL", "http://example.com")
+        monkeypatch.setenv("APPLICATION_ID", "application_id")
+        monkeypatch.setenv("API_KEY", "api_key")
 
 
     def test_send_batch_message(self, setup):

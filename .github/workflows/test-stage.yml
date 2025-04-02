@@ -40,3 +40,40 @@ jobs:
       - name: "run unit testing:"
         run: |
           ./test-unit.sh
+  integration-tests:
+    name: "Integration tests"
+    needs: set-up-dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      oracle:
+        image: gvenzl/oracle-free:latest
+        env:
+          APP_USER: mpi_notify_user
+          APP_USER_PASSWORD: test
+          ORACLE_PASSWORD: password
+        ports:
+          - 1521:1521
+        options: >-
+          --health-cmd healthcheck.sh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+          --name oracle
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "Migrate database"
+        run: |
+          docker cp tests/db/schema.sql oracle:/container-entrypoint-initdb.d/my-init.sql
+          docker exec oracle /bin/bash -c "sqlplus system/password@localhost:1521/FREEPDB1 @/container-entrypoint-initdb.d/my-init.sql"
+
+      - name: "Install dependencies"
+        run: |
+          pip install pipenv
+          pipenv install --dev --system
+
+      - name: "Run integration tests"
+        run: |
+          pytest tests/integration

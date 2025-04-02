@@ -35,6 +35,7 @@ virtualenv = "*"
 requests-mock = "*"
 pytest = "*"
 pytest-cov = "*"
+dotenv = "*"
 
 [requires]
 python_version = "3.13"
