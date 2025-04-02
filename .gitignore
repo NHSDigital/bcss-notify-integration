@@ -22,6 +22,7 @@ terraform/**/*.vars.json      # Ignore JSON variable files
 .idea/           # IntelliJ IDEA project files
 .vscode/         # VS Code files
 .env             
+.env.local
 *.zip
 *.log
 .vscode/settings.json

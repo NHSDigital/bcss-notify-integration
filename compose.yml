@@ -15,5 +15,3 @@ services:
       start_period: 5s
     volumes:
       - ./tests/db/schema.sql:/container-entrypoint-initdb.d/my-init.sql:ro
-    profiles:
-      - integration-test
