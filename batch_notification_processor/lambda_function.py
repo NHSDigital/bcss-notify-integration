@@ -1,43 +1,10 @@
 """Lambda function to process and send batch notifications via NHS Notify service."""
 
-import json
 import logging
-import os
 import uuid
-import boto3
-
 from batch_processor import BatchProcessor
 from communication_management import CommunicationManagement
 from scheduler import Scheduler
-
-
-def secrets_client():
-    return boto3.client("secretsmanager", region_name=os.getenv("REGION_NAME"))
-
-
-def get_secret(secret_name: str) -> dict:
-    """
-    Retrieve a secret value from AWS Secrets Manager.
-
-    Args:
-        secret_name: Name of the secret to retrieve
-
-    Returns:
-        dict: Parsed secret value
-    """
-
-    response = secrets_client().get_secret_value(SecretId=secret_name)
-    return json.loads(response["SecretString"])
-
-
-def db_config():
-    db_secret = get_secret(os.getenv("SECRET_ARN"))
-
-    return {
-        "user": db_secret["username"],
-        "password": db_secret["password"],
-        "dsn": f"{os.getenv('DATABASE_HOST')}:{os.getenv('DATABASE_PORT')}/{os.getenv('DATABASE_SID')}",
-    }
 
 
 def generate_batch_id():
@@ -59,7 +26,7 @@ def lambda_handler(_event: dict, _context: object) -> None:
     logging.debug("Generated batch ID: %s", batch_id)
 
     # Initialize processors
-    batch_processor = BatchProcessor(batch_id, db_config())
+    batch_processor = BatchProcessor(batch_id)
 
     routing_plan_id = batch_processor.get_routing_plan_id()
 

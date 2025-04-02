@@ -3,19 +3,16 @@ import hashlib
 import time
 import uuid
 import oracledb
-from oracle_database import OracleDatabase, DatabaseConnectionError, DatabaseFetchError
+from oracle_database import OracleDatabase, DatabaseFetchError
 
 
 class BatchProcessor:
     SENDING_STATUS = "SENDING"
 
-    def __init__(self, batch_id: str, db_config: dict):
+    def __init__(self, batch_id: str):
         self.batch_id = batch_id
-        self.db = OracleDatabase(db_config["dsn"], db_config["user"], db_config["password"])
-        try:
-            self.db.connect()
-        except DatabaseConnectionError as e:
-            logging.error("Error connecting to the database: %s", e)
+        self.db = OracleDatabase()
+        self.db.connect()
 
     def get_routing_plan_id(self):
         routing_plan_id = self.db.get_routing_plan_id(self.batch_id)
