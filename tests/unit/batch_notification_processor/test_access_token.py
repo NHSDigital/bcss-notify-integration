@@ -1,4 +1,4 @@
-import app.utils.access_token as access_token
+import access_token
 import logging
 import pytest
 import requests_mock

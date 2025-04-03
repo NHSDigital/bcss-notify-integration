@@ -8,6 +8,8 @@ import uuid
 
 EXPIRES_IN_MINUTES = 5
 
+# pylint: disable=unsupported-binary-operation
+
 
 def get_token() -> str:
     if not os.getenv("OAUTH2_API_KEY"):
