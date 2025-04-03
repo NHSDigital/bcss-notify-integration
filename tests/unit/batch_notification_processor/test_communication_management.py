@@ -1,7 +1,9 @@
+import access_token
 from communication_management import CommunicationManagement
 from recipient import Recipient
 import pytest
 import requests_mock
+from unittest.mock import Mock
 
 
 class TestCommunicationManagement:
@@ -10,7 +12,7 @@ class TestCommunicationManagement:
         monkeypatch.setenv("COMMGT_BASE_URL", "http://example.com")
         monkeypatch.setenv("APPLICATION_ID", "application_id")
         monkeypatch.setenv("API_KEY", "api_key")
-
+        access_token.get_token = Mock(return_value="access_token")
 
     def test_send_batch_message(self, setup):
         subject = CommunicationManagement()
@@ -32,6 +34,7 @@ class TestCommunicationManagement:
             )
             assert adapter.last_request.url == "http://example.com/api/message/batch"
             assert adapter.last_request.headers["x-api-key"] == "api_key"
+            assert adapter.last_request.headers["authorization"] == "Bearer access_token"
             assert adapter.last_request.json() == {
                 "data": {
                     "type": "MessageBatch",

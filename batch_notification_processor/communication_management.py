@@ -1,3 +1,4 @@
+import access_token
 import hashlib
 import hmac
 import json
@@ -31,6 +32,7 @@ class CommunicationManagement:
             "x-correlation-id": str(uuid.uuid4()),
             "x-api-key": self.api_key,
             "x-hmac-sha256-signature": hmac_signature,
+            "authorization": f"Bearer {access_token.get_token()}"
         }
 
         url = f"{self.base_url}/api/message/batch"
