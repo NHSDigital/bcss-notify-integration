@@ -7,13 +7,6 @@ from unittest.mock import MagicMock, patch
 import uuid
 
 
-# Fixtures: Things we don't want to repeatedly define.
-# They also help keep the tests a bit less cluttered.
-@pytest.fixture
-def db_config():
-    return {"dsn": "dsn", "password": "password", "user": "user"}
-
-
 @pytest.fixture
 def batch_id():
     return str(uuid.uuid4())
@@ -34,9 +27,9 @@ def recipients():
 
 @patch("batch_processor.OracleDatabase", autospec=True)
 class TestBatchProcessor:
-    def test_get_recipients(self, mock_oracle_database, db_config, recipients):
+    def test_get_recipients(self, mock_oracle_database, recipients):
         mock_oracle_database.return_value.get_recipients.return_value = recipients
-        subject = BatchProcessor(batch_id, db_config)
+        subject = BatchProcessor(batch_id)
         subject.generate_message_reference = MagicMock(
             side_effect=["message_reference_0", "message_reference_1"])
 
@@ -52,8 +45,8 @@ class TestBatchProcessor:
         assert recipients[1].message_id == "message_reference_1"
         assert recipients[1].message_status == "REQUESTED"
 
-    def test_null_recipients(self, mock_oracle_database, db_config, batch_id):
-        subject = BatchProcessor(batch_id, db_config)
+    def test_null_recipients(self, mock_oracle_database, batch_id):
+        subject = BatchProcessor(batch_id)
 
         mock_fetch_recipients = subject.db.get_recipients
         mock_fetch_recipients.return_value = None
@@ -64,8 +57,8 @@ class TestBatchProcessor:
         assert str(exc_info.value) == "Failed to fetch recipients."
         assert mock_fetch_recipients.call_count == 1
 
-    def test_get_routing_plan_id(self, mock_oracle_database, db_config, batch_id):
-        subject = BatchProcessor(batch_id, db_config)
+    def test_get_routing_plan_id(self, mock_oracle_database, batch_id):
+        subject = BatchProcessor(batch_id)
 
         plan_id = str(uuid.uuid4())
 
@@ -77,8 +70,8 @@ class TestBatchProcessor:
         assert routing_plan_id == plan_id
         assert mock_fetch_routing_plan_id.call_count == 1
 
-    def test_null_routing_plan_id(self, mock_oracle_database, db_config, batch_id):
-        subject = BatchProcessor(batch_id, db_config)
+    def test_null_routing_plan_id(self, mock_oracle_database, batch_id):
+        subject = BatchProcessor(batch_id)
 
         plan_id = None
 
@@ -91,8 +84,8 @@ class TestBatchProcessor:
         assert str(exc_info.value) == "Failed to fetch routing plan ID."
         assert mock_fetch_routing_plan_id.call_count == 1
 
-    def test_mark_batch_as_sent(self, mock_oracle_database, db_config, recipients):
-        subject = BatchProcessor(batch_id, db_config)
+    def test_mark_batch_as_sent(self, mock_oracle_database, recipients):
+        subject = BatchProcessor(batch_id)
         mock_update_message_status = subject.db.update_message_status
 
         subject.mark_batch_as_sent(recipients)
@@ -105,8 +98,8 @@ class TestBatchProcessor:
             ((recipients[1],),),
         ]
 
-    def test_generate_message_reference(self, mock_oracle_database, db_config):
-        subject = BatchProcessor(batch_id, db_config)
+    def test_generate_message_reference(self, mock_oracle_database):
+        subject = BatchProcessor(batch_id)
 
         message_reference = subject.generate_message_reference()
 
@@ -115,5 +108,3 @@ class TestBatchProcessor:
         assert re.match(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", message_reference)
         for _ in range(100):
             assert message_reference != subject.generate_message_reference()
-
-
