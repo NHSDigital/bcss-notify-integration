@@ -23,6 +23,43 @@ It updates the status of a batch of pre-invitations in the BCSS Oracle database.
 Currently the only status we update in Oracle is if the message has been read on the `nhsapp` channel within the last 24 hours.
 
 
+## Development setup
+
+### Prerequisites
+
+- Python >= 3.11
+- Docker (for local Oracle database)
+- Docker compose plugin (for local Oracle database)
+
+### Setup
+
+Dependencies are managed using pipenv. To install the dependencies and activate the virtual environment, run:
+
+```bash
+pip install pipenv
+pipenv install --dev
+pipenv shell
+```
+
+### Environment variables
+
+We use .env files to manage environment variables. To create a new .env file, copy the example file:
+
+```bash
+cp .env.example .env.local
+```
+
+### Oracle database container
+
+We use a containerised Oracle database for local development and integration tests.
+The development/test database connection details can be found in the .env.example file.
+To start the Oracle database container, run:
+
+```bash
+./start-dev-db.sh
+```
+
+
 ## Linting
 
 We use pylint for linting, this can be run using the script:
@@ -31,7 +68,7 @@ We use pylint for linting, this can be run using the script:
 ./lint.sh
 ```
 
-## Tests
+## Running the tests
 
 We use pytest for tests, these can be run using the script:
 
