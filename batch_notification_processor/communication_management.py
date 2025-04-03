@@ -35,17 +35,15 @@ class CommunicationManagement:
 
         url = f"{self.base_url}/api/message/batch"
 
-        response = requests.post(
-            url,
-            headers=headers,
-            json=request_body,
-            timeout=10
-        )
+        response = requests.post(url, headers=headers, json=request_body, timeout=10)
 
         return response
 
     def generate_batch_message_request_body(
-        self, routing_config_id: str, message_batch_reference: str, recipients: list[Recipient]
+        self,
+        routing_config_id: str,
+        message_batch_reference: str,
+        recipients: list[Recipient],
     ) -> dict:
         return {
             "data": {
@@ -60,14 +58,16 @@ class CommunicationManagement:
 
     def generate_message(self, recipient) -> dict:
         return {
-            "messageReference": recipient.message_id, # pylint: disable=no-member
-            "recipient": {"nhsNumber": recipient.nhs_number}, # pylint: disable=no-member
+            "messageReference": recipient.message_id,  # pylint: disable=no-member
+            "recipient": {
+                "nhsNumber": recipient.nhs_number
+            },  # pylint: disable=no-member
             "personalisation": {},
         }
 
     def generate_hmac_signature(self, request_body: dict) -> str:
         return hmac.new(
-            bytes(self.secret, 'ASCII'),
-            msg=bytes(json.dumps(request_body), 'ASCII'),
-            digestmod=hashlib.sha256
+            bytes(self.secret, "ASCII"),
+            msg=bytes(json.dumps(request_body), "ASCII"),
+            digestmod=hashlib.sha256,
         ).hexdigest()

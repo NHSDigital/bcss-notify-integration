@@ -1,5 +1,17 @@
 import pytest
+import os
+import uuid
+from batch_notification_processor.recipient import Recipient
 from unittest.mock import MagicMock, patch
+
+
+@pytest.fixture
+def mock_environment():
+    os.environ["PORT"] = "1521"
+    os.environ["SID"] = "mock_sid"
+    os.environ["BCSS_SECRET_NAME"] = "mock_secret_name"
+    os.environ["BCSS_HOST"] = "mock_host"
+    os.environ["REGION_NAME"] = "mock_region_name"
 
 
 @pytest.fixture
@@ -68,7 +80,7 @@ def mock_oracledb_makedsn():
 
 @pytest.fixture
 def mock_get_recipients():
-    with patch("oracle.oracle.get_recipients") as mock_get_recipients:
+    with patch("oracle.get_recipients") as mock_get_recipients:
         yield mock_get_recipients
 
 
@@ -97,9 +109,53 @@ def mock_communication_management():
 
 
 @pytest.fixture
+def mock_batch_get_recipients():
+    with patch("batch_processor.get_recipients") as mock_batch_get_recipients:
+        yield mock_batch_get_recipients
+
+
+@pytest.fixture
+def mock_mark_batch_as_sent():
+    with patch("batch_processor.mark_batch_as_sent") as mock_mark_batch_as_sent:
+        yield mock_mark_batch_as_sent
+
+
+@pytest.fixture
+def mock_batch_get_routing_plan_id():
+    with patch("batch_processor.get_routing_plan_id") as mock_batch_get_routing_plan_id:
+        yield mock_batch_get_routing_plan_id
+
+
+@pytest.fixture
+def mock_get_connection():
+    with patch("batch_processor.get_connection") as mock_get_connection:
+        yield mock_get_connection
+
+
+@pytest.fixture
+def mock_update_recipient():
+    with patch("batch_processor.update_recipient") as mock_update_recipient:
+        yield mock_update_recipient
+
+
+@pytest.fixture
 def mock_requests_get():
     with patch("requests.get") as mock_get:
         yield mock_get
+
+
+@pytest.fixture(scope="function")
+def mock_get_queue_table_records_test(example_queue_table_data):
+    with patch("oracle.get_queue_table_records") as mock_get_queue_table_records:
+        mock_get_queue_table_records.return_value = example_queue_table_data
+        yield mock_get_queue_table_records
+
+
+@pytest.fixture
+def mock_get_queue_table_records(example_queue_table_data):
+    mock_get_queue_table_records = MagicMock()
+    mock_get_queue_table_records.return_value = example_queue_table_data
+    return mock_get_queue_table_records
 
 
 @pytest.fixture
@@ -252,3 +308,40 @@ def example_patient_to_update_dict():
 @pytest.fixture
 def example_batch_id():
     return "example_batch_id"
+
+
+@pytest.fixture
+def example_comms_management_url():
+    return "www.example_comms_management_url.com"
+
+
+@pytest.fixture
+def batch_id():
+    return str(uuid.uuid4())
+
+
+@pytest.fixture
+def plan_id():
+    return str(uuid.uuid4())
+
+
+@pytest.fixture
+def recipients():
+    recip_attrs_1 = {
+        "nhs_number": "0000000000",
+        "message_id": "message_reference_0",
+        "message_status": "REQUESTED",
+    }
+    recip_attrs_2 = {
+        "nhs_number": "1111111111",
+        "message_id": "message_reference_1",
+        "message_status": "REQUESTED",
+    }
+
+    attrs_list_1 = [recip_attrs_1.get(attr, None) for attr in Recipient.ATTR_NAMES]
+    attrs_list_2 = [recip_attrs_2.get(attr, None) for attr in Recipient.ATTR_NAMES]
+
+    return [
+        Recipient(attrs_list_1),
+        Recipient(attrs_list_2),
+    ]

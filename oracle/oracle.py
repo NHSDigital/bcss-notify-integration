@@ -3,6 +3,7 @@ import os
 import logging
 import boto3
 import oracledb
+from batch_notification_processor.recipient import Recipient
 
 PORT = os.getenv("port")
 SID = os.getenv("sid")
@@ -90,6 +91,59 @@ def call_update_message_status(connection, data):
     close_cursor(cursor)
 
     return response_code
+
+
+def get_routing_plan_id(connection, batch_id: str):
+    try:
+        cursor = get_cursor(connection)
+        result = cursor.callfunc(
+            "PKG_NOTIFY_WRAP.f_get_next_batch", oracledb.STRING, [batch_id]
+        )
+        commit_changes(connection)
+        return result
+    except oracledb.Error as e:
+        logging.error("Error calling PKG_NOTIFY_WRAP.f_get_next_batch: %s", e)
+        raise
+
+
+def get_recipients(connection, batch_id: str) -> list[Recipient]:
+    try:
+        recipient_data = []
+        cursor = get_cursor(connection)
+        logging.info("Cursor, %s", cursor)
+        cursor.execute(
+            "SELECT * FROM v_notify_message_queue WHERE batch_id = :batch_id",
+            {"batch_id": batch_id},
+        )
+        recipient_data = cursor.fetchall()
+        logging.info("Recipient Data: %s", recipient_data)
+    except oracledb.Error as e:
+        logging.error("Error executing query: %s", e)
+
+    return [Recipient(rd) for rd in recipient_data]
+
+
+def update_recipient(connection, recipient: Recipient):
+    with get_cursor(connection) as cursor:
+        try:
+            cursor.execute(
+                (
+                    "UPDATE v_notify_message_queue "
+                    "SET MESSAGE_ID = :message_reference, "
+                    "MESSAGE_STATUS = :message_status "
+                    "WHERE NHS_NUMBER = :nhs_number"
+                ),
+                {
+                    "message_reference": recipient.message_id,
+                    "message_status": recipient.message_status,
+                    "nhs_number": recipient.nhs_number,
+                },
+            )
+            commit_changes(connection)
+        except oracledb.Error as e:
+            logging.error("Error updating recipient: %s", e)
+            rollback_changes(connection)
+            raise
 
 
 def rollback_changes(connection):
