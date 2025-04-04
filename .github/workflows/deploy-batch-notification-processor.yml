@@ -2,9 +2,7 @@ name: Deploy Batch Notification Processor Lambda
 
 on:
   push:
-    paths:
-      - "batch_notification_processor/**"
-    branches: [main]
+    branches: [*]
 
 jobs:
   AssumeRoleAndUpdateAWS:
@@ -27,11 +25,17 @@ jobs:
 
       - name: Install zip tool
         uses: montudor/action-zip@v1
+
       - name: Create zip file for Lambda function
         run: cd batch_notification_processor && zip -r code.zip .
-      - name: AWS CLI v2
-        uses: imehedi/actions-awscli-v2@latest
-        with:
-          args: "lambda update-function-code \
-            --function-name arn:aws:lambda:eu-west-2:730319765130:function:batch_notification_processor
-            --zip-file fileb://batch_notification_processor/code.zip"
+
+      - name: Check lambda exists
+        id: check_lambda
+        run: |
+          if aws lambda get-function --function-name arn:aws:lambda:eu-west-2:730319765130:function:batch_notification_processor; then
+            echo "Lambda function exists"
+            echo "::set-output name=exists::true"
+          else
+            echo "Lambda function does not exist"
+            echo "::set-output name=exists::false"
+          fi
