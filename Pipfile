@@ -36,6 +36,7 @@ requests-mock = "*"
 pytest = "*"
 pytest-cov = "*"
 dotenv = "*"
+pytest-mock = "*"
 
 [requires]
 python_version = "3.13"
