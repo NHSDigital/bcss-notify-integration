@@ -11,6 +11,8 @@ def lambda_handler(event: Dict[str, Any], _context: Any) -> Dict[str, Any]:
         batch_id = event.get("batch_id")
         messages_with_read_status = comms_management.get_read_messages(batch_id)
 
+        logging.info("Messages with read status: %s", messages_with_read_status)
+
         if len(messages_with_read_status) == 0:
             return {
                 "statusCode": 200,

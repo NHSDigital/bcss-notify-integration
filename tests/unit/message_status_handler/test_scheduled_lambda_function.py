@@ -1,5 +1,5 @@
 import json
-import lambda_function
+import scheduled_lambda_function as lambda_function
 from unittest.mock import patch
 
 
