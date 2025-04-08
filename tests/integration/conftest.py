@@ -5,7 +5,7 @@ import json
 import pytest
 import oracledb
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 dotenv.load_dotenv(".env.test")
 
@@ -49,27 +49,31 @@ class Helpers:
         })
         secrets_client.get_secret_value.return_value = {"SecretString": secret_string}
         boto3.client = Mock(return_value=secrets_client)
-        message_references = [r[1] for r in recipient_data]
 
-        with patch("lambda_function.BatchProcessor.generate_message_reference", side_effect=message_references):
-            with Helpers.cursor() as cur:
-                cur.execute("""
-                    INSERT INTO notify_message_batch (batch_id, message_definition_id, batch_status)
-                    VALUES (:batch_id, 1, 'new')
-                """, batch_id=batch_id)
-                for recipient in recipient_data:
-                    cur.execute(
-                        """
-                        INSERT INTO notify_message_queue (
-                            nhs_number, message_id, event_status_id, message_definition_id, message_status,
-                            subject_id, event_id, pio_id
-                        ) VALUES (:nhs_number, :message_reference, 11197, 1, 'new', 1, 1, 1)
-                        """,
-                        nhs_number=recipient[0],
-                        message_reference=recipient[1]
-                    )
+        with Helpers.cursor() as cur:
+            cur.execute("""
+                INSERT INTO notify_message_batch (batch_id, message_definition_id, batch_status)
+                VALUES (:batch_id, 1, 'new')
+            """, batch_id=batch_id)
+            for recipient in recipient_data:
+                cur.execute(
+                    """
+                    INSERT INTO notify_message_queue (
+                        nhs_number, message_id, event_status_id, message_definition_id, message_status,
+                        subject_id, event_id, pio_id
+                    ) VALUES (:nhs_number, :message_reference, 11197, 1, 'new', 1, 1, 1)
+                    """,
+                    nhs_number=recipient[0],
+                    message_reference=recipient[1]
+                )
 
-                cur.connection.commit()
+            cur.connection.commit()
+
+    @staticmethod
+    def call_get_next_batch(batch_id):
+        with Helpers.cursor() as cur:
+            cur.callfunc("PKG_NOTIFY_WRAP.f_get_next_batch", oracledb.STRING, [batch_id])
+            cur.connection.commit()
 
 
 @pytest.fixture
