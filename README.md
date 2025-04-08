@@ -42,18 +42,22 @@ To access AWS Lambda functions, follow the steps below:
 
 3. When working in development, you should use the **NHS Digital DDC Exeter Texas NonProd K8s** account and log in as the **bcss-rw-user**.
 
-4. Once your AWS Console has loaded, use the search bar in the upper-left corner and search for **Lambda**.
+4. Once your AWS Console has loaded, **change the region to `eu-west-2` (London)** using the region selector in the top-right corner of the Console.
+
+   ![Changing the region](docs/images/region-change.png)
+
+5. Once your AWS Console has loaded, use the search bar in the upper-left corner and search for **Lambda**.
 
    ![Searching for Lambda](docs/images/lambda-search.png)
 
-5. On the main Lambda service page, select **Functions** from the sidebar.
+6. On the main Lambda service page, select **Functions** from the sidebar.
 
    ![Lambda Functions List](docs/images/lambda-functions-list.png)
 
-6. You should now see a page listing all available Lambda functions.  
+7. You should now see a page listing all available Lambda functions.  
    **Be careful not to modify any functions unless you are certain they are managed by this team,** as some functions are managed by other teams.
 
-7. Use the search bar on this page to find the specific Lambda function you are working on.  
+8. Use the search bar on this page to find the specific Lambda function you are working on.  
    Currently, our Lambda functions are named:
 
    - bcss-s3-to-lambda-trigger
