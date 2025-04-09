@@ -28,15 +28,16 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - oracle
+      - communication-management-api-stub
     environment:
       - API_KEY=${API_KEY}
       - APPLICATION_ID=${APPLICATION_ID}
-      - COMMGT_BASE_URL=${COMMGT_BASE_URL}
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DATABASE_SID=${DATABASE_SID}
-      - DATABASE_HOST=${DATABASE_HOST}
-      - DATABASE_PORT=${DATABASE_PORT}
+      - COMMGT_BASE_URL=http://communication-management-api-stub:8080
+      - DATABASE_USER=mpi_notify_user
+      - DATABASE_PASSWORD=test
+      - DATABASE_SID=FREEPDB1
+      - DATABASE_HOST=oracle
+      - DATABASE_PORT=1521
       - OAUTH_API_KID=${OAUTH_API_KID}
       - OAUTH_API_KEY=${OAUTH_API_KEY}
       - OAUTH_TOKEN_URL=${OAUTH_TOKEN_URL}
@@ -55,22 +56,31 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - oracle
-      - batch-notification-processor-lambda
+      - communication-management-api-stub
     environment:
       - API_KEY=${API_KEY}
       - APPLICATION_ID=${APPLICATION_ID}
-      - COMMGT_BASE_URL=${COMMGT_BASE_URL}
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DATABASE_SID=${DATABASE_SID}
-      - DATABASE_HOST=${DATABASE_HOST}
-      - DATABASE_PORT=${DATABASE_PORT}
-      - OAUTH_API_KID=${OAUTH_API_KID}
-      - OAUTH_API_KEY=${OAUTH_API_KEY}
-      - OAUTH_TOKEN_URL=${OAUTH_TOKEN_URL}
+      - COMMGT_BASE_URL=http://communication-management-api-stub:8080
+      - DATABASE_USER=mpi_notify_user
+      - DATABASE_PASSWORD=test
+      - DATABASE_SID=FREEPDB1
+      - DATABASE_HOST=oracle
+      - DATABASE_PORT=1521
       - PRIVATE_KEY=${PRIVATE_KEY}
       - REGION_NAME=${REGION_NAME}
       - SECRET_ARN=${SECRET_ARN}
+    profiles:
+      - dev
+      - end-to-end
+
+  communication-management-api-stub:
+    build:
+      context: tests/end_to_end/communication_management_api_stub
+      additional_contexts:
+        root_dir: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
     profiles:
       - dev
       - end-to-end
