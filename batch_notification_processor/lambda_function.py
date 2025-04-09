@@ -11,7 +11,7 @@ def generate_batch_id():
     return str(uuid.uuid4())
 
 
-def lambda_handler(_event: dict, _context: object) -> None:
+def lambda_handler(event: dict, _context: object) -> None:
     """
     AWS Lambda handler to process and send batch notifications.
 
@@ -22,8 +22,12 @@ def lambda_handler(_event: dict, _context: object) -> None:
     logging.info("Lambda function has started.")
 
     # Generate unique batch ID
-    batch_id = generate_batch_id()
-    logging.debug("Generated batch ID: %s", batch_id)
+    batch_id = event.get("batch_id") 
+
+    if not batch_id:
+        batch_id = generate_batch_id()
+
+    logging.debug("Batch ID: %s", batch_id)
 
     # Initialize processors
     batch_processor = BatchProcessor(batch_id)
@@ -40,6 +44,6 @@ def lambda_handler(_event: dict, _context: object) -> None:
     if response.status_code == 201:
         logging.info("Batch message sent successfully.")
         batch_processor.mark_batch_as_sent(recipients)
-        Scheduler(batch_id).schedule_status_check(720)
+        Scheduler(batch_id).schedule_status_check(os.getenv("SCHEDULE_STATUS_CHECK_MINUTES", 720))
     else:
         logging.error("Failed to send batch message. Status code: %s", response.status_code)

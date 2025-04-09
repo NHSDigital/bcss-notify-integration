@@ -40,7 +40,10 @@ class Scheduler:
             "Scheduling status check. batch_id: %s, retries: %s",
             self.batch_id, self.retries
         )
-        self.create_schedule(name, minutes_from_now, target)
+        if minutes_from_now == 0:
+            self.invoke_immediately()
+        else:
+            self.create_schedule(name, minutes_from_now, target)
 
     def create_schedule(self, name: str, minutes_from_now: int, target: dict):
         if self.retries > self.MAX_RETRIES:
@@ -56,6 +59,13 @@ class Scheduler:
 
     def payload(self):
         return json.dumps({"batch_id": self.batch_id, "retries": self.retries})
+
+    def invoke_immediately(self):
+        boto3.client("lambda").invoke(
+            FunctionName=os.getenv("LAMBDA_BATCH_PROCESSOR_ARN"),
+            InvocationType="Event",
+            Payload=self.payload()
+        )
 
     @staticmethod
     def schedule_time(minutes_from_now: int):
