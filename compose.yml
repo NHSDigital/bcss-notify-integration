@@ -22,7 +22,7 @@ services:
 
   batch-notification-processor-lambda:
     build:
-      context: batch_notification_processor
+      context: ./batch_notification_processor/
       additional_contexts:
         root_dir: .
       dockerfile: Dockerfile
@@ -50,7 +50,7 @@ services:
 
   message-status-handler-lambda:
     build:
-      context: message_status_handler
+      context: ./message_status_handler/
       additional_contexts:
         root_dir: .
       dockerfile: Dockerfile
@@ -75,7 +75,7 @@ services:
 
   communication-management-api-stub:
     build:
-      context: tests/end_to_end/communication_management_api_stub
+      context: ./tests/end_to_end/communication_management_api_stub/
       additional_contexts:
         root_dir: .
       dockerfile: Dockerfile
@@ -83,4 +83,27 @@ services:
       - "8080:8080"
     profiles:
       - dev
+      - end-to-end
+
+  end-to-end-tests:
+    build:
+      context: ./tests/end_to_end/runner/
+      additional_contexts:
+        root_dir: .
+      dockerfile: Dockerfile
+    depends_on:
+      - oracle
+      - batch-notification-processor-lambda
+      - message-status-handler-lambda
+      - communication-management-api-stub
+    environment:
+      - API_KEY=${API_KEY}
+      - APPLICATION_ID=${APPLICATION_ID}
+      - COMMGT_BASE_URL=http://communication-management-api-stub:8080
+      - DATABASE_USER=mpi_notify_user
+      - DATABASE_PASSWORD=test
+      - DATABASE_SID=FREEPDB1
+      - DATABASE_HOST=oracle
+      - DATABASE_PORT=1521
+    profiles:
       - end-to-end
