@@ -10,9 +10,6 @@ class DatabaseConnectionError(Exception):
     """Raised when there is an error connecting to the database"""
 
 
-client = None # pylint: disable=invalid-name
-
-
 @contextmanager
 def connection():
     try:
@@ -32,38 +29,28 @@ def cursor():
     try:
         with connection() as conn:
             cur = conn.cursor()
-
-            yield cur
-
-    finally:
-        cur.close()
+            try:
+                yield cur
+            finally:
+                cur.close()
+    except oracledb.Error as e:
+        logging.error("Error Creating Cursor: %s", e)
+        raise DatabaseConnectionError(f"Error Creating Cursor: {str(e)}") from e
 
 
 def connection_params() -> dict:
-    secret = get_secret()
+    client = boto3.client(
+        service_name="secretsmanager",
+        region_name=os.getenv("REGION_NAME"),
+    )
+    secret = json.loads(
+        client.get_secret_value(SecretId=os.getenv("SECRET_ARN"))["SecretString"]
+    )
     db_user: str = secret["username"]
     db_password: str = secret["password"]
-    host: str = os.getenv("bcss_host", "")
-    port: str = os.getenv("port", "1521")
-    sid: str = os.getenv("sid", "")
+    host: str = os.environ["DATABASE_HOST"]
+    port: str = os.getenv("DATABASE_PORT", "1521")
+    sid: str = os.environ["DATABASE_SID"]
     dsn_tns = f"{host}:{port}/{sid}"
 
     return {"user": db_user, "password": db_password, "dsn": dsn_tns}
-
-
-def get_secret() -> dict:
-    secret_name = os.getenv("bcss_secret_name")
-    secret_str = get_client().get_secret_value(
-        SecretId=secret_name)["SecretString"]
-    return json.loads(secret_str)
-
-
-def get_client():
-    global client # pylint: disable=global-statement
-    if not client:
-        client = boto3.client(
-            service_name="secretsmanager",
-            region_name=os.getenv("region_name")
-        )
-
-    return client

@@ -5,11 +5,11 @@ from unittest.mock import patch
 
 @pytest.fixture
 def mocked_env(monkeypatch):
-    monkeypatch.setenv("bcss_host", "test_host")
-    monkeypatch.setenv("port", "1521")
-    monkeypatch.setenv("sid", "test_sid")
-    monkeypatch.setenv("bcss_secret_name", "test_secret")
-    monkeypatch.setenv("region_name", "uk-west-1")
+    monkeypatch.setenv("DATABASE_HOST", "test_host")
+    monkeypatch.setenv("DATABASE_PORT", "1521")
+    monkeypatch.setenv("DATABASE_SID", "test_sid")
+    monkeypatch.setenv("SECRET_ARN", "test_secret")
+    monkeypatch.setenv("REGION_NAME", "uk-west-1")
 
 
 @pytest.fixture
@@ -38,14 +38,3 @@ def test_cursor(mock_oracledb_connect, mock_boto3_client):
 
 def test_connection_params(mock_boto3_client):
     assert database.connection_params() == {"user": "test", "password": "test", "dsn": "test_host:1521/test_sid"}
-
-
-def test_get_secret(mock_boto3_client):
-    assert database.get_secret() == {"username": "test", "password": "test"}
-
-
-def test_get_client(monkeypatch):
-    monkeypatch.setenv("region_name", "uk-west-1")
-    database.client = None
-
-    assert database.get_client() is not None

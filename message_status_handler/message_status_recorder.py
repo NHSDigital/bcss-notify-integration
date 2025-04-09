@@ -9,6 +9,8 @@ def record_message_statuses(batch_id: str, json_data: dict):
         for message_reference in message_references:
             response_codes.append(update_message_status(cursor, batch_id, message_reference))
 
+        cursor.connection.commit()
+
     return response_codes
 
 
@@ -29,6 +31,7 @@ def update_message_status(cursor, batch_id: str, message_reference: str):
             "out_val": var,
         },
     )
+
     response_code = var.getvalue()
 
     return response_code

@@ -121,19 +121,14 @@ CREATE OR REPLACE PACKAGE BODY MPI_NOTIFY_USER.pkg_notify_wrap AS
     pi_message_status   IN notify_message_queue.message_status%TYPE
   )
     RETURN message_types.message_type_id%TYPE IS
-    v_subject_id          notify_message_queue.subject_id%TYPE;
-    v_pio_id              notify_message_queue.pio_id%TYPE;
-    v_transition_key_id   ep_event_status_transition_t.key_id%TYPE;
-    v_event_id            notify_message_queue.event_id%TYPE;
     v_error_id            message_types.message_type_id%TYPE := 0;
-    v_read_datestamp      notify_message_queue.read_datestamp%TYPE;
-    v_message_is_complete BOOLEAN := FALSE;
   BEGIN
     UPDATE  notify_message_queue nmq
     SET     nmq.message_status = pi_message_status,
             nmq.read_datestamp = SYSTIMESTAMP
     WHERE   nmq.batch_id = pi_batch_id
     AND     nmq.message_id = pi_message_id;
+    RETURN  v_error_id;
   END f_update_message_status;
 END pkg_notify_wrap;
 /
