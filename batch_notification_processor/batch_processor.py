@@ -7,7 +7,7 @@ from oracle_database import OracleDatabase, DatabaseFetchError
 
 
 class BatchProcessor:
-    SENDING_STATUS = "SENDING"
+    SENDING_STATUS = "sending"
 
     def __init__(self, batch_id: str):
         self.batch_id = batch_id

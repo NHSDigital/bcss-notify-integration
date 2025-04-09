@@ -104,7 +104,7 @@ def test_batch_notification_processor_updates_message_queue(batch_id, recipient_
     assert len(results) == 5
     for idx, result in enumerate(results):
         recipient = recipient_data[idx]
-        assert result == (recipient[0], recipient[1], "SENDING")
+        assert result == (recipient[0], recipient[1], "sending")
 
 
 def test_batch_notification_processor_payload(batch_id, recipient_data):

@@ -28,8 +28,8 @@ class TestCommunicationManagement:
                 "batch_id",
                 "routing_config_id",
                 [
-                    Recipient(("0000000000", "message_reference_0", "REQUESTED")),
-                    Recipient(("1111111111", "message_reference_1", "REQUESTED")),
+                    Recipient(("0000000000", "message_reference_0", "requested")),
+                    Recipient(("1111111111", "message_reference_1", "requested")),
                 ]
             )
             assert adapter.last_request.url == "http://example.com/api/message/batch"
@@ -59,8 +59,8 @@ class TestCommunicationManagement:
 
     def test_generate_batch_message_request_body(self, setup):
         recipients = [
-            Recipient(("0000000000", "message_reference_0", "REQUESTED")),
-            Recipient(("1111111111", "message_reference_1", "REQUESTED")),
+            Recipient(("0000000000", "message_reference_0", "requested")),
+            Recipient(("1111111111", "message_reference_1", "requested")),
         ]
 
         subject = CommunicationManagement()
@@ -76,7 +76,7 @@ class TestCommunicationManagement:
         assert message_batch["data"]["attributes"]["messages"][1]["messageReference"] == "message_reference_1"
 
     def test_generate_message(self, setup):
-        recipient = Recipient(("0000000000", "message_reference_0", "REQUESTED"))
+        recipient = Recipient(("0000000000", "message_reference_0", "requested"))
 
         subject = CommunicationManagement()
 
