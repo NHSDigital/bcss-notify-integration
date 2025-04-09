@@ -19,6 +19,11 @@ jobs:
       contents: read
       pull-requests: write
 
+    strategy:
+      matrix:
+        environment: [dev, prod]
+      fail-fast: false
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,16 +46,16 @@ jobs:
 
       - name: Terraform Init
         run: |
-          cd terraform
-          terraform init -backend-config="bucket=bcss-terraform-nonprod-iac" \
+          cd terraform/environments/${{ matrix.environment }}
+          terraform init -backend-config="bucket=bcss-terraform-${{ matrix.environment == 'prod' && 'prod' || 'nonprod' }}-iac" \
                         -backend-config="key=bcss/infrastructure/communication-management/terraform.tfstate" \
                         -backend-config="region=${{ env.AWS_REGION }}" \
-                        -backend-config="dynamodb_table=bcss-communication-management-terraform-lock-dev"
+                        -backend-config="dynamodb_table=bcss-communication-management-terraform-lock-${{ matrix.environment }}"
 
       - name: Terraform Plan
         id: plan
         run: |
-          cd terraform
+          cd terraform/environments/${{ matrix.environment }}
           terraform plan -no-color
         continue-on-error: true
 
@@ -59,13 +64,13 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           PLAN: "${{ steps.plan.outputs.stdout }}"
+          ENVIRONMENT: "${{ matrix.environment }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            const output = `#### Terraform Plan for ${{ matrix.environment }} Environment 📖\`${{ steps.plan.outcome }}\`
 
-            <details><summary>Show Plan</summary>
+            <details><summary>Show Plan for ${{ matrix.environment }}</summary>
 
             \`\`\`terraform\n
             ${process.env.PLAN}
