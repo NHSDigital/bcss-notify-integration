@@ -22,7 +22,6 @@ This function is only scheduled if the batch processor function has successfully
 It updates the status of a batch of pre-invitations in the BCSS Oracle database.
 Currently the only status we update in Oracle is if the message has been read on the `nhsapp` channel within the last 24 hours.
 
-
 ## Development setup
 
 ### Prerequisites
@@ -75,3 +74,10 @@ We use pytest for tests, these can be run using the script:
 ```bash
 ./test-unit.sh
 ```
+
+## Accessing AWS Lambda Functions via the AWS Console
+
+This section provides a high-level overview of how to access and work with AWS Lambda functions used by the project.  
+It includes guidance on which accounts to use, how to navigate the AWS Console, and tips for safely finding the correct Lambda functions.
+
+For the full step-by-step guide, see: [How to find AWS Lambdas in the AWS Console](docs/access-aws-lambdas.md)
