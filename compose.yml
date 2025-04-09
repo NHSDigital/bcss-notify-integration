@@ -19,3 +19,58 @@ services:
       - dev
       - integration
       - end-to-end
+
+  batch-notification-processor-lambda:
+    build:
+      context: batch_notification_processor
+      additional_contexts:
+        root_dir: .
+      dockerfile: Dockerfile
+    depends_on:
+      - oracle
+    environment:
+      - API_KEY=${API_KEY}
+      - APPLICATION_ID=${APPLICATION_ID}
+      - COMMGT_BASE_URL=${COMMGT_BASE_URL}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_SID=${DATABASE_SID}
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - OAUTH_API_KID=${OAUTH_API_KID}
+      - OAUTH_API_KEY=${OAUTH_API_KEY}
+      - OAUTH_TOKEN_URL=${OAUTH_TOKEN_URL}
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - REGION_NAME=${REGION_NAME}
+      - SECRET_ARN=${SECRET_ARN}
+    profiles:
+      - dev
+      - end-to-end
+
+  message-status-handler-lambda:
+    build:
+      context: message_status_handler
+      additional_contexts:
+        root_dir: .
+      dockerfile: Dockerfile
+    depends_on:
+      - oracle
+      - batch-notification-processor-lambda
+    environment:
+      - API_KEY=${API_KEY}
+      - APPLICATION_ID=${APPLICATION_ID}
+      - COMMGT_BASE_URL=${COMMGT_BASE_URL}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_SID=${DATABASE_SID}
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - OAUTH_API_KID=${OAUTH_API_KID}
+      - OAUTH_API_KEY=${OAUTH_API_KEY}
+      - OAUTH_TOKEN_URL=${OAUTH_TOKEN_URL}
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - REGION_NAME=${REGION_NAME}
+      - SECRET_ARN=${SECRET_ARN}
+    profiles:
+      - dev
+      - end-to-end
