@@ -12,6 +12,6 @@ def get_read_messages(batch_reference: str) -> dict:
     )
 
     if response.status_code != 201:
-        logging.error("Failed to fetch read messages: %s ", response.json())
+        logging.error("Failed to fetch messages that have been read: %s ", response.json())
 
     return response.json()
