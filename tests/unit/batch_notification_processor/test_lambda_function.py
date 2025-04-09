@@ -12,7 +12,7 @@ def test_lambda_handler():
     lambda_function.Scheduler = mock_scheduler
     lambda_function.generate_batch_id = Mock(return_value="b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3")
 
-    recipient = Recipient(("1234567890", "message_reference_0", "REQUESTED"))
+    recipient = Recipient(("1234567890", "message_reference_0", "requested"))
     routing_plan_id = "c2c2c2c2-c2c2-c2c2c2c2-c2c2c2c2c2c2"
 
     mock_batch_processor.return_value.get_routing_plan_id = Mock(return_value=routing_plan_id)

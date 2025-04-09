@@ -20,8 +20,8 @@ def plan_id():
 @pytest.fixture
 def recipients():
     return [
-        Recipient(("0000000000", None, None, None, "REQUESTED")),
-        Recipient(("1111111111", None, None, None, "REQUESTED")),
+        Recipient(("0000000000", None, None, None, "requested")),
+        Recipient(("1111111111", None, None, None, "requested")),
     ]
 
 
@@ -39,11 +39,11 @@ class TestBatchProcessor:
 
         assert recipients[0].nhs_number == "0000000000"
         assert recipients[0].message_id == "message_reference_0"
-        assert recipients[0].message_status == "REQUESTED"
+        assert recipients[0].message_status == "requested"
 
         assert recipients[1].nhs_number == "1111111111"
         assert recipients[1].message_id == "message_reference_1"
-        assert recipients[1].message_status == "REQUESTED"
+        assert recipients[1].message_status == "requested"
 
     def test_null_recipients(self, mock_oracle_database, batch_id):
         subject = BatchProcessor(batch_id)
@@ -91,8 +91,8 @@ class TestBatchProcessor:
         subject.mark_batch_as_sent(recipients)
 
         assert mock_update_message_status.call_count == 2
-        assert recipients[0].message_status == "SENDING"
-        assert recipients[1].message_status == "SENDING"
+        assert recipients[0].message_status == "sending"
+        assert recipients[1].message_status == "sending"
         assert mock_update_message_status.call_args_list == [
             ((recipients[0],),),
             ((recipients[1],),),
