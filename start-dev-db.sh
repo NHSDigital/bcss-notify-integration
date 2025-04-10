@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker compose --env-file .env.local up --build
+docker compose --env-file .env.local --profile dev up --build
