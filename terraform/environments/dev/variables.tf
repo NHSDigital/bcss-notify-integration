@@ -18,5 +18,5 @@ variable "tags" {
   default = {
     Service = "bcss"
   }
-  description = "A map of tags to apply to the resource."
+  description = "A map of tags to apply to the resource"
 }
