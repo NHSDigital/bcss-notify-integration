@@ -1,5 +1,6 @@
 services:
   oracle:
+    container_name: oracle
     image: gvenzl/oracle-free:latest
     ports:
       - "1521:1521"
@@ -21,14 +22,19 @@ services:
       - end-to-end
 
   batch-notification-processor-lambda:
+    container_name: "batch-notification-processor-lambda"
     build:
       context: ./batch_notification_processor/
       additional_contexts:
         root_dir: .
       dockerfile: Dockerfile
+    ports:
+      - "9000:8080"
     depends_on:
-      - oracle
-      - communication-management-api-stub
+      communication-management-api-stub:
+        condition: service_started
+      oracle:
+        condition: service_healthy
     environment:
       - API_KEY=${API_KEY}
       - APPLICATION_ID=${APPLICATION_ID}
@@ -74,6 +80,7 @@ services:
       - end-to-end
 
   communication-management-api-stub:
+    container_name: "communication-management-api-stub"
     build:
       context: ./tests/end_to_end/communication_management_api_stub/
       additional_contexts:
@@ -92,18 +99,23 @@ services:
         root_dir: .
       dockerfile: Dockerfile
     depends_on:
-      - oracle
-      - batch-notification-processor-lambda
-      - message-status-handler-lambda
-      - communication-management-api-stub
+      communication-management-api-stub:
+        condition: service_started
+      oracle:
+        condition: service_healthy
+      batch-notification-processor-lambda:
+        condition: service_started
+      message-status-handler-lambda:
+        condition: service_started
+    network_mode: host
     environment:
       - API_KEY=${API_KEY}
       - APPLICATION_ID=${APPLICATION_ID}
-      - COMMGT_BASE_URL=http://communication-management-api-stub:8080
+      - COMMGT_BASE_URL=http://localhost:8080
       - DATABASE_USER=mpi_notify_user
       - DATABASE_PASSWORD=test
       - DATABASE_SID=FREEPDB1
-      - DATABASE_HOST=oracle
+      - DATABASE_HOST=localhost
       - DATABASE_PORT=1521
     profiles:
       - end-to-end
