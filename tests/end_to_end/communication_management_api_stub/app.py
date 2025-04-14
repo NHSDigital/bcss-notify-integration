@@ -56,8 +56,7 @@ def statuses():
 
     for message in messages:
         message_status_data.append({
-            "message_id": message["id"],
-            "message_reference": message["message_reference"],
+            "message_reference": message["messageReference"],
             "channel": "nhsapp",
             "channelStatus": "delivered",
             "supplierStatus": status,
@@ -66,7 +65,7 @@ def statuses():
     return {
         "status": "success",
         "data": message_status_data
-    }
+    }, 201
 
 
 def default_response_data():
@@ -74,7 +73,7 @@ def default_response_data():
         "data": {
             "id": "2ZljUiS8NjJNs95PqiYOO7gAfJb",
             "attributes": {
-                "messageBatchReference": "da0b1495-c7cb-468c-9d81-07dee089d728",
+                "messageBatchReference": "d3f31ae4-1532-46df-b121-3503db6b32d6",
                 "messages": [
                     {
                         "messageReference": "703b8008-545d-4a04-bb90-1f2946ce1575",
@@ -110,4 +109,4 @@ def validate_with_schema(data: dict):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=8888)

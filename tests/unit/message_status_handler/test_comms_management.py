@@ -35,7 +35,9 @@ def test_get_read_messages(monkeypatch):
         assert adapter.called
         assert adapter.call_count == 1
         assert adapter.last_request.qs == {
-            "batchreference": ["c3b8e0c4-5f3d-4a2b-8c7f-1a2e9d6f3b5c"], "status": ["read"]
+            "batchreference": ["c3b8e0c4-5f3d-4a2b-8c7f-1a2e9d6f3b5c"],
+            "channel": ["nhsapp"],
+            "supplierstatus": ["read"],
         }
 
 

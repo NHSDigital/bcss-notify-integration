@@ -60,12 +60,11 @@ class Helpers:
                 cur.execute(
                     """
                     INSERT INTO notify_message_queue (
-                        nhs_number, message_id, event_status_id, message_definition_id, message_status,
+                        nhs_number, event_status_id, message_definition_id, message_status,
                         subject_id, event_id, pio_id
-                    ) VALUES (:nhs_number, :message_reference, 11197, 1, 'new', 1, 1, 1)
+                    ) VALUES (:nhs_number, 11197, 1, 'new', 1, 1, 1)
                     """,
-                    nhs_number=recipient[0],
-                    message_reference=recipient[1]
+                    nhs_number=recipient[0]
                 )
 
             cur.connection.commit()
