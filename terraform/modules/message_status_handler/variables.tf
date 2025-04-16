@@ -10,7 +10,7 @@ variable "environment" {
   type = string
 }
 
-variable "request_handler_lambda_role_arn" {
+variable "message_status_handler_lambda_role_arn" {
   type        = string
   description = "ARN for the batch processor lambda role"
 }
@@ -34,3 +34,4 @@ variable "security_group" {
   type        = string
   description = "Id for security group"
 }
+

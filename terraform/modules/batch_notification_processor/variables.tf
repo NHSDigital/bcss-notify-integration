@@ -10,7 +10,7 @@ variable "environment" {
   type = string
 }
 
-variable "batch_processor_lambda_role_arn" {
+variable "batch_notification_processor_lambda_role_arn" {
   type        = string
   description = "ARN for the batch processor lambda role"
 }
@@ -29,3 +29,4 @@ variable "tags" {
   type        = map(string)
   description = "A map of tags to apply to the resource."
 }
+

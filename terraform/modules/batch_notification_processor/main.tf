@@ -1,10 +1,15 @@
-resource "aws_lambda_function" "batch_processor" {
-  function_name    = "${var.team}-${var.project}-batch-processor-${var.environment}"
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  output_path = "${path.module}/lambda_function.zip"
+  source_dir  = "${path.module}/../../../batch_notification_processor/"
+}
+resource "aws_lambda_function" "batch_notification_processor" {
+  function_name    = "${var.team}-${var.project}-batch-notification-processor-${var.environment}"
   handler          = "lambda_function.lambda_handler" # File.function
   runtime          = "python3.12"
-  filename         = "../../../lambda_function.zip"
-  source_code_hash = filebase64sha256("../../../lambda_function.zip")
-  role             = var.batch_processor_lambda_role_arn
+  filename         = data.archive_file.lambda_zip.output_path
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  role             = var.batch_notification_processor_lambda_role_arn
 
   timeout     = 300
   memory_size = 128
@@ -22,3 +27,4 @@ resource "aws_lambda_function" "batch_processor" {
 
   tags = var.tags
 }
+
