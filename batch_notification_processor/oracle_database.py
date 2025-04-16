@@ -115,12 +115,18 @@ class OracleDatabase:
 
     @staticmethod
     def connection_params():
-        client = boto3.client("secretsmanager", region_name=os.getenv("REGION_NAME"))
-        response = client.get_secret_value(SecretId=os.getenv("SECRET_ARN"))
-        db_secrets = json.loads(response["SecretString"])
+        username = os.getenv("DATABASE_USER")
+        password = os.getenv("DATABASE_PASSWORD")
+
+        if not username or not password:
+            client = boto3.client("secretsmanager", region_name=os.getenv("REGION_NAME"))
+            response = client.get_secret_value(SecretId=os.getenv("SECRET_ARN"))
+            db_secrets = json.loads(response["SecretString"])
+            username = db_secrets["username"]
+            password = db_secrets["password"]
 
         return {
-            "user": db_secrets["username"],
-            "password": db_secrets["password"],
+            "user": username,
+            "password": password,
             "dsn": f"{os.getenv('DATABASE_HOST')}:{os.getenv('DATABASE_PORT')}/{os.getenv('DATABASE_SID')}",
         }

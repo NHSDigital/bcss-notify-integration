@@ -39,15 +39,22 @@ def cursor():
 
 
 def connection_params() -> dict:
-    client = boto3.client(
-        service_name="secretsmanager",
-        region_name=os.getenv("REGION_NAME"),
-    )
-    secret = json.loads(
-        client.get_secret_value(SecretId=os.getenv("SECRET_ARN"))["SecretString"]
-    )
-    db_user: str = secret["username"]
-    db_password: str = secret["password"]
+    username = os.getenv("DATABASE_USER")
+    password = os.getenv("DATABASE_PASSWORD")
+
+    if not username or not password:
+        client = boto3.client(
+            service_name="secretsmanager",
+            region_name=os.getenv("REGION_NAME"),
+        )
+        secret = json.loads(
+            client.get_secret_value(SecretId=os.getenv("SECRET_ARN"))["SecretString"]
+        )
+        username = secret["username"]
+        password = secret["password"]
+
+    db_user: str = username
+    db_password: str = password
     host: str = os.environ["DATABASE_HOST"]
     port: str = os.getenv("DATABASE_PORT", "1521")
     sid: str = os.environ["DATABASE_SID"]

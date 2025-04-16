@@ -37,5 +37,5 @@ def lambda_handler(event: Dict[str, Any], _context: Any) -> Dict[str, Any]:
     except Exception as e:
         return {
             "statusCode": 500,
-            "body": json.dumps({"message": f"Internal Server Error: {str(e)}"}),
+            "body": json.dumps({"message": f"Internal Server Error: {e}"}),
         }

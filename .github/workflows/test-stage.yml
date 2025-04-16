@@ -77,3 +77,20 @@ jobs:
       - name: "Run integration tests"
         run: |
           pytest tests/integration
+  end-to-end-tests:
+    name: "End to end tests"
+    needs: set-up-dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "Install dependencies"
+        run: |
+          pip install pipenv
+          pipenv install --dev --system
+
+      - name: "Run end to end tests"
+        run: |
+          ./test-end-to-end.sh
