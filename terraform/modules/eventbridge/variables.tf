@@ -10,10 +10,11 @@ variable "environment" {
   type = string
 }
 
-variable "batch_processor_lambda_arn" {
+variable "batch_notification_processor_lambda_arn" {
   type = string
 }
 
-variable "batch_processor_lambda_name" {
+variable "batch_notification_processor_lambda_name" {
   type = string
 }
+
