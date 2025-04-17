@@ -10,5 +10,6 @@ data "aws_subnets" "private" {
 }
 
 data "aws_security_group" "lambda" {
-  name = "bcss-communication-management-dev-sec-grp"
+  name = "bcss-oracle-bcss-dev-sec-grp"
 }
+
