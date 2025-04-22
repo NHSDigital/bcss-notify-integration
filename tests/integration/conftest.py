@@ -26,6 +26,14 @@ def recipient_data():
     ]
 
 
+@pytest.fixture
+def nhs_notify_message_batch_schema():
+    schema_path = os.path.dirname(os.path.abspath(__file__))
+    with open(schema_path + "/nhs-notify.json", encoding="utf-8") as f:
+        schema = json.load(f)
+        return schema["paths"]["/v1/message-batches"]["post"]["requestBody"]["content"]["application/vnd.api+json"]["schema"]
+
+
 class Helpers:
     @staticmethod
     @contextmanager
@@ -94,47 +102,3 @@ def reset_db(helpers):
         cur.execute("TRUNCATE TABLE notify_message_queue")
         cur.execute("TRUNCATE TABLE notify_message_batch")
         cur.connection.commit()
-
-
-@pytest.fixture()
-def request_schema():
-    schema = {
-        "type": "object",
-        "properties": {
-            "data": {
-                "type": "object",
-                "properties": {
-                    "routingPlanId": {"type": "string"},
-                    "messageBatchReference": {"type": "string"},
-                    "messages": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "recipient": {
-                                    "type": "object",
-                                    "properties": {"nhsNumber": {"type": "string"}},
-                                    "required": ["nhsNumber"],
-                                },
-                                "messageReference": {"type": "string"},
-                                "personalisation": {"type": "object"},
-                                "originator": {
-                                    "type": "object",
-                                    "properties": {
-                                        "odsCode": {"type": "string"},
-                                    },
-                                },
-                            },
-                            "required": ["recipient", "messageReference"],
-                        },
-                    },
-                },
-                "required": [
-                    "routingPlanId",
-                    "messageBatchReference",
-                    "messages",
-                ],
-            }
-        },
-    }
-    return schema
