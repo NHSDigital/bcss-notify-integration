@@ -2,6 +2,7 @@ from batch_processor import BatchProcessor
 import dotenv
 import lambda_function
 import os
+import pytest
 import requests_mock
 from unittest.mock import Mock
 from jsonschema import ValidationError, validate
@@ -41,7 +42,7 @@ def test_batch_notification_processor_updates_message_queue(
 
 
 def test_batch_notification_processor_payload(
-    batch_id, recipient_data, request_schema, helpers
+    batch_id, recipient_data, nhs_notify_message_batch_schema, helpers
 ):
     lambda_function.generate_batch_id = Mock(return_value=batch_id)
     message_references = [r[1] for r in recipient_data]
@@ -61,11 +62,11 @@ def test_batch_notification_processor_payload(
     assert adapter.call_count == 1
 
     try:
-        validate(instance=adapter.last_request.json(), schema=request_schema)
+        validate(instance=adapter.last_request.json(), schema=nhs_notify_message_batch_schema)
     except ValidationError as e:
-        return False, e.message
+        pytest.fail(f"Validation failed: {e}")
     except KeyError as e:
-        return False, f"Invalid body: {e}"
+        pytest.fail(f"Invalid key for body: {e}")
 
     response_json = adapter.last_request.json()
 
