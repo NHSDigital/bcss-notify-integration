@@ -3,6 +3,7 @@ terraform {
     bucket         = "bcss-terraform-nonprod-iac"
     key            = "bcss/infrastructure/communication-management/terraform.tfstate"
     region         = "eu-west-2"
-    dynamodb_table = "bcss-communication-management-terraform-lock-prod"
+    dynamodb_table = "bcss-comms-manager-terraform-lock-prod"
   }
 }
+
