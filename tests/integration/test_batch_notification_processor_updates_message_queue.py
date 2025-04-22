@@ -2,6 +2,7 @@ from batch_processor import BatchProcessor
 import dotenv
 import lambda_function
 import os
+import pytest
 import requests_mock
 from unittest.mock import Mock
 from jsonschema import ValidationError, validate
@@ -63,9 +64,9 @@ def test_batch_notification_processor_payload(
     try:
         validate(instance=adapter.last_request.json(), schema=request_schema)
     except ValidationError as e:
-        return False, e.message
+        pytest.fail(f"Validation failed: {e}")
     except KeyError as e:
-        return False, f"Invalid body: {e}"
+        pytest.fail(f"Invalid key for body: {e}")
 
     response_json = adapter.last_request.json()
 
