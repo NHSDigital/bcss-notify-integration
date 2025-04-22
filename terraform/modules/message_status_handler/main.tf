@@ -1,3 +1,7 @@
+locals {
+  date_str = formatdate("YYYYMMDDHHmmss", timestamp())
+  filename = "function-${local.date_str}.zip"
+}
 resource "null_resource" "zipfile" {
   provisioner "local-exec" {
     command     = <<EOT
@@ -9,7 +13,7 @@ resource "null_resource" "zipfile" {
       rm -rf _pytest
       chmod -R 644 $(find . -type f)
       chmod -R 755 $(find . -type d)
-      zip -r ../lambda_function.zip * -x *.zip
+      zip -r ../${local.filename} * -x *.zip
       cd ..
       rm -rf build
     EOT
@@ -20,12 +24,12 @@ resource "null_resource" "zipfile" {
   }
 }
 resource "aws_lambda_function" "message_status_handler" {
-  function_name    = "${var.team}-${var.project}-message-status-handler-${var.environment}"
-  handler          = "scheduled_lambda_function.lambda_handler"
-  runtime          = "python3.12"
-  filename         = "${path.module}/lambda_function.zip"
-  source_code_hash = filebase64sha256("${path.module}/lambda_function.zip")
-  role             = var.message_status_handler_lambda_role_arn
+  depends_on    = [null_resource.zipfile]
+  function_name = "${var.team}-${var.project}-message-status-handler-${var.environment}"
+  handler       = "scheduled_lambda_function.lambda_handler"
+  runtime       = "python3.12"
+  filename      = "${path.module}/${local.filename}"
+  role          = var.message_status_handler_lambda_role_arn
 
   timeout     = 300
   memory_size = 128

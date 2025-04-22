@@ -1,3 +1,7 @@
+locals {
+  date_str = formatdate("YYYYMMDDHHmmss", timestamp())
+  filename = "function-${local.date_str}.zip"
+}
 resource "null_resource" "zipfile" {
   provisioner "local-exec" {
     command     = <<EOT
@@ -9,7 +13,7 @@ resource "null_resource" "zipfile" {
       rm -rf _pytest
       chmod -R 644 $(find . -type f)
       chmod -R 755 $(find . -type d)
-      zip -r ../lambda_function.zip * -x *.zip
+      zip -r ../${local.filename} * -x *.zip
       cd ..
       rm -rf build
     EOT
@@ -24,8 +28,7 @@ resource "aws_lambda_function" "batch_notification_processor" {
   function_name    = "${var.team}-${var.project}-batch-notification-processor-${var.environment}"
   handler          = "lambda_function.lambda_handler" # File.function
   runtime          = "python3.12"
-  filename         = "${path.module}/lambda_function.zip"
-  source_code_hash = filebase64sha256("${path.module}/lambda_function.zip")
+  filename         = "${path.module}/${local.filename}"
   role             = var.batch_notification_processor_lambda_role_arn
 
   timeout     = 300
@@ -44,4 +47,3 @@ resource "aws_lambda_function" "batch_notification_processor" {
 
   tags = var.tags
 }
-
