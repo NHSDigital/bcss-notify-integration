@@ -37,6 +37,7 @@ pytest = "*"
 pytest-cov = "*"
 dotenv = "*"
 pytest-mock = "*"
+jsonschema = "*"
 
 [requires]
 python_version = "3.13"
