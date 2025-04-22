@@ -1,13 +1,14 @@
 locals {
   date_str = formatdate("YYYYMMDDHHmmss", timestamp())
   filename = "function-${local.date_str}.zip"
+  runtime  = "python3.13"
 }
 resource "null_resource" "zipfile" {
   provisioner "local-exec" {
     command     = <<EOT
       mkdir build
       cp ../../../message_status_handler/*.py build/
-      cp -r $(pipenv --venv)/lib/python3.11/site-packages/* build/
+      cp -r $(pipenv --venv)/lib/${local.runtime}/site-packages/* build/
       cd build
       rm -rf __pycache__
       rm -rf _pytest
@@ -27,7 +28,7 @@ resource "aws_lambda_function" "message_status_handler" {
   depends_on    = [null_resource.zipfile]
   function_name = "${var.team}-${var.project}-message-status-handler-${var.environment}"
   handler       = "scheduled_lambda_function.lambda_handler"
-  runtime       = "python3.12"
+  runtime       = local.runtime
   filename      = "${path.module}/${local.filename}"
   role          = var.message_status_handler_lambda_role_arn
 
