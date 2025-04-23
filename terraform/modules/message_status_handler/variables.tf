@@ -10,6 +10,15 @@ variable "environment" {
   type = string
 }
 
+variable "region" {
+  type = string
+}
+
+variable "secrets" {
+  type        = map(string)
+  description = "Lambda secretsmanager secrets"
+}
+
 variable "message_status_handler_lambda_role_arn" {
   type        = string
   description = "ARN for the batch processor lambda role"

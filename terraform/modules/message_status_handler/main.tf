@@ -2,22 +2,16 @@ locals {
   date_str = formatdate("YYYYMMDDHHmmss", timestamp())
   filename = "function-${local.date_str}.zip"
   runtime  = "python3.13"
+  secrets  = var.secrets
+
+  lambda_dir   = "${path.module}/../../../message_status_handler"
+  packages_dir = "$(pipenv --venv)/lib/${local.runtime}/site-packages"
 }
+
+
 resource "null_resource" "zipfile" {
   provisioner "local-exec" {
-    command     = <<EOT
-      mkdir build
-      cp ../../../message_status_handler/*.py build/
-      cp -r $(pipenv --venv)/lib/${local.runtime}/site-packages/* build/
-      cd build
-      rm -rf __pycache__
-      rm -rf _pytest
-      chmod -R 644 $(find . -type f)
-      chmod -R 755 $(find . -type d)
-      zip -r ../${local.filename} * -x *.zip
-      cd ..
-      rm -rf build
-    EOT
+    command     = "${path.module}/../../scripts/build_lambda.sh ${path.module}/build/ ${local.lambda_dir} ${local.packages_dir} ${local.filename}"
     working_dir = path.module
   }
   triggers = {
@@ -42,7 +36,13 @@ resource "aws_lambda_function" "message_status_handler" {
 
   environment {
     variables = {
-      ENVIRONMENT = var.project
+      ENVIRONMENT   = var.environment
+      REGION_NAME   = var.region
+      DATABASE_USER = local.secrets["username"]
+      DATABASE_PASS = local.secrets["password"]
+      DATABASE_HOST = local.secrets["host"]
+      DATABASE_SID  = local.secrets["dbname"]
+      DATABASE_PORT = local.secrets["port"]
     }
   }
 
