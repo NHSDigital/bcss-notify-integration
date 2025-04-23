@@ -52,7 +52,7 @@ cp .env.example .env.local
 
 We use a containerised Oracle database for local development and integration tests.
 The development/test database connection details can be found in the .env.example file.
-To start the Oracle database container, run:
+To start the Oracle database container, along with other development service containers run:
 
 ```bash
 ./start-dev-environment.sh
