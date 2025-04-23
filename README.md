@@ -55,7 +55,7 @@ The development/test database connection details can be found in the .env.exampl
 To start the Oracle database container, run:
 
 ```bash
-./start-dev-db.sh
+./start-dev-environment.sh
 ```
 
 

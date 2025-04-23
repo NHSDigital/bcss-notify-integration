@@ -56,6 +56,41 @@ services:
       - dev
       - end-to-end
 
+  message-status-handler-lambda:
+    container_name: "message-status-handler-lambda"
+    build:
+      context: ./message_status_handler
+      additional_contexts:
+        root_dir: .
+      dockerfile: Dockerfile
+    ports:
+      - "9001:8080"
+    depends_on:
+      communication-management-api-stub:
+        condition: service_started
+      oracle:
+        condition: service_healthy
+    environment:
+      - API_KEY=${API_KEY}
+      - APPLICATION_ID=${APPLICATION_ID}
+      - COMMGT_BASE_URL=http://communication-management-api-stub:8888
+      - DATABASE_USER=mpi_notify_user
+      - DATABASE_PASSWORD=test
+      - DATABASE_SID=FREEPDB1
+      - DATABASE_HOST=oracle
+      - DATABASE_PORT=1521
+      - SCHEDULER_STUB_URL=http://scheduler-stub:8889/schedule
+      - OAUTH_API_KID=${OAUTH_API_KID}
+      - OAUTH_API_KEY=${OAUTH_API_KEY}
+      - OAUTH_TOKEN_URL=${OAUTH_TOKEN_URL}
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - REGION_NAME=${REGION_NAME}
+      - SCHEDULE_STATUS_CHECK_MINUTES=${SCHEDULE_STATUS_CHECK_MINUTES}
+      - SECRET_ARN=${SECRET_ARN}
+    profiles:
+      - dev
+      - end-to-end
+
   communication-management-api-stub:
     container_name: "communication-management-api-stub"
     build:
