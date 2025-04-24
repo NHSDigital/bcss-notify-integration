@@ -36,13 +36,10 @@ resource "aws_lambda_function" "message_status_handler" {
 
   environment {
     variables = {
-      ENVIRONMENT   = var.environment
-      REGION_NAME   = var.region
-      DATABASE_USER = local.secrets["username"]
-      DATABASE_PASS = local.secrets["password"]
-      DATABASE_HOST = local.secrets["host"]
-      DATABASE_SID  = local.secrets["dbname"]
-      DATABASE_PORT = local.secrets["port"]
+      COMMGT_BASE_URL = local.secrets["commgt_base_url"]
+      DATABASE_PORT   = local.secrets["port"]
+      ENVIRONMENT     = var.environment
+      REGION_NAME     = var.region
     }
   }
 
