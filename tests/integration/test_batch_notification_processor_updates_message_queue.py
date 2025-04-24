@@ -1,14 +1,13 @@
 from batch_processor import BatchProcessor
 import dotenv
-import lambda_function
 import os
 import requests_mock
 from unittest.mock import Mock
 from jsonschema import ValidationError, validate
 
-
 dotenv.load_dotenv(".env.test")
 
+import lambda_function
 
 def test_batch_notification_processor_updates_message_queue(
     batch_id, recipient_data, helpers

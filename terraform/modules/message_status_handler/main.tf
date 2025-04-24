@@ -37,7 +37,7 @@ resource "aws_lambda_function" "message_status_handler" {
   environment {
     variables = {
       COMMGT_BASE_URL = local.secrets["commgt_base_url"]
-      DATABASE_PORT   = local.secrets["port"]
+      DATABASE_PORT   = local.secrets["database_port"]
       ENVIRONMENT     = var.environment
       REGION_NAME     = var.region
     }

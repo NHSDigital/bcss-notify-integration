@@ -7,6 +7,7 @@ filename=$4
 
 mkdir -p ${build_dir}
 cp ${lambda_dir}/*.py ${build_dir}
+cp ${lambda_dir}/../shared/*.py ${build_dir}
 cp -r ${packages_dir}/* ${build_dir}
 cd ${build_dir}
 find -type d -name __pycache__ -exec rm -rf {} \;

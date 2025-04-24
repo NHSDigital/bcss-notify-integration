@@ -37,7 +37,7 @@ resource "aws_lambda_function" "batch_notification_processor" {
   environment {
     variables = {
       COMMGT_BASE_URL = local.secrets["commgt_base_url"]
-      DATABASE_PORT   = local.secrets["port"]
+      DATABASE_PORT   = local.secrets["database_port"]
       ENVIRONMENT     = var.environment
       OAUTH_TOKEN_URL = local.secrets["oauth_token_url"]
       REGION_NAME     = var.region

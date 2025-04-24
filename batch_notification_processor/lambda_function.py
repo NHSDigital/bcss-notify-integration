@@ -1,5 +1,6 @@
 """Lambda function to process and send batch notifications via NHS Notify service."""
 
+import environment
 import logging
 import uuid
 from batch_processor import BatchProcessor
@@ -8,6 +9,8 @@ from scheduler import Scheduler
 import os
 
 TWELVE_HOURS_IN_MINUTES = 720
+
+environment.seed()
 
 
 def generate_batch_id():

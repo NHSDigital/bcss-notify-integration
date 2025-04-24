@@ -15,13 +15,13 @@ ENV API_KEY=${API_KEY} \
     PIP_ONLY_BINARY=ALL \
     PRIVATE_KEY=${PRIVATE_KEY} \
     REGION_NAME=${REGION_NAME} \
-    SCHEDULE_STATUS_CHECK_MINUTES=${SCHEDULE_STATUS_CHECK_MINUTES} \
-    SECRET_ARN=${SECRET_ARN}
+    SCHEDULE_STATUS_CHECK_MINUTES=${SCHEDULE_STATUS_CHECK_MINUTES}
 
 COPY --from=root_dir .env.test /.env
 COPY --from=root_dir message_status_handler/*.py /
 COPY --from=root_dir Pipfile / 
 COPY --from=root_dir Pipfile.lock /
+COPY --from=root_dir shared/*.py /
 COPY app.py /
 
 RUN pip install pipenv flask dotenv

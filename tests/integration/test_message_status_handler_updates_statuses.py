@@ -1,10 +1,10 @@
 import dotenv
-import scheduled_lambda_function as lambda_function
 import os
 import requests_mock
 
 dotenv.load_dotenv(".env.test")
 
+import scheduled_lambda_function as lambda_function
 
 def test_message_status_handler_updates_message_status(batch_id, recipient_data, helpers):
     message_references = [r[1] for r in recipient_data]
