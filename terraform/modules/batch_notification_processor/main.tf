@@ -2,28 +2,22 @@ locals {
   date_str = formatdate("YYYYMMDDHHmmss", timestamp())
   filename = "function-${local.date_str}.zip"
   runtime  = "python3.13"
+  secrets  = var.secrets
+
+  lambda_dir   = "${path.module}/../../../batch_notification_processor"
+  packages_dir = "$(pipenv --venv)/lib/${local.runtime}/site-packages"
 }
+
 resource "null_resource" "zipfile" {
   provisioner "local-exec" {
-    command     = <<EOT
-      mkdir build
-      cp ../../../batch_notification_processor/*.py build/
-      cp -r $(pipenv --venv)/lib/${local.runtime}/site-packages/* build/
-      cd build
-      rm -rf __pycache__
-      rm -rf _pytest
-      chmod -R 644 $(find . -type f)
-      chmod -R 755 $(find . -type d)
-      zip -r ../${local.filename} * -x *.zip
-      cd ..
-      rm -rf build
-    EOT
+    command     = "${path.module}/../../scripts/build_lambda.sh ${path.module}/build/ ${local.lambda_dir} ${local.packages_dir} ${local.filename}"
     working_dir = path.module
   }
   triggers = {
     always_run = "${timestamp()}"
   }
 }
+
 resource "aws_lambda_function" "batch_notification_processor" {
   depends_on    = [null_resource.zipfile]
   function_name = "${var.team}-${var.project}-batch-notification-processor-${var.environment}"
@@ -42,7 +36,11 @@ resource "aws_lambda_function" "batch_notification_processor" {
 
   environment {
     variables = {
-      ENVIRONMENT = var.environment
+      COMMGT_BASE_URL = local.secrets["commgt_base_url"]
+      DATABASE_PORT   = local.secrets["database_port"]
+      ENVIRONMENT     = var.environment
+      OAUTH_TOKEN_URL = local.secrets["oauth_token_url"]
+      REGION_NAME     = var.region
     }
   }
 

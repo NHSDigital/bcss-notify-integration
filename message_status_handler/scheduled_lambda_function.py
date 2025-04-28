@@ -1,9 +1,11 @@
 import comms_management
+import environment
 import json
 import logging
 import message_status_recorder
 from typing import Dict, Any
 
+environment.seed()
 
 def lambda_handler(event: Dict[str, Any], _context: Any) -> Dict[str, Any]:
     logging.info("Message status handler started. Event: %s", event)

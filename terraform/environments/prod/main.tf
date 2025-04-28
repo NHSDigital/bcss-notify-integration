@@ -1,8 +1,14 @@
+data "aws_secretsmanager_secret_version" "lambda_secrets" {
+  secret_id = var.secrets_arn
+}
+
 module "batch_notification_processor" {
   source         = "../../modules/batch_notification_processor"
   team           = var.team
   project        = var.project
   environment    = var.environment
+  secrets        = jsondecode(data.aws_secretsmanager_secret_version.lambda_secrets.secret_string)
+  region         = var.region
   tags           = var.tags
   subnet_ids     = module.network.private_subnet_ids
   security_group = module.network.security_group
@@ -15,6 +21,8 @@ module "message_status_handler" {
   team           = var.team
   project        = var.project
   environment    = var.environment
+  secrets        = jsondecode(data.aws_secretsmanager_secret_version.lambda_secrets.secret_string)
+  region         = var.region
   tags           = var.tags
   sqs_queue_arn  = module.sqs.sqs_queue_arn
   subnet_ids     = module.network.private_subnet_ids

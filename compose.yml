@@ -51,7 +51,6 @@ services:
       - PRIVATE_KEY=${PRIVATE_KEY}
       - REGION_NAME=${REGION_NAME}
       - SCHEDULE_STATUS_CHECK_MINUTES=${SCHEDULE_STATUS_CHECK_MINUTES}
-      - SECRET_ARN=${SECRET_ARN}
     profiles:
       - dev
       - end-to-end
@@ -121,7 +120,6 @@ services:
       - DATABASE_HOST=oracle
       - DATABASE_PORT=1521
       - REGION_NAME=${REGION_NAME}
-      - SECRET_ARN=${SECRET_ARN}
     ports:
       - "8889:8889"
     profiles:
