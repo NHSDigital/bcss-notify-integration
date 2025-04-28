@@ -34,12 +34,17 @@ resource "aws_lambda_function" "message_status_handler" {
     security_group_ids = [var.security_group]
   }
 
+  layers = [var.parameters_and_secrets_lambda_extension_arn]
+
   environment {
     variables = {
       COMMGT_BASE_URL = local.secrets["commgt_base_url"]
       DATABASE_PORT   = local.secrets["database_port"]
       ENVIRONMENT     = var.environment
       REGION_NAME     = var.region
+      SECRET_ARN      = var.secrets_arn
+
+      PARAMETERS_SECRETS_EXTENSION_CACHE_ENABLED = "true"
     }
   }
 
