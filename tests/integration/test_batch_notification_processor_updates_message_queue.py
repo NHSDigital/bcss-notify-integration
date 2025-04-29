@@ -1,4 +1,5 @@
 from batch_processor import BatchProcessor
+import boto3
 import dotenv
 import os
 import pytest
@@ -10,9 +11,13 @@ dotenv.load_dotenv(".env.test")
 
 import lambda_function
 
+
 def test_batch_notification_processor_updates_message_queue(
     batch_id, recipient_data, helpers
 ):
+    mock_boto3_client = Mock()
+    boto3.client = mock_boto3_client
+    mock_boto3_client.create_schedule = Mock()
     lambda_function.generate_batch_id = Mock(return_value=batch_id)
     message_references = [r[1] for r in recipient_data]
     helpers.seed_message_queue(batch_id, recipient_data)

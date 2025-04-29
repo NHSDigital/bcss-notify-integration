@@ -36,15 +36,6 @@ def mock_var():
 
 
 @pytest.fixture
-def mock_boto3_client():
-    mock_client = MagicMock()
-    mock_client.get_secret_value.return_value = {
-        "SecretString": '{\n  "username":"test_username",\n  "password":"test_password"\n}\n',
-    }
-    return mock_client
-
-
-@pytest.fixture
 def mock_generate_batch_id():
     mock_generate_batch_id = MagicMock()
     mock_generate_batch_id.return_value = "b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3"

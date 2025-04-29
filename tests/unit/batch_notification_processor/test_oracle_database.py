@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import patch, Mock
 
-import boto3
 import pytest
 import oracledb
 import uuid
@@ -12,12 +11,11 @@ from recipient import Recipient
 
 @pytest.fixture
 def mock_db_credentials(monkeypatch):
+    monkeypatch.setenv("DATABASE_USER", "user")
+    monkeypatch.setenv("DATABASE_PASSWORD", "password")
     monkeypatch.setenv("DATABASE_HOST", "host")
     monkeypatch.setenv("DATABASE_PORT", "port")
     monkeypatch.setenv("DATABASE_SID", "sid")
-    secrets_client = Mock()
-    secrets_client.get_secret_value.return_value = {"SecretString": '{"username": "user", "password": "pass"}'}
-    boto3.client = Mock(return_value=secrets_client)
 
 
 @patch("oracle_database.oracledb", autospec=True)
