@@ -23,7 +23,7 @@ def seed():
     if os.getenv("SECRET_ARN") and not bool(os.getenv("ENVIRONMENT_SEEDED")):
         headers = {"X-Aws-Parameters-Secrets-Token": os.getenv('AWS_SESSION_TOKEN')}
         secrets_extension_endpoint = f"http://localhost:2773/secretsmanager/get?secretId={os.getenv('SECRET_ARN')}"
-        r = requests.get(secrets_extension_endpoint, headers=headers, timeout=10)
+        r = requests.get(secrets_extension_endpoint, headers=headers, timeout=30)
         secrets = json.loads(r.text)["SecretString"]
         secrets_dict = json.loads(secrets)
         for key in KEYS:
