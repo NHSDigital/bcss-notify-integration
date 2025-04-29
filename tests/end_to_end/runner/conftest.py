@@ -1,7 +1,5 @@
-import boto3
 from contextlib import contextmanager
 import dotenv
-import json
 import pytest
 import oracledb
 import os
@@ -43,14 +41,6 @@ class Helpers:
 
     @staticmethod
     def seed_message_queue(batch_id, recipient_data):
-        secrets_client = Mock()
-        secret_string = json.dumps({
-            "username": os.getenv("DATABASE_USER"),
-            "password": os.getenv("DATABASE_PASSWORD")
-        })
-        secrets_client.get_secret_value.return_value = {"SecretString": secret_string}
-        boto3.client = Mock(return_value=secrets_client)
-
         with Helpers.cursor() as cur:
             cur.execute("""
                 INSERT INTO notify_message_batch (batch_id, message_definition_id, batch_status)

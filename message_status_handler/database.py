@@ -1,6 +1,4 @@
 from contextlib import contextmanager
-import boto3
-import json
 import logging
 import oracledb
 import os
@@ -39,22 +37,8 @@ def cursor():
 
 
 def connection_params() -> dict:
-    username = os.getenv("DATABASE_USER")
-    password = os.getenv("DATABASE_PASSWORD")
-
-    if not username or not password:
-        client = boto3.client(
-            service_name="secretsmanager",
-            region_name=os.getenv("REGION_NAME"),
-        )
-        secret = json.loads(
-            client.get_secret_value(SecretId=os.getenv("SECRET_ARN"))["SecretString"]
-        )
-        username = secret["username"]
-        password = secret["password"]
-
-    db_user: str = username
-    db_password: str = password
+    db_user = os.getenv("DATABASE_USER")
+    db_password = os.getenv("DATABASE_PASSWORD")
     host: str = os.environ["DATABASE_HOST"]
     port: str = os.getenv("DATABASE_PORT", "1521")
     sid: str = os.environ["DATABASE_SID"]
