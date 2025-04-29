@@ -24,6 +24,16 @@ variable "batch_notification_processor_lambda_role_arn" {
   description = "ARN for the batch processor lambda role"
 }
 
+variable "message_status_handler_lambda_arn" {
+  type        = string
+  description = "ARN for the message status handler lambda function"
+}
+
+variable "message_status_handler_lambda_role_arn" {
+  type        = string
+  description = "ARN for the message status handler lambda role"
+}
+
 variable "subnet_ids" {
   type        = list(string)
   description = "Ids for subnets"

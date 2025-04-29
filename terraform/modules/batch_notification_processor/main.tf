@@ -41,6 +41,9 @@ resource "aws_lambda_function" "batch_notification_processor" {
       ENVIRONMENT     = var.environment
       OAUTH_TOKEN_URL = local.secrets["oauth_token_url"]
       REGION_NAME     = var.region
+
+      LAMBDA_STATUS_CHECK_ARN      = var.message_status_handler_lambda_arn
+      LAMBDA_STATUS_CHECK_ROLE_ARN = var.message_status_handler_lambda_role_arn
     }
   }
 
