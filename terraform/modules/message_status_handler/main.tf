@@ -1,6 +1,7 @@
 locals {
   date_str = formatdate("YYYYMMDDHHmmss", timestamp())
   filename = "function-${local.date_str}.zip"
+  packages = "packages-${local.date_str}.zip"
   runtime  = "python3.13"
   secrets  = var.secrets
 
@@ -8,16 +9,33 @@ locals {
   packages_dir = "$(pipenv --venv)/lib/${local.runtime}/site-packages"
 }
 
-
-resource "null_resource" "zipfile" {
+resource "null_resource" "packages_zipfile" {
   provisioner "local-exec" {
-    command     = "${path.module}/../../scripts/build_lambda.sh ${path.module}/build/ ${local.lambda_dir} ${local.packages_dir} ${local.filename}"
+    command     = "${path.module}/../../scripts/packages.sh ${path.module}/build/ ${local.packages_dir} ${local.packages}"
     working_dir = path.module
   }
   triggers = {
     always_run = "${timestamp()}"
   }
 }
+
+resource "aws_lambda_layer_version" "python_packages" {
+  depends_on          = [null_resource.packages_zipfile]
+  layer_name          = "${var.team}-${var.project}-python-packages-${var.environment}"
+  compatible_runtimes = [local.runtime]
+  filename            = "${path.module}/${local.packages}"
+}
+
+resource "null_resource" "zipfile" {
+  provisioner "local-exec" {
+    command     = "${path.module}/../../scripts/lambda.sh ${path.module}/build/ ${local.lambda_dir} ${local.filename}"
+    working_dir = path.module
+  }
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+}
+
 resource "aws_lambda_function" "message_status_handler" {
   depends_on    = [null_resource.zipfile]
   function_name = "${var.team}-${var.project}-message-status-handler-${var.environment}"
@@ -34,7 +52,10 @@ resource "aws_lambda_function" "message_status_handler" {
     security_group_ids = [var.security_group]
   }
 
-  layers = [var.parameters_and_secrets_lambda_extension_arn]
+  layers = [
+    var.parameters_and_secrets_lambda_extension_arn,
+    aws_lambda_layer_version.python_packages.arn
+  ]
 
   environment {
     variables = {
@@ -65,3 +86,10 @@ resource "aws_lambda_permission" "allow_sqs_to_call_lambda" {
   source_arn    = var.sqs_queue_arn
 }
 
+resource "null_resource" "remove_zipfiles" {
+  depends_on = [aws_lambda_function.message_status_handler]
+  provisioner "local-exec" {
+    command     = "rm -f ${path.module}/*.zip"
+    working_dir = path.module
+  }
+}
