@@ -33,5 +33,5 @@ jobs:
         uses: imehedi/actions-awscli-v2@latest
         with:
           args: "lambda update-function-code \
-            --function-name arn:aws:lambda:eu-west-2:730319765130:function:batch_notification_processor
+            --function-name arn:aws:lambda:eu-west-2:730319765130:function:bcss-comms-batch-notification-processor-dev
             --zip-file fileb://batch_notification_processor/code.zip"
