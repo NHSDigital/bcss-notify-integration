@@ -2,13 +2,11 @@
 
 build_dir=$1
 lambda_dir=$2
-packages_dir=$3
-filename=$4
+filename=$3
 
 mkdir -p ${build_dir}
 cp ${lambda_dir}/*.py ${build_dir}
 cp ${lambda_dir}/../shared/*.py ${build_dir}
-cp -r ${packages_dir}/* ${build_dir}
 cd ${build_dir}
 find -type d -name __pycache__ -exec rm -rf {} \;
 find -type d -name _pytest -exec rm -rf {} \;
