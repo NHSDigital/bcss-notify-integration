@@ -34,6 +34,8 @@ resource "aws_lambda_function" "batch_notification_processor" {
     security_group_ids = [var.security_group]
   }
 
+  layers = [var.parameters_and_secrets_lambda_extension_arn]
+
   environment {
     variables = {
       COMMGT_BASE_URL = local.secrets["commgt_base_url"]
@@ -41,9 +43,12 @@ resource "aws_lambda_function" "batch_notification_processor" {
       ENVIRONMENT     = var.environment
       OAUTH_TOKEN_URL = local.secrets["oauth_token_url"]
       REGION_NAME     = var.region
-
+      SECRET_ARN      = var.secrets_arn
+      
       LAMBDA_STATUS_CHECK_ARN      = var.message_status_handler_lambda_arn
       LAMBDA_STATUS_CHECK_ROLE_ARN = var.message_status_handler_lambda_role_arn
+
+      PARAMETERS_SECRETS_EXTENSION_CACHE_ENABLED = "true"
     }
   }
 

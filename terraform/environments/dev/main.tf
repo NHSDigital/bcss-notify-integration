@@ -8,6 +8,7 @@ module "batch_notification_processor" {
   project        = var.project
   environment    = var.environment
   secrets        = jsondecode(data.aws_secretsmanager_secret_version.lambda_secrets.secret_string)
+  secrets_arn    = var.secrets_arn
   region         = var.region
   tags           = var.tags
   subnet_ids     = module.network.private_subnet_ids
@@ -24,6 +25,7 @@ module "message_status_handler" {
   project        = var.project
   environment    = var.environment
   secrets        = jsondecode(data.aws_secretsmanager_secret_version.lambda_secrets.secret_string)
+  secrets_arn    = var.secrets_arn
   region         = var.region
   tags           = var.tags
   sqs_queue_arn  = module.sqs.sqs_queue_arn
@@ -64,6 +66,8 @@ module "iam" {
   team                       = var.team
   project                    = var.project
   environment                = var.environment
+  kms_arn                    = var.kms_arn
+  secrets_arn                = var.secrets_arn
   sqs_queue_arn              = module.sqs.sqs_queue_arn
   notification_s3_bucket_arn = module.s3.bucket_arn
   tags                       = var.tags

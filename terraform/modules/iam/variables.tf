@@ -10,6 +10,16 @@ variable "environment" {
   type = string
 }
 
+variable "kms_arn" {
+  type        = string
+  description = "ARN for the AWS KMS key used to encrypt the Lambda secrets"
+}
+
+variable "secrets_arn" {
+  type        = string
+  description = "ARN for the AWS Secrets Manager secret containing the Lambda secrets"
+}
+
 variable "sqs_queue_arn" {
   type        = string
   description = "ARN for the BCSS Communication Management SQS Queue"
