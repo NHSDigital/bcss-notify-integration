@@ -72,3 +72,11 @@ resource "aws_lambda_function" "batch_notification_processor" {
 
   tags = var.tags
 }
+
+resource "null_resource" "remove_zipfiles" {
+  depends_on = [aws_lambda_function.batch_notification_processor]
+  provisioner "local-exec" {
+    command     = "rm -f ${path.module}/*.zip"
+    working_dir = path.module
+  }
+}

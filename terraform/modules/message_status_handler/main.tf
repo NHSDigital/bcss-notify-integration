@@ -86,3 +86,10 @@ resource "aws_lambda_permission" "allow_sqs_to_call_lambda" {
   source_arn    = var.sqs_queue_arn
 }
 
+resource "null_resource" "remove_zipfiles" {
+  depends_on = [aws_lambda_function.message_status_handler]
+  provisioner "local-exec" {
+    command     = "rm -f ${path.module}/*.zip"
+    working_dir = path.module
+  }
+}
