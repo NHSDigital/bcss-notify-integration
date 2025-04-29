@@ -10,8 +10,6 @@ import os
 
 TWELVE_HOURS_IN_MINUTES = 720
 
-environment.seed()
-
 
 def generate_batch_id():
     return str(uuid.uuid4())
@@ -26,6 +24,8 @@ def lambda_handler(event: dict, _context: object) -> dict:
         context: AWS Lambda context
     """
     logging.info("Lambda function has started.")
+
+    environment.seed()
 
     # Generate unique batch ID
     batch_id = event.get("batch_id")
