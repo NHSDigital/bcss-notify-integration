@@ -15,6 +15,8 @@ module "batch_notification_processor" {
   security_group = module.network.security_group
 
   batch_notification_processor_lambda_role_arn = module.iam.batch_notification_processor_lambda_role_arn
+  message_status_handler_lambda_arn            = module.message_status_handler.message_status_handler_arn
+  message_status_handler_lambda_role_arn       = module.iam.message_status_handler_lambda_role_arn
 }
 
 module "message_status_handler" {
