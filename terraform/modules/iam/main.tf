@@ -180,6 +180,28 @@ resource "aws_iam_role_policy_attachment" "batch_notification_processor_lambda_s
   policy_arn = aws_iam_policy.batch_notification_processor_s3_policy.arn
 }
 
+data "aws_iam_policy_document" "batch_notification_processor_scheduler_policy_document" {
+  statement {
+    actions = [
+      "scheduler:CreateSchedule"
+    ]
+    resources = [
+      var.scheduler_arn
+    ]
+  }
+}
+
+resource "aws_iam_policy" "batch_notification_processor_scheduler_policy" {
+  name   = "${var.team}-${var.project}-batch-notification-processor-scheduler-policy-${var.environment}"
+  policy = data.aws_iam_policy_document.batch_notification_processor_scheduler_policy_document.json
+  tags   = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "batch_notification_processor_lambda_scheduler_access" {
+  role       = aws_iam_role.batch_notification_processor_lambda_role.name
+  policy_arn = aws_iam_policy.batch_notification_processor_scheduler_policy.arn
+}
+
 data "aws_iam_policy_document" "batch_notification_processor_sqs_policy_document" {
   statement {
     actions = [
@@ -201,4 +223,45 @@ resource "aws_iam_policy" "batch_notification_processor_sqs_policy" {
 resource "aws_iam_role_policy_attachment" "batch_notification_processor_lambda_sqs_access" {
   role       = aws_iam_role.batch_notification_processor_lambda_role.name
   policy_arn = aws_iam_policy.batch_notification_processor_sqs_policy.arn
+}
+
+resource "aws_iam_role" "lambda_scheduler_role" {
+  name = "${var.team}-${var.project}-lambda-scheduler-role-${var.environment}"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "scheduler.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_scheduler_role_policy_attachment" {
+  policy_arn = aws_iam_policy.lambda_scheduler_policy.arn
+  role       = aws_iam_role.lambda_scheduler_role.name
+}
+
+data "aws_iam_policy_document" "lambda_scheduler_policy_document" {
+  statement {
+    actions = [
+      "lambda:InvokeFunction",
+    ]
+    resources = [
+      var.message_status_handler_lambda_arn
+    ]
+  }
+}
+
+resource "aws_iam_policy" "lambda_scheduler_policy" {
+  name   = "${var.team}-${var.project}-lambda-scheduler-policy-${var.environment}"
+  policy = data.aws_iam_policy_document.lambda_scheduler_policy_document.json
+  tags   = var.tags
 }
