@@ -34,11 +34,9 @@ def cursor():
         logging.error("Error Creating Cursor: %s", e)
         raise DatabaseConnectionError(f"Error Creating Cursor: {str(e)}") from e
 
-@contextmanager
 def commit():
     connection().__enter__().commit()
 
-@contextmanager
 def rollback():
     connection().__enter__().rollback()
 
