@@ -1,18 +1,15 @@
 locals {
-  filename = "function.zip"
-  packages = "packages.zip"
-  runtime  = "python3.13"
-  secrets  = var.secrets
+  runtime = "python3.13"
+  secrets = var.secrets
 
   project_root = "${path.module}/../../.."
-  lambda_dir   = "${local.project_root}/batch_notification_processor"
   packages_dir = "$(pipenv --venv)/lib/${local.runtime}/site-packages"
   git_sha      = sha256(file("${local.project_root}/.git/refs/remotes/origin/main"))
 }
 
 resource "null_resource" "packages_zipfile" {
   provisioner "local-exec" {
-    command     = "${path.module}/../../scripts/packages.sh ${path.module}/build/ ${local.packages_dir} ${local.packages}"
+    command     = "../../scripts/packages.sh build/ ${local.packages_dir} packages.zip"
     working_dir = path.module
   }
   triggers = {
@@ -24,12 +21,12 @@ resource "aws_lambda_layer_version" "python_packages" {
   depends_on          = [null_resource.packages_zipfile]
   layer_name          = "${var.team}-${var.project}-python-packages-${var.environment}"
   compatible_runtimes = [local.runtime]
-  filename            = "${path.module}/${local.packages}"
+  filename            = "${path.module}/packages.zip"
 }
 
 resource "null_resource" "lambda_zip" {
   provisioner "local-exec" {
-    command     = "${path.module}/../../scripts/lambda.sh ${path.module}/build/ ${local.lambda_dir} ${local.filename}"
+    command     = "../../scripts/lambda.sh build/ ../../../batch_notification_processor/ function.zip"
     working_dir = path.module
   }
   triggers = {
@@ -39,10 +36,10 @@ resource "null_resource" "lambda_zip" {
 
 resource "aws_lambda_function" "batch_notification_processor" {
   depends_on       = [null_resource.lambda_zip]
-  filename         = "${path.module}/${local.filename}"
+  filename         = "${path.module}/function.zip"
   function_name    = "${var.team}-${var.project}-batch-notification-processor-${var.environment}"
   handler          = "lambda_function.lambda_handler"
-  memory_size      = 128
+  memory_size      = 256
   role             = var.batch_notification_processor_lambda_role_arn
   runtime          = local.runtime
   source_code_hash = local.git_sha
@@ -76,12 +73,4 @@ resource "aws_lambda_function" "batch_notification_processor" {
   }
 
   tags = var.tags
-}
-
-resource "null_resource" "remove_zipfiles" {
-  depends_on = [aws_lambda_function.batch_notification_processor]
-  provisioner "local-exec" {
-    command     = "rm -f ${path.module}/*.zip"
-    working_dir = path.module
-  }
 }
