@@ -13,8 +13,8 @@ terraform/
 │   ├── production.config       # Production environment backend config
 │   └── production.tfvars       # Production environment terraform variables
 ├── modules/                    # Reusable Terraform modules
-│   ├── lambda_batch_processor/ # Module for Batch Processor Lambda
-│   ├── lambda_request_handler/ # Module for Request Handler Lambda
+│   ├── lambdas/                # Module for Batch Processor and Message Status Lambdas
+│   ├── lambda_layer/           # Module for lambda layer
 │   ├── s3/                     # S3 bucket module
 │   ├── sqs/                    # SQS queue module
 │   ├── eventbridge/            # EventBridge rules module
