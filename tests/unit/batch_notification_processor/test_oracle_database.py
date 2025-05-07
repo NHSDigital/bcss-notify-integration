@@ -72,7 +72,7 @@ def test_update_message_id(mock_database):
         "UPDATE v_notify_message_queue SET message_id = :message_id WHERE nhs_number = :nhs_number",
         {'message_id': recipient.message_id, 'nhs_number': recipient.nhs_number}
     )
-    mock_database.connection().commit.assert_called_once()
+    mock_database.commit.assert_called_once()
 
 @patch("oracle_database.database", autospec=True)
 def test_update_message_status(mock_database):
@@ -86,4 +86,4 @@ def test_update_message_status(mock_database):
         "UPDATE v_notify_message_queue SET message_status = :message_status WHERE nhs_number = :nhs_number",
         {'message_status': recipient.message_status, 'nhs_number': recipient.nhs_number}
     )
-    mock_database.connection().commit.assert_called_once()
+    mock_database.commit.assert_called_once()

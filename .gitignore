@@ -24,11 +24,16 @@ terraform.rc
 
 
 # Temporary files, etc.
-*~               # Backup files
-\#*              # More backup files
-.DS_Store        # macOS Finder store (Correct location)
-.idea/           # IntelliJ IDEA project files
-.vscode/         # VS Code files
+# Backup files
+*~
+# More backup files
+\#*
+# macOS Finder store (Correct location)
+.DS_Store
+#IDE Specific Files
+.idea
+# VS Code files
+.vscode/
 .env             
 .env.local
 *.zip
