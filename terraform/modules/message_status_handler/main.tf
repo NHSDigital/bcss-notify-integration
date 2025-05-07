@@ -16,7 +16,7 @@ resource "null_resource" "packages_zipfile" {
     working_dir = path.module
   }
   triggers = {
-    always_run = "${sha256(file("${path.module}/../../../Pipfile.lock"))}"
+    always_run = "${sha256(file("${local.project_root}/Pipfile.lock"))}"
   }
 }
 
