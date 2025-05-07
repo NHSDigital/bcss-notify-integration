@@ -8,7 +8,7 @@ def get_routing_plan_id(batch_id: str):
     with database.cursor() as cursor:
         try:
             result = cursor.callfunc("PKG_NOTIFY_WRAP.f_get_next_batch", oracledb.STRING, [batch_id])
-            database.commit()
+            cursor.connection.commit()
             return result
         except oracledb.Error as e:
             logging.error("Error calling PKG_NOTIFY_WRAP.f_get_next_batch: %s", e)
@@ -47,7 +47,7 @@ def update_recipient(recipient: Recipient, attr: str):
                     "nhs_number": recipient.nhs_number
                 },
             )
-            database.commit()
+            cursor.connection.commit()
         except oracledb.Error as e:
             logging.error("Error updating recipient: %s", e)
             database.rollback()

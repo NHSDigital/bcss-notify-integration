@@ -20,6 +20,7 @@ def connection():
         logging.error("Error Connecting to Database: %s", e)
         raise DatabaseConnectionError(f"Error Connecting to Database: {str(e)}") from e
 
+
 @contextmanager
 def cursor():
     cur = None
@@ -34,11 +35,6 @@ def cursor():
         logging.error("Error Creating Cursor: %s", e)
         raise DatabaseConnectionError(f"Error Creating Cursor: {str(e)}") from e
 
-def commit():
-    connection().__enter__().commit()
-
-def rollback():
-    connection().__enter__().rollback()
 
 def connection_params() -> dict:
     db_user = os.getenv("DATABASE_USER")

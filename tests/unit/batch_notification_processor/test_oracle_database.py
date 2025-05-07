@@ -8,7 +8,6 @@ import uuid
 from database import DatabaseConnectionError
 from recipient import Recipient
 import oracle_database
-import database
 
 @pytest.fixture
 def mock_db_credentials(monkeypatch):
@@ -35,6 +34,7 @@ def test_get_routing_plan_id(mock_database):
     )
     assert routing_plan_id == expected_routing_plan_id
 
+
 @patch("oracle_database.database", autospec=True)
 def test_get_recipients(mock_database):
     raw_recipient_data = [
@@ -60,6 +60,7 @@ def test_get_recipients(mock_database):
     assert recipients[1].nhs_number == "2222222222"
     assert recipients[1].message_id == "message_reference_2"
 
+
 @patch("oracle_database.database", autospec=True)
 def test_update_message_id(mock_database):
     recipient = Recipient(("1111111111", "message_reference_1"))
@@ -72,7 +73,8 @@ def test_update_message_id(mock_database):
         "UPDATE v_notify_message_queue SET message_id = :message_id WHERE nhs_number = :nhs_number",
         {'message_id': recipient.message_id, 'nhs_number': recipient.nhs_number}
     )
-    mock_database.commit.assert_called_once()
+    mock_cursor.connection.commit.assert_called_once()
+
 
 @patch("oracle_database.database", autospec=True)
 def test_update_message_status(mock_database):
@@ -86,4 +88,4 @@ def test_update_message_status(mock_database):
         "UPDATE v_notify_message_queue SET message_status = :message_status WHERE nhs_number = :nhs_number",
         {'message_status': recipient.message_status, 'nhs_number': recipient.nhs_number}
     )
-    mock_database.commit.assert_called_once()
+    mock_cursor.connection.commit.assert_called_once()
