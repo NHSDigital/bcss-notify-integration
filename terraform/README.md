@@ -6,22 +6,23 @@ This directory contains the **Terraform** configuration for provisioning cloud i
 
 ```
 terraform/
-├── backend/            # Remote state storage setup
-│   ├── s3_backend.tf
-│   └── dynamodb_locks.tf
-├── modules/            # Reusable Terraform modules
-│   ├── lambda_batch_processor/  # Module for Batch Processor Lambda
+├── backend.tf                  # Remote state storage setup
+├── config                      # Environment-specific configuration
+│   ├── development.config      # Development environment backend config
+│   ├── development.tfvars      # Development environment terraform variables
+│   ├── production.config       # Production environment backend config
+│   └── production.tfvars       # Production environment terraform variables
+├── modules/                    # Reusable Terraform modules
+│   ├── lambda_batch_processor/ # Module for Batch Processor Lambda
 │   ├── lambda_request_handler/ # Module for Request Handler Lambda
-│   ├── s3/                   # S3 bucket module
-│   ├── sqs/                  # SQS queue module
-│   ├── eventbridge/          # EventBridge rules module
-│   ├── iam/                  # IAM roles and policies module
-│   └── network/              # VPC, subnets, security groups module
-├── environments/         # Environment-specific configurations
-│   ├── dev/
-│   └── prod/
-├── providers.tf         # AWS provider configuration
-└── versions.tf         # Terraform and provider version constraints
+│   ├── s3/                     # S3 bucket module
+│   ├── sqs/                    # SQS queue module
+│   ├── eventbridge/            # EventBridge rules module
+│   ├── iam/                    # IAM roles and policies module
+│   └── network/                # VPC, subnets, security groups module
+├── production.tfvars           # Environment-specific configuration
+├── providers.tf                # AWS provider configuration
+└── versions.tf                 # Terraform and provider version constraints
 ```
 
 ### **Modules**
@@ -34,17 +35,22 @@ The `modules/` directory contains reusable Terraform modules:
 - **Network:** Configures networking (VPC, subnets, security groups) for Lambda functions.
 
 ### **Environments**
-The `environments/` directory contains configuration files specific to each environment:
-- **`dev/`**: Development configuration
-- **`prod/`**: Production configuration
+We maintain different tfvars files specific to each environment:
+- **`config/development.tfvars`**: Development configuration
+- **`config/production.tfvars`**: Production configuration
 
 Each environment applies the required modules with environment-specific values.
+
+### **Usage**
+1. **Initialize Terraform**: Run `terraform init --backend-config=config/development.config` to initialize the working directory and download required providers.
+2. **Plan Changes**: Use `terraform plan -var-file=config/development.tfvars` to see the changes that will be applied.
+3. **Apply Changes**: Execute `terraform apply -var-file=config/development.tfvars` to apply the changes to the specified environment.
 
 ### Terraform Remote State & State Locking
 
 #### Overview
-Terraform uses **Amazon S3** for remote state storage and **DynamoDB** for state locking.  
-Each environment (e.g., `dev`, `staging`, `prod`) has its own state file to prevent conflicts and maintain isolation.
+Terraform uses **Amazon S3** for remote state storage.  
+Each environment (e.g., `dev`, `prod`) has its own state file to prevent conflicts and maintain isolation.
 
 ---
 
@@ -57,10 +63,8 @@ Example backend configuration (`backend.tf`):
 ```hcl
 terraform {
   backend "s3" {
-    bucket         = "bcss-terraform-nonprod-iac"                                    # Shared S3 bucket
     key            = "bcss/infrastructure/communication-management/terraform.tfstate" # Environment-specific state file
     region         = "eu-west-2"
-    encrypt        = true
-    dynamodb_table = "bcss-communication-management-terraform-lock-dev"              # State locking
   }
 }
+```
