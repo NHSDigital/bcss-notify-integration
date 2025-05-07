@@ -1,14 +1,22 @@
 name: Deploy Batch Notification Processor Lambda
 
 on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        options:
+          - dev
   push:
     paths:
       - "batch_notification_processor/**"
     branches: [main]
 
 jobs:
-  AssumeRoleAndUpdateAWS:
-    name: "Assume AWS Role and Deploy Changes to Lambda"
+  deploy-batch-notification-processor-lambda:
+    name: "Deploy Batch Notification Processor Lambda"
     runs-on: ubuntu-latest
     permissions:
       id-token: write
