@@ -9,6 +9,8 @@ import oracle_database
 class RecipientsNotFoundError(Exception):
     """Raised when no recipients are found for the batch"""
 
+class RoutingPlanNotFoundError(Exception):
+    """Raised when no routing plan is found for the batch"""
 
 class BatchProcessor:
     SENDING_STATUS = "sending"
@@ -21,7 +23,7 @@ class BatchProcessor:
 
         if not routing_plan_id:
             logging.error("Failed to fetch routing plan ID.")
-            raise Exception("Failed to fetch routing plan ID.")
+            raise RoutingPlanNotFoundError("Failed to fetch routing plan ID.")
 
         return routing_plan_id
 

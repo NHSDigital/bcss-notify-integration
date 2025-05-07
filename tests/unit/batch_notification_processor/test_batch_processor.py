@@ -1,4 +1,4 @@
-from batch_processor import BatchProcessor, RecipientsNotFoundError
+from batch_processor import BatchProcessor, RecipientsNotFoundError, RoutingPlanNotFoundError
 import oracle_database
 from recipient import Recipient
 import pytest
@@ -81,7 +81,7 @@ class TestBatchProcessor:
         mock_fetch_routing_plan_id = mock_oracle_database.get_routing_plan_id
         mock_fetch_routing_plan_id.return_value = plan_id
 
-        with pytest.raises(Exception) as exc_info:
+        with pytest.raises(RoutingPlanNotFoundError) as exc_info:
             subject.get_routing_plan_id()
 
         assert str(exc_info.value) == "Failed to fetch routing plan ID."

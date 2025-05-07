@@ -50,7 +50,7 @@ def update_recipient(recipient: Recipient, attr: str):
             cursor.connection.commit()
         except oracledb.Error as e:
             logging.error("Error updating recipient: %s", e)
-            database.rollback()
+            cursor.rollback()
             raise
 
 def update_message_id(recipient: Recipient):
