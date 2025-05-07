@@ -4,7 +4,11 @@ import time
 import uuid
 import oracledb
 import oracle_database
-import database
+
+
+class RecipientsNotFoundError(Exception):
+    """Raised when no recipients are found for the batch"""
+
 
 class BatchProcessor:
     SENDING_STATUS = "sending"
@@ -28,7 +32,7 @@ class BatchProcessor:
             recipients = oracle_database.get_recipients(self.batch_id)
             if not recipients:
                 logging.error("Failed to fetch recipients.")
-                raise Exception("Failed to fetch recipients.")
+                raise RecipientsNotFoundError("Failed to fetch recipients.")
         except oracledb.Error as e:
             logging.error({"error": str(e)})
 

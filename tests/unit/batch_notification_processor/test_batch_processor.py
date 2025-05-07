@@ -1,4 +1,4 @@
-from batch_processor import BatchProcessor
+from batch_processor import BatchProcessor, RecipientsNotFoundError
 import oracle_database
 from recipient import Recipient
 import pytest
@@ -53,11 +53,12 @@ class TestBatchProcessor:
 
         subject = BatchProcessor(batch_id)
 
-        with pytest.raises(Exception) as exc_info:
+        with pytest.raises(RecipientsNotFoundError) as exc_info:
             subject.get_recipients()
 
         assert str(exc_info.value) == "Failed to fetch recipients."
         assert mock_fetch_recipients.call_count == 1
+
 
     def test_get_routing_plan_id(self, mock_database, mock_oracle_database, batch_id):
         subject = BatchProcessor(batch_id)
