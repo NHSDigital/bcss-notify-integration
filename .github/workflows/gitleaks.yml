@@ -1,0 +1,20 @@
+name: gitleaks
+on:
+  push:
+    branches:
+      - "DTOSS-8357-add-git-leak"
+  pull_request:
+    branches:
+      - "DTOSS-8357-add-git-leak"
+jobs:
+  scan:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses : actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
