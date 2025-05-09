@@ -1,6 +1,5 @@
 import database
 
-
 def record_message_statuses(batch_id: str, json_data: dict):
     response_codes = []
     message_references = [item['message_reference'] for item in json_data['data']]
