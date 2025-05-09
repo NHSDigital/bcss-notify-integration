@@ -2,10 +2,9 @@ name: gitleaks
 on:
   push:
     branches:
-      - "DTOSS-8357-add-git-leak"
+      - "**"
   pull_request:
-    branches:
-      - "DTOSS-8357-add-git-leak"
+    types: [opened, reopened]
 jobs:
   scan:
     name: gitleaks
