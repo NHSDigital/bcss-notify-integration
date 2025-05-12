@@ -22,16 +22,19 @@ def test_connection(mock_oracledb_connect):
     assert conn.closed
 
 @pytest.mark.skip
+# test marked to skip as there is something funny with the python Mock on the oracledb.connect
+# this test is not working as expected- the database.connection() is not erroring
+# this should be looked into
+# DTOSS-8954 has been created to investigate this
 def test_failed_connection_to_db():
     with patch("database.oracledb") as mock_oracledb:
         mock_oracledb.Error = oracledb.Error
         mock_oracledb.connect = Mock(side_effect=oracledb.Error("Something's not right"))
 
-        # with pytest.raises(database.DatabaseConnectionError) as exc_info:
-        with database.connection() as conn:
-            assert conn is not None
+        with pytest.raises(database.DatabaseConnectionError) as exc_info:
+            database.connection()
 
-        # assert str(exc_info.value) == "Failed to connect to the database. Something's not right"
+        assert str(exc_info.value) == "Failed to connect to the database. Something's not right"
 
 @patch("oracledb.connect")
 def test_cursor(mock_oracledb_connect):
