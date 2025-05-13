@@ -2,9 +2,10 @@ from unittest.mock import Mock, patch
 
 import message_status_recorder
 
+import database
 
 @patch("message_status_recorder.update_message_status", return_value=12)
-@patch("message_status_recorder.database.cursor")
+@patch("database.cursor")
 def test_record_message_statuses(mock_cursor, mock_update_message_status):
     batch_id = "batch_id"
     json_data = {
@@ -20,7 +21,7 @@ def test_record_message_statuses(mock_cursor, mock_update_message_status):
     mock_update_message_status.assert_any_call(mock_cursor().__enter__(), batch_id, "message_reference_2")
 
 
-@patch("message_status_recorder.database.cursor")
+@patch("database.cursor")
 def test_update_message_status(mock_cursor):
     mock_cursor_contextmanager = mock_cursor().__enter__()
     mock_var = Mock(getvalue=Mock(return_value=12))

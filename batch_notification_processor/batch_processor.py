@@ -3,23 +3,27 @@ import hashlib
 import time
 import uuid
 import oracledb
-from oracle_database import OracleDatabase, DatabaseFetchError
+import oracle_database
 
+
+class RecipientsNotFoundError(Exception):
+    """Raised when no recipients are found for the batch"""
+
+class RoutingPlanNotFoundError(Exception):
+    """Raised when no routing plan is found for the batch"""
 
 class BatchProcessor:
     SENDING_STATUS = "sending"
 
     def __init__(self, batch_id: str):
         self.batch_id = batch_id
-        self.db = OracleDatabase()
-        self.db.connect()
 
     def get_routing_plan_id(self):
-        routing_plan_id = self.db.get_routing_plan_id(self.batch_id)
+        routing_plan_id = oracle_database.get_routing_plan_id(self.batch_id)
 
         if not routing_plan_id:
             logging.error("Failed to fetch routing plan ID.")
-            raise DatabaseFetchError("Failed to fetch routing plan ID.")
+            raise RoutingPlanNotFoundError("Failed to fetch routing plan ID.")
 
         return routing_plan_id
 
@@ -27,23 +31,23 @@ class BatchProcessor:
         recipients = []
 
         try:
-            recipients = self.db.get_recipients(self.batch_id)
+            recipients = oracle_database.get_recipients(self.batch_id)
             if not recipients:
                 logging.error("Failed to fetch recipients.")
-                raise DatabaseFetchError("Failed to fetch recipients.")
+                raise RecipientsNotFoundError("Failed to fetch recipients.")
         except oracledb.Error as e:
             logging.error({"error": str(e)})
 
         for recipient in recipients:
             recipient.message_id = self.generate_message_reference()
-            self.db.update_message_id(recipient)
+            oracle_database.update_message_id(recipient)
 
         return recipients
 
     def mark_batch_as_sent(self, recipients):
         for recipient in recipients:
             recipient.message_status = self.SENDING_STATUS
-            self.db.update_message_status(recipient)
+            oracle_database.update_message_status(recipient)
 
     @staticmethod
     def generate_message_reference():
