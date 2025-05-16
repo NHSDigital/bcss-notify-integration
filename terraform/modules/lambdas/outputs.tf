@@ -10,3 +10,6 @@ output "message_status_handler_arn" {
   value = aws_lambda_function.message_status_handler.arn
 }
 
+output "message_status_handler_name" {
+  value = aws_lambda_function.message_status_handler.function_name
+}

@@ -53,6 +53,8 @@ module "eventbridge" {
 
   batch_notification_processor_lambda_arn  = module.lambdas.batch_notification_processor_arn
   batch_notification_processor_lambda_name = module.lambdas.batch_notification_processor_name
+  message_status_handler_lambda_arn        = module.lambdas.message_status_handler_arn
+  message_status_handler_lambda_name       = module.lambdas.message_status_handler_name
 }
 
 module "iam" {
