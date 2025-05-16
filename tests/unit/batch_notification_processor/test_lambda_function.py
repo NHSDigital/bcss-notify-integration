@@ -8,8 +8,6 @@ def test_lambda_handler():
     lambda_function.BatchProcessor = mock_batch_processor
     mock_communication_management = Mock()
     lambda_function.CommunicationManagement = mock_communication_management
-    mock_scheduler = Mock()
-    lambda_function.Scheduler = mock_scheduler
     lambda_function.generate_batch_id = Mock(return_value="b3b3b3b3-b3b3-b3b3b3b3-b3b3b3b3b3b3")
 
     recipient = Recipient(("1234567890", "message_reference_0", "requested"))
@@ -35,4 +33,3 @@ def test_lambda_handler():
         [recipient]
     )
     mock_batch_processor.return_value.mark_batch_as_sent.assert_called_once_with([recipient])
-    mock_scheduler.return_value.schedule_status_check.assert_called_once()

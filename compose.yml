@@ -44,13 +44,11 @@ services:
       - DATABASE_SID=FREEPDB1
       - DATABASE_HOST=oracle
       - DATABASE_PORT=1521
-      - SCHEDULER_STUB_URL=http://scheduler-stub:8889/schedule
       - OAUTH_API_KID=${OAUTH_API_KID}
       - OAUTH_API_KEY=${OAUTH_API_KEY}
       - OAUTH_TOKEN_URL=${OAUTH_TOKEN_URL}
       - PRIVATE_KEY=${PRIVATE_KEY}
       - REGION_NAME=${REGION_NAME}
-      - SCHEDULE_STATUS_CHECK_MINUTES=${SCHEDULE_STATUS_CHECK_MINUTES}
     profiles:
       - dev
       - end-to-end
@@ -78,7 +76,6 @@ services:
       - DATABASE_SID=FREEPDB1
       - DATABASE_HOST=oracle
       - DATABASE_PORT=1521
-      - SCHEDULER_STUB_URL=http://scheduler-stub:8889/schedule
       - OAUTH_API_KID=${OAUTH_API_KID}
       - OAUTH_API_KEY=${OAUTH_API_KEY}
       - OAUTH_TOKEN_URL=${OAUTH_TOKEN_URL}
@@ -103,28 +100,6 @@ services:
       - dev
       - end-to-end
 
-  scheduler-stub:
-    container_name: "scheduler-stub"
-    build:
-      context: ./tests/end_to_end/scheduler_stub/
-      additional_contexts:
-        root_dir: .
-      dockerfile: Dockerfile
-    environment:
-      - API_KEY=${API_KEY}
-      - APPLICATION_ID=${APPLICATION_ID}
-      - COMMGT_BASE_URL=http://communication-management-api-stub:8888
-      - DATABASE_USER=mpi_notify_user
-      - DATABASE_PASSWORD=test
-      - DATABASE_SID=FREEPDB1
-      - DATABASE_HOST=oracle
-      - DATABASE_PORT=1521
-      - REGION_NAME=${REGION_NAME}
-    ports:
-      - "8889:8889"
-    profiles:
-      - end-to-end
-
   end-to-end-tests:
     build:
       context: ./tests/end_to_end/runner/
@@ -138,7 +113,7 @@ services:
         condition: service_healthy
       batch-notification-processor-lambda:
         condition: service_started
-      scheduler-stub:
+      message-status-handler-lambda:
         condition: service_started
     network_mode: host
     environment:

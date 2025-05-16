@@ -2,36 +2,34 @@ import comms_management
 import environment
 import json
 import logging
+import batch_fetcher
 import message_status_recorder
 from typing import Dict, Any
 
-environment.seed()
 
-def lambda_handler(event: Dict[str, Any], _context: Any) -> Dict[str, Any]:
-    logging.info("Message status handler started. Event: %s", event)
+
+def lambda_handler(_event: Any, _context: Any) -> Dict[str, Any]:
+    logging.info("Message status handler started.")
+    environment.seed()
+    results = {}
     try:
-        batch_id = event.get("batch_id")
-        messages_with_read_status = comms_management.get_read_messages(batch_id)
+        batch_ids = batch_fetcher.fetch_batch_ids()
+        for batch_id in batch_ids:
+            results[batch_id] = {}
+            logging.info("Processing batch ID: %s", batch_id)
+            messages_with_read_status = comms_management.get_read_messages(batch_id)
+            results[batch_id]["notification_status"] = messages_with_read_status
 
-        logging.info("Messages with read status: %s", messages_with_read_status)
-
-        if len(messages_with_read_status) == 0:
-            return {
-                "statusCode": 200,
-                "body": json.dumps(
-                    {"message": "No messages with read status found."}
-                ),
-            }
-
-        bcss_response_codes = message_status_recorder.record_message_statuses(batch_id, messages_with_read_status)
+            if len(messages_with_read_status) > 0:
+                bcss_responses = message_status_recorder.record_message_statuses(batch_id, messages_with_read_status)
+                results[batch_id]["bcss_response"] = bcss_responses
 
         return {
             "statusCode": 200,
             "body": json.dumps(
                 {
-                    "message": "Message status updates successful",
-                    "data": messages_with_read_status,
-                    "bcss_response": bcss_response_codes,
+                    "message": "Message status handler finished",
+                    "data": results,
                 }
             ),
         }
