@@ -79,6 +79,18 @@ class Helpers:
             )
             cur.connection.commit()
 
+    @staticmethod
+    def mark_batch_as_sent(batch_id):
+        with Helpers.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE notify_message_queue
+                SET message_status = 'sending'
+                WHERE batch_id = :batch_id
+            """,
+                batch_id=batch_id,
+            )
+            cur.connection.commit()
 
 @pytest.fixture
 def helpers():

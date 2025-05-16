@@ -10,6 +10,7 @@ def test_message_status_handler_updates_message_status(batch_id, recipient_data,
     message_references = [r[1] for r in recipient_data]
     helpers.seed_message_queue(batch_id, recipient_data)
     helpers.call_get_next_batch(batch_id)
+    helpers.mark_batch_as_sent(batch_id)
 
     with requests_mock.Mocker() as rm:
         rm.get(
@@ -36,7 +37,7 @@ def test_message_status_handler_updates_message_status(batch_id, recipient_data,
             }
         )
 
-        lambda_function.lambda_handler({"batch_id": batch_id}, {})
+        lambda_function.lambda_handler({}, {})
 
     with helpers.cursor() as cur:
         cur.execute(
