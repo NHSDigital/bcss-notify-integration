@@ -18,3 +18,10 @@ variable "batch_notification_processor_lambda_name" {
   type = string
 }
 
+variable "message_status_handler_lambda_arn" {
+  type = string
+}
+
+variable "message_status_handler_lambda_name" {
+  type = string
+}
