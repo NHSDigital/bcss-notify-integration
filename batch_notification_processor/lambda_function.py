@@ -5,10 +5,6 @@ import logging
 import uuid
 from batch_processor import BatchProcessor
 from communication_management import CommunicationManagement
-from scheduler import Scheduler
-import os
-
-TWELVE_HOURS_IN_MINUTES = 720
 
 
 def generate_batch_id():
@@ -50,11 +46,9 @@ def lambda_handler(event: dict, _context: object) -> dict:
     if response.status_code == 201:
         logging.info("Batch message sent successfully.")
         batch_processor.mark_batch_as_sent(recipients)
-        minutes_from_now = os.getenv("SCHEDULE_STATUS_CHECK_MINUTES", str(TWELVE_HOURS_IN_MINUTES))
-        Scheduler(batch_id).schedule_status_check(int(minutes_from_now))
         return {
             "status": "success",
-            "message": f"Scheduled status check in {minutes_from_now} minutes for batch {batch_id}",
+            "message": f"Batch {batch_id} sent successfully.",
         }
 
     logging.error("Failed to send batch message. Status code: %s", response.status_code)
