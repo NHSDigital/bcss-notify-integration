@@ -60,7 +60,7 @@ jobs:
             --compatible-runtimes python3.13 \
             --region eu-west-2
       - name: Create zip file for Batch Notification Processor function
-        run: cd batch_notification_processor && cp ../shared/*.py . && zip -r code.zip .
+        run: cd batch_notification_processor && cp ../shared/*.py . && zip -r code.zip ./*.py
       - name: Update Batch Notification Processor lambda function code
         run: |
           aws lambda update-function-code \
@@ -68,7 +68,7 @@ jobs:
             --zip-file fileb://batch_notification_processor/code.zip \
             --region eu-west-2
       - name: Create zip file for Message Status Handler function
-        run: cd message_status_handler && cp ../shared/*.py . && zip -r code.zip .
+        run: cd message_status_handler && cp ../shared/*.py . && zip -r code.zip ./*.py
       - name: Update Message Status Handler lambda function code
         run: |
           aws lambda update-function-code \
