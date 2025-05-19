@@ -1,10 +1,14 @@
 """Lambda function to process and send batch notifications via NHS Notify service."""
 
 import environment
-import logging
+import logging as pylogging
+import os
 import uuid
 from batch_processor import BatchProcessor
 from communication_management import CommunicationManagement
+
+logging = pylogging.getLogger()
+logging.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
 
 def generate_batch_id():
@@ -29,7 +33,7 @@ def lambda_handler(event: dict, _context: object) -> dict:
     if not batch_id:
         batch_id = generate_batch_id()
 
-    logging.debug("Batch ID: %s", batch_id)
+    logging.info("Batch ID: %s", batch_id)
 
     # Initialize processors
     batch_processor = BatchProcessor(batch_id)
@@ -37,7 +41,7 @@ def lambda_handler(event: dict, _context: object) -> dict:
     routing_plan_id = batch_processor.get_routing_plan_id()
 
     recipients = batch_processor.get_recipients()
-    logging.info("recipients:\n%s", recipients)
+    logging.info("Processing %s recipients", len(recipients))
 
     response = CommunicationManagement().send_batch_message(
         batch_id, routing_plan_id, recipients
@@ -51,7 +55,12 @@ def lambda_handler(event: dict, _context: object) -> dict:
             "message": f"Batch {batch_id} sent successfully.",
         }
 
-    logging.error("Failed to send batch message. Status code: %s", response.status_code)
+    logging.error(
+        "Failed to send batch message. Status code: %s. Reason: %s",
+        response.status_code,
+        response.text
+    )
+
     return {
         "status": "error",
         "message": f"Failed to send batch message. Status code: {response.status_code}",
