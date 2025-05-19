@@ -1,11 +1,14 @@
 import comms_management
 import environment
 import json
-import logging
+import logging as pylogging
+import os
 import batch_fetcher
 import message_status_recorder
 from typing import Dict, Any
 
+logging = pylogging.getLogger()
+logging.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
 
 def lambda_handler(_event: Any, _context: Any) -> Dict[str, Any]:
