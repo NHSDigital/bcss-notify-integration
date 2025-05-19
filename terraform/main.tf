@@ -53,6 +53,8 @@ module "eventbridge" {
 
   batch_notification_processor_lambda_arn  = module.lambdas.batch_notification_processor_arn
   batch_notification_processor_lambda_name = module.lambdas.batch_notification_processor_name
+  message_status_handler_lambda_arn        = module.lambdas.message_status_handler_arn
+  message_status_handler_lambda_name       = module.lambdas.message_status_handler_name
 }
 
 module "iam" {
@@ -61,13 +63,10 @@ module "iam" {
   project                    = var.project
   environment                = var.environment
   kms_arn                    = var.kms_arn
-  scheduler_arn              = var.scheduler_arn
   secrets_arn                = var.secrets_arn
   sqs_queue_arn              = module.sqs.sqs_queue_arn
   notification_s3_bucket_arn = module.s3.bucket_arn
   tags                       = var.tags
-
-  message_status_handler_lambda_arn = module.lambdas.message_status_handler_arn
 }
 
 module "network" {

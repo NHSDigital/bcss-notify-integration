@@ -1,10 +1,13 @@
 import logging
 import requests
+import time
 
 
 def test_batch_processor_schedules_message_status_handler(batch_id, helpers, recipient_data):
     helpers.seed_message_queue(batch_id, recipient_data)
-    trigger_batch_notifications(batch_id)
+    trigger_batch_notifications(batch_id) # IRL this is a scheduled lambda function call at 0800hrs and 0900hrs.
+    time.sleep(2)  # IRL this is a scheduled lambda function call around 2300hrs.
+    trigger_message_status_updates()
     with helpers.cursor() as cursor:
         cursor.execute(
             "SELECT nhs_number FROM v_notify_message_queue WHERE batch_id = :batch_id AND message_status = 'read'",
@@ -18,4 +21,9 @@ def test_batch_processor_schedules_message_status_handler(batch_id, helpers, rec
 
 def trigger_batch_notifications(batch_id):
     response = requests.post("http://localhost:9000/2015-03-31/functions/function/invocations", json={"batch_id": batch_id})
+    logging.info("Response: %s", response.json())
+
+
+def trigger_message_status_updates():
+    response = requests.post("http://localhost:9001/2015-03-31/functions/function/invocations", json={})
     logging.info("Response: %s", response.json())
