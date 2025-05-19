@@ -35,7 +35,7 @@ class CommunicationManagement:
             "authorization": f"Bearer {access_token.get_token()}"
         }
 
-        url = f"{self.base_url}/api/message/batch"
+        url = f"{self.base_url}/message/batch"
 
         response = requests.post(
             url,

@@ -14,7 +14,7 @@ def test_message_status_handler_updates_message_status(batch_id, recipient_data,
 
     with requests_mock.Mocker() as rm:
         rm.get(
-            f"{os.getenv('COMMGT_BASE_URL')}/api/statuses",
+            f"{os.getenv('COMMGT_BASE_URL')}/statuses",
             status_code=201,
             json={
                 'status': 'success',

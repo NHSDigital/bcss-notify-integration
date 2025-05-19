@@ -12,7 +12,7 @@ dotenv.load_dotenv()
 request_cache = {}
 
 
-@app.route('/api/message/batch', methods=['POST'])
+@app.route('/message/batch', methods=['POST'])
 def message_batches():
     json_data = default_response_data() | request.json
     batch_reference = json_data["data"]["attributes"]["messageBatchReference"]
@@ -40,7 +40,7 @@ def message_batches():
     }), 201
 
 
-@app.route('/api/statuses', methods=['GET'])
+@app.route('/statuses', methods=['GET'])
 def statuses():
     batch_reference = request.args.get("batchReference")
     status = request.args.get("supplierStatus")
