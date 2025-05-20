@@ -23,11 +23,15 @@ def next_batch() -> tuple:
     try:
         batch_id = generate_reference("bcss_notify_batch_id")
         routing_plan_id = get_routing_plan_id(batch_id)
+        recipients = None
 
-        return batch_id, routing_plan_id
+        if routing_plan_id:
+            recipients = get_recipients(batch_id)
+
+        return batch_id, routing_plan_id, recipients
     except oracledb.Error as e:
         logging.error("Error fetching next batch: %s", e)
-        return None, None
+        return None, None, None
 
 
 def get_routing_plan_id(batch_id) -> str | None:

@@ -27,16 +27,18 @@ def recipients():
 
 
 @patch("batch_processor.oracle_database")
-def test_next_batch(mock_oracle_database, batch_id, plan_id):
+def test_next_batch(mock_oracle_database, recipients, batch_id, plan_id):
     mock_oracle_database.get_routing_plan_id.return_value = plan_id
+    mock_oracle_database.get_recipients.return_value = recipients
     with patch("batch_processor.generate_reference") as mock_generate_reference:
         mock_generate_reference.return_value = batch_id
 
         result = batch_processor.next_batch()
 
-    assert result == (batch_id, plan_id)
+    assert result == (batch_id, plan_id, recipients)
     assert mock_oracle_database.get_routing_plan_id.call_count == 1
-    assert mock_generate_reference.call_count == 1
+    assert mock_oracle_database.get_recipients.call_count == 1
+    assert mock_generate_reference.call_count == 3
 
 
 @patch("batch_processor.oracle_database")
@@ -47,8 +49,9 @@ def test_next_batch_no_plan_id(mock_oracle_database, batch_id):
 
         result = batch_processor.next_batch()
 
-    assert result == (batch_id, None)
+    assert result == (batch_id, None, None)
     assert mock_oracle_database.get_routing_plan_id.call_count == 1
+    assert mock_oracle_database.get_recipients.call_count == 0
     assert mock_generate_reference.call_count == 1
 
 
