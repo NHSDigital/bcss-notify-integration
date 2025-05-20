@@ -29,7 +29,7 @@ def lambda_handler(_event: dict, _context: object) -> dict:
         )
 
         if response.status_code == 201:
-            batch_processor.mark_batch_as_sent(recipients)
+            batch_processor.mark_batch_as_sent(batch_id)
             batches.append(batch_id)
             logging.info("Batch %s sent successfully to %s recipients.", batch_id, len(recipients))
         else:

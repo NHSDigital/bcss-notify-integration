@@ -37,4 +37,4 @@ def test_lambda_handler():
         routing_plan_id_1,
         recipients
     )
-    mock_batch_processor.mark_batch_as_sent.assert_called_once_with(recipients)
+    mock_batch_processor.mark_batch_as_sent.assert_called_once_with(batch_id_1)

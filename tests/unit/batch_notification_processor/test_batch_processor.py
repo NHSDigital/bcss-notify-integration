@@ -108,18 +108,12 @@ def test_null_routing_plan_id(mock_oracle_database, batch_id):
 
 
 @patch("batch_processor.oracle_database")
-def test_mark_batch_as_sent(mock_oracle_database, recipients):
-    mock_update_message_status = mock_oracle_database.update_message_status
+def test_mark_batch_as_sent(mock_oracle_database, batch_id):
+    mock_mark_batch_as_sent = mock_oracle_database.mark_batch_as_sent
 
-    batch_processor.mark_batch_as_sent(recipients)
+    batch_processor.mark_batch_as_sent(batch_id)
 
-    assert mock_update_message_status.call_count == 2
-    assert recipients[0].message_status == "sending"
-    assert recipients[1].message_status == "sending"
-    assert mock_update_message_status.call_args_list == [
-        ((recipients[0],),),
-        ((recipients[1],),),
-    ]
+    mock_mark_batch_as_sent.assert_called_once_with(batch_id)
 
 
 def test_generate_message_reference():

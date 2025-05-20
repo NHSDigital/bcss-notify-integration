@@ -89,3 +89,30 @@ def test_update_message_status(mock_database):
         {'message_status': recipient.message_status, 'nhs_number': recipient.nhs_number}
     )
     mock_cursor.connection.commit.assert_called_once()
+
+
+@patch("oracle_database.database", autospec=True)
+def test_mark_batch_as_sent(mock_database):
+    batch_id = '1234'
+
+    mock_cursor = mock_database.cursor().__enter__()
+
+    oracle_database.mark_batch_as_sent(batch_id)
+
+    mock_cursor.callfunc.assert_called_with(
+        "PKG_NOTIFY_WRAP.f_update_message_status",
+        oracledb.NUMBER,
+        [batch_id, None, "sending"]
+    )
+    mock_cursor.connection.commit.assert_called_once()
+
+
+@patch("oracle_database.database", autospec=True)
+def test_mark_batch_as_sent_rollback(mock_database):
+    mock_cursor = mock_database.cursor().__enter__()
+    mock_cursor.callfunc.side_effect = oracledb.Error("Database error")
+
+    with pytest.raises(oracledb.Error):
+        oracle_database.mark_batch_as_sent("1234")
+
+    mock_cursor.connection.rollback.assert_called_once()

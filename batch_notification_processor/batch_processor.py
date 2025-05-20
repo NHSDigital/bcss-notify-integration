@@ -10,9 +10,6 @@ class RecipientsNotFoundError(Exception):
     """Raised when no recipients are found for the batch"""
 
 
-SENDING_STATUS = "sending"
-
-
 def next_batch() -> tuple:
     """
     Fetch the next batch ID and routing plan ID.
@@ -34,7 +31,7 @@ def next_batch() -> tuple:
         return None, None, None
 
 
-def get_routing_plan_id(batch_id) -> str | None:
+def get_routing_plan_id(batch_id):
     return oracle_database.get_routing_plan_id(batch_id)
 
 
@@ -56,10 +53,8 @@ def get_recipients(batch_id):
     return recipients
 
 
-def mark_batch_as_sent(recipients):
-    for recipient in recipients:
-        recipient.message_status = SENDING_STATUS
-        oracle_database.update_message_status(recipient)
+def mark_batch_as_sent(batch_id):
+    oracle_database.mark_batch_as_sent(batch_id)
 
 
 def generate_message_reference() -> str:
