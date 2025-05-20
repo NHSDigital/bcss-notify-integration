@@ -48,21 +48,17 @@ def mark_batch_as_sent(batch_id: str):
             raise
 
 
-def update_recipient(recipient: Recipient, attr: str):
-    attr = attr.lower()
-    if attr not in ["message_id", "message_status"]:
-        raise ValueError(f"Invalid attribute for Recipient update: {attr}")
-
+def update_message_id(recipient: Recipient):
     with database.cursor() as cursor:
         try:
             cursor.execute(
                 (
                     "UPDATE v_notify_message_queue "
-                    f"SET {attr} = :{attr} "
+                    "SET message_id = :message_id "
                     "WHERE nhs_number = :nhs_number"
                 ),
                 {
-                    attr: getattr(recipient, attr),
+                    "message_id": recipient.message_id,
                     "nhs_number": recipient.nhs_number
                 },
             )
@@ -71,9 +67,3 @@ def update_recipient(recipient: Recipient, attr: str):
             logging.error("Error updating recipient: %s", e)
             cursor.rollback()
             raise
-
-def update_message_id(recipient: Recipient):
-    update_recipient(recipient, "message_id")
-
-def update_message_status(recipient: Recipient):
-    update_recipient(recipient, "message_status")
