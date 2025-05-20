@@ -10,14 +10,27 @@ class RecipientsNotFoundError(Exception):
     """Raised when no recipients are found for the batch"""
 
 
-class RoutingPlanNotFoundError(Exception):
-    """Raised when no routing plan is found for the batch"""
-
-
 SENDING_STATUS = "sending"
 
 
-def get_routing_plan_id(batch_id):
+def next_batch() -> tuple:
+    """
+    Fetch the next batch ID and routing plan ID.
+
+    Returns:
+        tuple: A tuple containing the batch ID and routing plan ID.
+    """
+    try:
+        batch_id = generate_reference("bcss_notify_batch_id")
+        routing_plan_id = get_routing_plan_id(batch_id)
+
+        return batch_id, routing_plan_id
+    except oracledb.Error as e:
+        logging.error("Error fetching next batch: %s", e)
+        return None, None
+
+
+def get_routing_plan_id(batch_id) -> str | None:
     return oracle_database.get_routing_plan_id(batch_id)
 
 
@@ -27,10 +40,10 @@ def get_recipients(batch_id):
     try:
         recipients = oracle_database.get_recipients(batch_id)
         if not recipients:
-            logging.error("Failed to fetch recipients.")
+            logging.error("No recipients for batch ID: %s", batch_id)
             raise RecipientsNotFoundError("Failed to fetch recipients.")
     except oracledb.Error as e:
-        logging.error({"error": str(e)})
+        logging.error("Error fetching recipients: %s", e)
 
     for recipient in recipients:
         recipient.message_id = generate_message_reference()
@@ -45,6 +58,10 @@ def mark_batch_as_sent(recipients):
         oracle_database.update_message_status(recipient)
 
 
-def generate_message_reference():
-    str_val = str(time.time())
+def generate_message_reference() -> str:
+    return generate_reference("bcss_notify_message_reference")
+
+
+def generate_reference(prefix = "") -> str:
+    str_val = f"{prefix}:{time.time()}"
     return str(uuid.UUID(hashlib.md5(str_val.encode()).hexdigest()))
