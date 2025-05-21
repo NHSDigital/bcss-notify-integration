@@ -19,7 +19,7 @@ class TestCommunicationManagement:
 
         with requests_mock.Mocker() as rm:
             adapter = rm.post(
-                "http://example.com/api/message/batch",
+                "http://example.com/message/batch",
                 status_code=201,
                 json={"data": {"id": "batch_id"}},
             )
@@ -32,7 +32,7 @@ class TestCommunicationManagement:
                     Recipient(("1111111111", "message_reference_1", "requested")),
                 ]
             )
-            assert adapter.last_request.url == "http://example.com/api/message/batch"
+            assert adapter.last_request.url == "http://example.com/message/batch"
             assert adapter.last_request.headers["x-api-key"] == "api_key"
             assert adapter.last_request.headers["authorization"] == "Bearer access_token"
             assert adapter.last_request.json() == {

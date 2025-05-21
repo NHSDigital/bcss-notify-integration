@@ -25,7 +25,7 @@ def test_batch_notification_processor_updates_message_queue(
 
     with requests_mock.Mocker() as rm:
         rm.post(
-            f"{os.getenv('COMMGT_BASE_URL')}/api/message/batch",
+            f"{os.getenv('COMMGT_BASE_URL')}/message/batch",
             status_code=201,
             json={"data": {"id": "batch_id"}},
         )
@@ -55,7 +55,7 @@ def test_batch_notification_processor_payload(
 
     with requests_mock.Mocker() as rm:
         adapter = rm.post(
-            f"{os.getenv('COMMGT_BASE_URL')}/api/message/batch",
+            f"{os.getenv('COMMGT_BASE_URL')}/message/batch",
             status_code=201,
             json={"data": {"id": "batch_id"}},
         )

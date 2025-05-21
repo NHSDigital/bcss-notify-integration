@@ -7,7 +7,7 @@ def test_get_read_messages(monkeypatch):
 
     with requests_mock.Mocker() as rm:
         adapter = rm.get(
-            "http://example.com/api/statuses",
+            "http://example.com/statuses",
             status_code=201,
             json={
                 'status': 'success',
@@ -46,7 +46,7 @@ def test_get_read_messages_no_data(monkeypatch):
 
     with requests_mock.Mocker() as rm:
         rm.get(
-            "http://example.com/api/statuses",
+            "http://example.com/statuses",
             status_code=201,
             json={
                 'status': 'success',
@@ -65,7 +65,7 @@ def test_get_read_messages_exception(monkeypatch):
 
     with requests_mock.Mocker() as rm:
         rm.get(
-            "http://example.com/api/statuses",
+            "http://example.com/statuses",
             status_code=500,
             json={
                 'status': 'error',
