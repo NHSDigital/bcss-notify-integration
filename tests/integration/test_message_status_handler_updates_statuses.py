@@ -1,12 +1,15 @@
 import dotenv
 import os
 import requests_mock
+import uuid
 
 dotenv.load_dotenv(".env.test")
 
 import scheduled_lambda_function as lambda_function
 
-def test_message_status_handler_updates_message_status(batch_id, recipient_data, helpers):
+def test_message_status_handler_updates_message_status(recipient_data, helpers):
+    """Test that the message status handler updates the message statuses correctly."""
+    batch_id = str(uuid.uuid4())
     message_references = [r[1] for r in recipient_data]
     helpers.seed_message_queue(batch_id, recipient_data)
     helpers.call_get_next_batch(batch_id)

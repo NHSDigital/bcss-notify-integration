@@ -18,7 +18,7 @@ def next_batch() -> tuple:
         tuple: A tuple containing the batch ID and routing plan ID.
     """
     try:
-        batch_id = generate_reference("bcss_notify_batch_id")
+        batch_id = generate_batch_id()
         routing_plan_id = get_routing_plan_id(batch_id)
         recipients = None
 
@@ -42,7 +42,6 @@ def get_recipients(batch_id):
         recipients = oracle_database.get_recipients(batch_id)
         if not recipients:
             logging.error("No recipients for batch ID: %s", batch_id)
-            raise RecipientsNotFoundError("Failed to fetch recipients.")
     except oracledb.Error as e:
         logging.error("Error fetching recipients: %s", e)
 
@@ -55,6 +54,10 @@ def get_recipients(batch_id):
 
 def mark_batch_as_sent(batch_id):
     oracle_database.mark_batch_as_sent(batch_id)
+
+
+def generate_batch_id() -> str:
+    return generate_reference("bcss_notify_batch_id")
 
 
 def generate_message_reference() -> str:

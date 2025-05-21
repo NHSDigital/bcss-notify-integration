@@ -19,8 +19,12 @@ def lambda_handler(_event: Any, _context: Any) -> Dict[str, Any]:
         batch_ids = batch_fetcher.fetch_batch_ids()
         for batch_id in batch_ids:
             results[batch_id] = {}
-            logging.info("Processing batch ID: %s", batch_id)
             messages_with_read_status = comms_management.get_read_messages(batch_id)
+            logging.info(
+                "Processing %s messages with read status for batch_id: %s", 
+                len(messages_with_read_status),
+                batch_id
+            )
             results[batch_id]["notification_status"] = messages_with_read_status
 
             if len(messages_with_read_status) > 0:

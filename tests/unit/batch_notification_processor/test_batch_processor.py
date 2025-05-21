@@ -1,6 +1,5 @@
 import batch_processor
 from batch_processor import RecipientsNotFoundError
-import oracle_database
 from recipient import Recipient
 import pytest
 import re
@@ -77,12 +76,10 @@ def test_get_recipients(mock_oracle_database, recipients, batch_id):
 @patch("batch_processor.oracle_database")
 def test_null_recipients(mock_oracle_database, batch_id):
     mock_fetch_recipients = mock_oracle_database.get_recipients
-    mock_fetch_recipients.return_value = None
+    mock_fetch_recipients.return_value = []
 
-    with pytest.raises(RecipientsNotFoundError) as exc_info:
-        batch_processor.get_recipients(batch_id)
+    assert batch_processor.get_recipients(batch_id) == []
 
-    assert str(exc_info.value) == "Failed to fetch recipients."
     assert mock_fetch_recipients.call_count == 1
 
 
