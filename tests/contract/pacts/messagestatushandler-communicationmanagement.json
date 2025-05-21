@@ -1,0 +1,52 @@
+{
+  "consumer": {
+    "name": "MessageStatusHandler"
+  },
+  "provider": {
+    "name": "CommunicationManagement"
+  },
+  "interactions": [
+    {
+      "description": "A request to get read messages",
+      "providerState": "There are read messages",
+      "request": {
+        "method": "GET",
+        "path": "/api/statuses"
+      },
+      "response": {
+        "status": 201,
+        "headers": {
+        },
+        "body": {
+          "status": "success",
+          "response": "message_batch_post_response",
+          "data": [
+            {
+              "channel": "nhsapp",
+              "channelStatus": "delivered",
+              "supplierStatus": "read",
+              "id": "2HL3qFTEFM0qMY8xjRbt1LIKCzM",
+              "message_reference": "1642109b-69eb-447f-8f97-ab70a74f5db4",
+              "messageReference": "da0b1495-c7cb-468c-9d81-07dee089d728"
+            }
+          ]
+        },
+        "matchingRules": {
+          "$.body.data[0].id": {
+            "match": "regex",
+            "regex": "[0-9a-zA-Z\\-]{27}"
+          },
+          "$.body.data[0].messageReference": {
+            "match": "regex",
+            "regex": "[0-9a-zA-Z\\-]{36}"
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}
