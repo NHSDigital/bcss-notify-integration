@@ -2,7 +2,9 @@ import environment
 import json
 import os
 import pytest
+import requests
 import requests_mock
+from unittest.mock import Mock, patch
 
 
 @pytest.fixture(autouse=True)
@@ -40,7 +42,7 @@ def test_seed(monkeypatch, mock_secrets_response):
     monkeypatch.setenv("SECRET_ARN", "test_secret_arn")
 
     with requests_mock.Mocker() as m:
-        m.get("http://localhost:2773/secretsmanager/get?secretId=test_secret_arn", text=mock_secrets_response)
+        m.get("http://localhost:2773/secretsmanager/get?secretId=test_secret_arn&versionStage=AWSCURRENT", text=mock_secrets_response)
 
         environment.seed()
 
@@ -53,7 +55,7 @@ def test_seed_no_secret_arn(monkeypatch, mock_secrets_response):
     monkeypatch.setenv("DATABASE_USER", "test_database_user")
 
     with requests_mock.Mocker() as m:
-        m.get("http://localhost:2773/secretsmanager/get?secretId=test_secret_arn", text=mock_secrets_response)
+        m.get("http://localhost:2773/secretsmanager/get?secretId=test_secret_arn&versionStage=AWSCURRENT", text=mock_secrets_response)
 
         environment.seed()
 
@@ -70,7 +72,7 @@ def test_seed_already_seeded(monkeypatch, mock_secrets_response):
     monkeypatch.setenv("ENVIRONMENT_SEEDED", "true")
 
     with requests_mock.Mocker() as m:
-        adapter = m.get("http://localhost:2773/secretsmanager/get?secretId=test_secret_arn", text=mock_secrets_response)
+        adapter = m.get("http://localhost:2773/secretsmanager/get?secretId=test_secret_arn&versionStage=AWSCURRENT", text=mock_secrets_response)
 
         environment.seed()
 
