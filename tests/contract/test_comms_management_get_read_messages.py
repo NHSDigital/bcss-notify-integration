@@ -30,12 +30,12 @@ def test_get_read_messages(get_statuses_pact, monkeypatch):
                 }]
             }
 
-    endpoint = "/api/statuses"
+    endpoint = "/statuses"
     uri = get_statuses_pact.uri + endpoint
 
     (get_statuses_pact.given("There are read messages")
      .upon_receiving("A request to get read messages")
-     .with_request("GET", "/api/statuses")
+     .with_request("GET", "/statuses")
      .will_respond_with(201, body=expected_response))
 
     with get_statuses_pact:

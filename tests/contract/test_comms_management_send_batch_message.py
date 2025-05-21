@@ -41,12 +41,12 @@ def test_send_batch_message(send_batch_pact, monkeypatch):
                 },
             }
 
-    endpoint = "/api/message/batch"
+    endpoint = "/message/batch"
     uri = send_batch_pact.uri + endpoint
 
     (send_batch_pact.given("There are messages to send")
         .upon_receiving("A request to send a batch message")
-        .with_request("POST", "/api/message/batch")
+        .with_request("POST", "/message/batch")
         .will_respond_with(201, body=expected_reponse))
 
     with send_batch_pact:

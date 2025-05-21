@@ -11,7 +11,7 @@
       "providerState": "There are messages to send",
       "request": {
         "method": "POST",
-        "path": "/api/message/batch"
+        "path": "/message/batch"
       },
       "response": {
         "status": 201,
