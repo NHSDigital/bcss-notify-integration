@@ -23,8 +23,8 @@ def test_send_batch_message(send_batch_pact, monkeypatch):
                 "data": {
                     "type": "MessageBatch",
                     "attributes": {
-                        "routingPlanId": "routing_config_id",
-                        "messageBatchReference": "batch_id",
+                        "routingPlanId": Term(r"[0-9a-zA-Z\-]{27}", "2HL3qFTEFM0qMY8xjRbt1LIKCzM"),
+                        "messageReference": Term(r"[0-9a-zA-Z\-]{36}", "da0b1495-c7cb-468c-9d81-07dee089d728"),
                         "messages": [
                             {
                                 "recipient": {"nhsNumber": "0000000000"},
@@ -51,9 +51,9 @@ def test_send_batch_message(send_batch_pact, monkeypatch):
 
     with send_batch_pact:
         response = comms_management.send_batch_message(
-            "batch_id",
-            "routing_config_id",
-            [
+            batch_id="123456789",
+            routing_config_id="987654321",
+            recipients=[
                 Recipient(("0000000000", "message_reference_0", "requested")),
                 Recipient(("1111111111", "message_reference_1", "requested")),
             ]
