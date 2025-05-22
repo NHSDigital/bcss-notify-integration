@@ -21,8 +21,13 @@
           "data": {
             "type": "MessageBatch",
             "attributes": {
-              "routingPlanId": "2HL3qFTEFM0qMY8xjRbt1LIKCzM",
-              "messageReference": "da0b1495-c7cb-468c-9d81-07dee089d728",
+              "routingPlan": {
+                "id": "2HL3qFTEFM0qMY8xjRbt1LIKCzM",
+                "name": "Test Routing Plan",
+                "version": "ztoe2qRAM8M8vS0bqajhyEBcvXacrGPp",
+                "createdDate": "2023-11-17T14:30:00.000Z"
+              },
+              "messageBatchReference": "da0b1495-c7cb-468c-9d81-07dee089d728",
               "messages": [
                 {
                   "recipient": {
@@ -45,11 +50,23 @@
           }
         },
         "matchingRules": {
-          "$.body.data.attributes.routingPlanId": {
+          "$.body.data.attributes.routingPlan.id": {
             "match": "regex",
             "regex": "[0-9a-zA-Z\\-]{27}"
           },
-          "$.body.data.attributes.messageReference": {
+          "$.body.data.attributes.routingPlan.name": {
+            "match": "regex",
+            "regex": "[0-9a-zA-Z\\- ]+"
+          },
+          "$.body.data.attributes.routingPlan.version": {
+            "match": "regex",
+            "regex": "[0-9a-zA-Z]+"
+          },
+          "$.body.data.attributes.routingPlan.createdDate": {
+            "match": "regex",
+            "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z"
+          },
+          "$.body.data.attributes.messageBatchReference": {
             "match": "regex",
             "regex": "[0-9a-zA-Z\\-]{36}"
           }
