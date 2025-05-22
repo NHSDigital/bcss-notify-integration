@@ -1,17 +1,20 @@
 from contextlib import contextmanager
 import dotenv
 import json
+import logging
 import pytest
 import oracledb
 import os
-from unittest.mock import Mock
 
 dotenv.load_dotenv(".env.test")
 
 
 @pytest.fixture
-def batch_id():
-    return "d3f31ae4-1532-46df-b121-3503db6b32d6"
+def routing_plan_ids():
+    return [
+        "e43a7d31-a287-485e-b1c2-f53cebbefba3",
+        "b22575a8-84fc-40f7-960c-d57975dae039"
+    ]
 
 
 @pytest.fixture
@@ -48,14 +51,15 @@ class Helpers:
             conn.close()
 
     @staticmethod
-    def seed_message_queue(batch_id, recipient_data):
+    def seed_message_queue(batch_id, recipient_data, message_definition_id=1):
         with Helpers.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO notify_message_batch (batch_id, message_definition_id, batch_status)
-                VALUES (:batch_id, 1, 'new')
-            """,
+                INSERT INTO notify_message_batch (batch_id, message_definition_id) 
+                VALUES (:batch_id, :message_definition_id)
+                """,
                 batch_id=batch_id,
+                message_definition_id=message_definition_id,
             )
             for recipient in recipient_data:
                 cur.execute(
@@ -63,10 +67,11 @@ class Helpers:
                     INSERT INTO notify_message_queue (
                         nhs_number, message_id, event_status_id, message_definition_id, message_status,
                         subject_id, event_id, pio_id
-                    ) VALUES (:nhs_number, :message_reference, 11197, 1, 'new', 1, 1, 1)
+                    ) VALUES (:nhs_number, :message_reference, 11197, :message_definition_id, 'new', 1, 1, 1)
                     """,
                     nhs_number=recipient[0],
                     message_reference=recipient[1],
+                    message_definition_id=message_definition_id,
                 )
 
             cur.connection.commit()
@@ -82,15 +87,13 @@ class Helpers:
     @staticmethod
     def mark_batch_as_sent(batch_id):
         with Helpers.cursor() as cur:
-            cur.execute(
-                """
-                UPDATE notify_message_queue
-                SET message_status = 'sending'
-                WHERE batch_id = :batch_id
-            """,
-                batch_id=batch_id,
+            cur.callfunc(
+                "PKG_NOTIFY_WRAP.f_update_message_status",
+                oracledb.NUMBER,
+                [batch_id, None, "sending"]
             )
             cur.connection.commit()
+
 
 @pytest.fixture
 def helpers():
@@ -103,3 +106,4 @@ def reset_db(helpers):
         cur.execute("TRUNCATE TABLE notify_message_queue")
         cur.execute("TRUNCATE TABLE notify_message_batch")
         cur.connection.commit()
+        logging.info("Database reset complete.")

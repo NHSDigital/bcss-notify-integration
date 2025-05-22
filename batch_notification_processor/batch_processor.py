@@ -9,47 +9,61 @@ import oracle_database
 class RecipientsNotFoundError(Exception):
     """Raised when no recipients are found for the batch"""
 
-class RoutingPlanNotFoundError(Exception):
-    """Raised when no routing plan is found for the batch"""
 
-class BatchProcessor:
-    SENDING_STATUS = "sending"
+def next_batch() -> tuple:
+    """
+    Fetch the next batch ID and routing plan ID.
 
-    def __init__(self, batch_id: str):
-        self.batch_id = batch_id
+    Returns:
+        tuple: A tuple containing the batch ID and routing plan ID.
+    """
+    try:
+        batch_id = generate_batch_id()
+        routing_plan_id = get_routing_plan_id(batch_id)
+        recipients = None
 
-    def get_routing_plan_id(self):
-        routing_plan_id = oracle_database.get_routing_plan_id(self.batch_id)
+        if routing_plan_id:
+            recipients = get_recipients(batch_id)
 
-        if not routing_plan_id:
-            logging.error("Failed to fetch routing plan ID.")
-            raise RoutingPlanNotFoundError("Failed to fetch routing plan ID.")
+        return batch_id, routing_plan_id, recipients
+    except oracledb.Error as e:
+        logging.error("Error fetching next batch: %s", e)
+        return None, None, None
 
-        return routing_plan_id
 
-    def get_recipients(self):
-        recipients = []
+def get_routing_plan_id(batch_id):
+    return oracle_database.get_routing_plan_id(batch_id)
 
-        try:
-            recipients = oracle_database.get_recipients(self.batch_id)
-            if not recipients:
-                logging.error("Failed to fetch recipients.")
-                raise RecipientsNotFoundError("Failed to fetch recipients.")
-        except oracledb.Error as e:
-            logging.error({"error": str(e)})
 
-        for recipient in recipients:
-            recipient.message_id = self.generate_message_reference()
-            oracle_database.update_message_id(recipient)
+def get_recipients(batch_id):
+    recipients = []
 
-        return recipients
+    try:
+        recipients = oracle_database.get_recipients(batch_id)
+        if not recipients:
+            logging.error("No recipients for batch ID: %s", batch_id)
+    except oracledb.Error as e:
+        logging.error("Error fetching recipients: %s", e)
 
-    def mark_batch_as_sent(self, recipients):
-        for recipient in recipients:
-            recipient.message_status = self.SENDING_STATUS
-            oracle_database.update_message_status(recipient)
+    for recipient in recipients:
+        recipient.message_id = generate_message_reference()
+        oracle_database.update_message_id(recipient)
 
-    @staticmethod
-    def generate_message_reference():
-        str_val = str(time.time())
-        return str(uuid.UUID(hashlib.md5(str_val.encode()).hexdigest()))
+    return recipients
+
+
+def mark_batch_as_sent(batch_id):
+    oracle_database.mark_batch_as_sent(batch_id)
+
+
+def generate_batch_id() -> str:
+    return generate_reference("bcss_notify_batch_id")
+
+
+def generate_message_reference() -> str:
+    return generate_reference("bcss_notify_message_reference")
+
+
+def generate_reference(prefix = "") -> str:
+    str_val = f"{prefix}:{time.time()}"
+    return str(uuid.UUID(hashlib.md5(str_val.encode()).hexdigest()))

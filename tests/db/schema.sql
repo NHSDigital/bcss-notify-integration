@@ -11,8 +11,8 @@ COMMIT;
 CREATE TABLE notify_message_queue (
   nhs_number            VARCHAR2 (10) NOT NULL,
   event_status_id       NUMBER (38),
-  batch_id              VARCHAR2 (36),
-  message_id            VARCHAR2 (36),
+  batch_id              VARCHAR2 (38),
+  message_id            VARCHAR2 (38),
   message_definition_id NUMBER (38) NOT NULL,
   message_status        VARCHAR2 (25) NOT NULL,
   subject_id            NUMBER (38),
@@ -37,7 +37,7 @@ NOCOMPRESS;
 
 CREATE TABLE notify_message_definition (
   message_definition_id         NUMBER (38) NOT NULL,
-  routing_plan_id               VARCHAR2 (36) NOT NULL,
+  routing_plan_id               VARCHAR2 (38) NOT NULL,
   event_status_id               NUMBER (38) NOT NULL,
   message_code                  VARCHAR2 (12) NOT NULL,
   message_name                  VARCHAR2 (100) NOT NULL,
@@ -62,9 +62,9 @@ TABLESPACE MPI_NOTIFY_USER
 NOCOMPRESS;
 
 CREATE TABLE notify_message_batch (
-  batch_id              VARCHAR2 (36) NOT NULL,
+  batch_id              VARCHAR2 (38) NOT NULL,
   message_definition_id	NUMBER (38) NOT NULL,
-  batch_status          VARCHAR2 (25) NOT NULL
+  datestamp             TIMESTAMP (6) DEFAULT SYSTIMESTAMP NOT NULL
 )
 RESULT_CACHE (MODE DEFAULT)
 TABLESPACE MPI_NOTIFY_USER
@@ -98,22 +98,58 @@ END pkg_notify_wrap;
 
 CREATE OR REPLACE PACKAGE BODY MPI_NOTIFY_USER.pkg_notify_wrap AS
   FUNCTION f_get_next_batch (pi_batch_id IN notify_message_batch.batch_id%TYPE)
-    RETURN notify_message_definition.routing_plan_id%TYPE IS
-    v_routing_plan_id notify_message_definition.routing_plan_id%TYPE;
-    c_function_name  CONSTANT VARCHAR2 (35) := 'PKG_NOTIFY.f_get_next_batch';
-  BEGIN
-    SELECT  nmd.routing_plan_id
-    INTO    v_routing_plan_id
-    FROM    notify_message_definition nmd
-    WHERE   nmd.message_definition_id = 1;
+		RETURN notify_message_definition.routing_plan_id%TYPE IS
+		v_message_definition_id    notify_message_queue.message_definition_id%TYPE;
+		v_routing_plan_id          notify_message_definition.routing_plan_id%TYPE;
+		c_function_name            CONSTANT VARCHAR2 (35) := 'PKG_NOTIFY.f_get_next_batch';
 
-    UPDATE  notify_message_queue nmq
-    SET     nmq.batch_id      = pi_batch_id,
-            nmq.message_status = 'requested'
-    WHERE   nmq.message_status = 'new'
-    AND     nmq.message_definition_id = 1;
-    RETURN  v_routing_plan_id;
-  END f_get_next_batch;
+	BEGIN
+    IF pi_batch_id IS NULL
+    THEN
+      v_routing_plan_id := NULL;
+    ELSE
+       BEGIN
+          SELECT nmq.message_definition_id,
+                 nmd.routing_plan_id
+          INTO v_message_definition_id,
+               v_routing_plan_id
+          FROM notify_message_queue nmq
+          INNER JOIN notify_message_definition nmd ON nmd.message_definition_id = nmq.message_definition_id
+          WHERE nmq.message_status = 'new'
+          ORDER BY nmq.created_datestamp ASC
+          FETCH FIRST 1 ROW ONLY;
+       EXCEPTION
+          WHEN NO_DATA_FOUND
+          THEN
+             v_message_definition_id := NULL;
+             v_routing_plan_id := NULL;
+       END;
+
+       IF v_message_definition_id IS NOT NULL
+       THEN
+          BEGIN
+             INSERT INTO notify_message_batch (
+                batch_id,
+                message_definition_id,
+                datestamp
+             )
+             VALUES (
+                pi_batch_id,
+                v_message_definition_id,
+                SYSTIMESTAMP
+             );
+
+             UPDATE notify_message_queue nmq
+             SET nmq.batch_id		      = pi_batch_id,
+                 nmq.message_status   = 'requested'
+             WHERE nmq.message_status = 'new'
+             AND nmq.message_definition_id = v_message_definition_id;
+          END;
+       END IF;
+		END IF;
+
+		RETURN v_routing_plan_id;
+	END f_get_next_batch;
 
   FUNCTION f_update_message_status (
     pi_batch_id         IN notify_message_queue.batch_id%TYPE,
@@ -121,13 +157,21 @@ CREATE OR REPLACE PACKAGE BODY MPI_NOTIFY_USER.pkg_notify_wrap AS
     pi_message_status   IN notify_message_queue.message_status%TYPE
   )
     RETURN message_types.message_type_id%TYPE IS
-    v_error_id            message_types.message_type_id%TYPE := 0;
+    v_error_id  message_types.message_type_id%TYPE := 0;
   BEGIN
-    UPDATE  notify_message_queue nmq
-    SET     nmq.message_status = pi_message_status,
-            nmq.read_datestamp = SYSTIMESTAMP
-    WHERE   nmq.batch_id = pi_batch_id
-    AND     nmq.message_id = pi_message_id;
+    IF pi_message_id IS NULL
+    THEN
+      UPDATE notify_message_queue nmq
+      SET    nmq.message_status = pi_message_status,
+             nmq.read_datestamp = SYSTIMESTAMP
+      WHERE  nmq.batch_id = pi_batch_id;
+    ELSE
+      UPDATE  notify_message_queue nmq
+      SET     nmq.message_status = pi_message_status,
+              nmq.read_datestamp = SYSTIMESTAMP
+      WHERE     nmq.batch_id = pi_batch_id
+      AND       nmq.message_id = pi_message_id;
+    END IF;
     RETURN  v_error_id;
   END f_update_message_status;
 END pkg_notify_wrap;
@@ -157,10 +201,10 @@ AS
 
 
 INSERT INTO MPI_NOTIFY_USER.notify_message_definition (message_definition_id, routing_plan_id, event_status_id, message_code, message_name, parameter_id, end_date, audit_reason, prevalent_incident_status_id, gp_practice_endorsement, subject_had_cancer_previously, variable_text_1) VALUES (
-1, 'c3f31ae4-1532-46df-b121-3503db6b32d6', 11197, 'S1a', 'Pre-invitation: incident subjects with no previous cancer diagnosis', 212, NULL, 'BCSS-18672', 203151, NULL, 'N', 'We offer screening every 2 years to try and find signs of bowel cancer at an early stage when there are no symptoms. This is when treatment can be more effective.');
+1, 'e43a7d31-a287-485e-b1c2-f53cebbefba3', 11197, 'S1a', 'Pre-invitation: incident subjects with no previous cancer diagnosis', 212, NULL, 'BCSS-18672', 203151, NULL, 'N', 'We offer screening every 2 years to try and find signs of bowel cancer at an early stage when there are no symptoms. This is when treatment can be more effective.');
 
 INSERT INTO MPI_NOTIFY_USER.notify_message_definition (message_definition_id, routing_plan_id, event_status_id, message_code, message_name, parameter_id, end_date, audit_reason, prevalent_incident_status_id, gp_practice_endorsement, subject_had_cancer_previously, variable_text_1) VALUES (
-2, 'c3f31ae4-1532-46df-b121-3503db6b32d6', 11197, 'S1b', 'Pre-invitation: incident subjects with previous cancer diagnosis', 212, NULL, 'BCSS-18672', 203151, NULL, 'Y', 'Routine screening may not be suitable if you are having ongoing care or treatment for a bowel condition, following a previous referral. You can contact us for advice.');
+2, 'b22575a8-84fc-40f7-960c-d57975dae039', 11197, 'S1b', 'Pre-invitation: incident subjects with previous cancer diagnosis', 212, NULL, 'BCSS-18672', 203151, NULL, 'Y', 'Routine screening may not be suitable if you are having ongoing care or treatment for a bowel condition, following a previous referral. You can contact us for advice.');
 
 
 COMMIT;
