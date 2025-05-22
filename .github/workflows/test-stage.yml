@@ -40,6 +40,23 @@ jobs:
       - name: "run unit testing:"
         run: |
           ./test-unit.sh
+  contract-tests:
+    name: "Contract tests"
+    needs: set-up-dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "Install dependencies"
+        run: |
+          pip install pipenv
+          pipenv install --dev --system
+
+      - name: "Run contract tests"
+        run: |
+          ./test-contract.sh
   integration-tests:
     name: "Integration tests"
     needs: set-up-dependencies

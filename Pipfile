@@ -38,6 +38,7 @@ dotenv = "*"
 pytest-mock = "*"
 jsonschema = "*"
 pylint = "==3.3.4"
+pact-python = "*"
 
 [requires]
 python_version = "3.13"

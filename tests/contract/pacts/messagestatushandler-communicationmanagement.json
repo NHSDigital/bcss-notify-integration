@@ -1,0 +1,82 @@
+{
+  "consumer": {
+    "name": "MessageStatusHandler"
+  },
+  "provider": {
+    "name": "CommunicationManagement"
+  },
+  "interactions": [
+    {
+      "description": "A request to send a batch message",
+      "providerState": "There are messages to send",
+      "request": {
+        "method": "POST",
+        "path": "/message/batch"
+      },
+      "response": {
+        "status": 201,
+        "headers": {
+        },
+        "body": {
+          "data": {
+            "type": "MessageBatch",
+            "attributes": {
+              "routingPlan": {
+                "id": "2HL3qFTEFM0qMY8xjRbt1LIKCzM",
+                "name": "Test Routing Plan",
+                "version": "ztoe2qRAM8M8vS0bqajhyEBcvXacrGPp",
+                "createdDate": "2023-11-17T14:30:00.000Z"
+              },
+              "messageBatchReference": "da0b1495-c7cb-468c-9d81-07dee089d728",
+              "messages": [
+                {
+                  "recipient": {
+                    "nhsNumber": "0000000000"
+                  },
+                  "messageReference": "message_reference_0",
+                  "personalisation": {
+                  }
+                },
+                {
+                  "recipient": {
+                    "nhsNumber": "1111111111"
+                  },
+                  "messageReference": "message_reference_1",
+                  "personalisation": {
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "matchingRules": {
+          "$.body.data.attributes.routingPlan.id": {
+            "match": "regex",
+            "regex": "[0-9a-zA-Z\\-]{27}"
+          },
+          "$.body.data.attributes.routingPlan.name": {
+            "match": "regex",
+            "regex": "[0-9a-zA-Z\\- ]+"
+          },
+          "$.body.data.attributes.routingPlan.version": {
+            "match": "regex",
+            "regex": "[0-9a-zA-Z]+"
+          },
+          "$.body.data.attributes.routingPlan.createdDate": {
+            "match": "regex",
+            "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z"
+          },
+          "$.body.data.attributes.messageBatchReference": {
+            "match": "regex",
+            "regex": "[0-9a-zA-Z\\-]{36}"
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}
